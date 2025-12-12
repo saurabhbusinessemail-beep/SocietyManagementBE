@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { User, Otp, Role } = require('../models');
+const { User, Otp, Role, Menu, RoleMenu } = require('../models');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret123';
 
@@ -73,10 +73,7 @@ exports.verifyOtp = async (req, res) => {
         userId: user._id.toString(),
         name: user.name,
         phoneNumber: user.phoneNumber,
-        role: user.role,
-        societyId: user.societyId,
-        buildingId: user.buildingId,
-        flatId: user.flatId
+        role: user.role
       },
       JWT_SECRET,
       { expiresIn: '7d' }
@@ -114,6 +111,7 @@ exports.getProfile = async (req, res) => {
     // FETCH ALL PERMISSIONS BASED ON USER ROLES
     // -----------------------------------------------------
     let allPermissions = [];
+    let allMenus = [];
 
     if (user.role) {
       const role = await Role.findOne({ name: user.role });
@@ -121,6 +119,8 @@ exports.getProfile = async (req, res) => {
       if (role.permissions && Array.isArray(role.permissions)) {
         allPermissions.push(...role.permissions);
       }
+
+      allMenus = await getRoleMenu(role.name);
     }
 
     // Merge + remove duplicates
@@ -129,7 +129,8 @@ exports.getProfile = async (req, res) => {
     return res.json({
       success: true,
       user: user,
-      permissions: allPermissions
+      permissions: allPermissions,
+      menus: allMenus
     });
   } catch (err) {
     console.error(err);
@@ -140,3 +141,44 @@ exports.getProfile = async (req, res) => {
     return res.status(401).json({ message: 'Invalid token' });
   }
 };
+
+async function getRoleMenu(role) {
+  const roleMenu = await RoleMenu.findOne({ role });
+  if (!roleMenu) {
+    return [];
+  }
+
+  const allowedMenuIds = roleMenu.menus.map((m) => m.menuId);
+
+  // For submenu filtering
+  const allowedSubmenuMap = {};
+  roleMenu.menus.forEach((m) => {
+    allowedSubmenuMap[m.menuId] = new Set(m.submenus);
+  });
+
+  // 2️⃣ Fetch menu definitions
+  const menus = await Menu.find({ menuId: { $in: allowedMenuIds } });
+  let mergedPermissions = new Set(); // to avoid duplicates
+
+  const filteredMenus = menus.map((menu) => {
+    const allowedSubmenuIds = allowedSubmenuMap[menu.menuId] || new Set();
+
+    const filteredSubmenus = menu.submenus.filter((sm) => {
+      const ok = allowedSubmenuIds.has(sm.submenuId);
+      if (ok && sm.permissions?.length) {
+        sm.permissions.forEach((p) => mergedPermissions.add(p));
+      }
+      return ok;
+    });
+
+    return {
+      menuId: menu.menuId,
+      menuName: menu.menuName,
+      icon: menu.icon,
+      relativePath: menu.relativePath,
+      submenus: filteredSubmenus
+    };
+  });
+
+  return filteredMenus;
+}

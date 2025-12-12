@@ -16,6 +16,7 @@ const Otp = require('./otp.model');
 const Permissions = require('./permission.model');
 const Features = require('./feature.model');
 const Menu = require('./menu.model');
+const RoleMenu = require('./roleMenu.model');
 
 module.exports = {
   User,
@@ -34,5 +35,6 @@ module.exports = {
   Otp,
   Permissions,
   Features,
-  Menu
+  Menu,
+  RoleMenu
 };
