@@ -150,35 +150,85 @@ async function getRoleMenu(role) {
 
   const allowedMenuIds = roleMenu.menus.map((m) => m.menuId);
 
-  // For submenu filtering
-  const allowedSubmenuMap = {};
-  roleMenu.menus.forEach((m) => {
-    allowedSubmenuMap[m.menuId] = new Set(m.submenus);
-  });
+  // Fetch menu definitions
+  const menusFromDb = await Menu.find({ menuId: { $in: allowedMenuIds } });
+  const menuDefMap = {};
+  menusFromDb.forEach(m => { menuDefMap[m.menuId] = m; });
 
-  // 2️⃣ Fetch menu definitions
-  const menus = await Menu.find({ menuId: { $in: allowedMenuIds } });
-  let mergedPermissions = new Set(); // to avoid duplicates
+  const finalMenus = [];
+  let mergedPermissions = new Set();
 
-  const filteredMenus = menus.map((menu) => {
-    const allowedSubmenuIds = allowedSubmenuMap[menu.menuId] || new Set();
+  for (const rmMenu of roleMenu.menus) {
+    const menuId = rmMenu.menuId;
+    const menuDef = menuDefMap[menuId];
+    if (!menuDef) continue; // skip if not found
 
-    const filteredSubmenus = menu.submenus.filter((sm) => {
-      const ok = allowedSubmenuIds.has(sm.submenuId);
-      if (ok && sm.permissions?.length) {
-        sm.permissions.forEach((p) => mergedPermissions.add(p));
-      }
-      return ok;
-    });
+    // Build submenu permission + sortOrder maps
+    const allowedSubmenuIds = new Set();
+    const submenuSortMap = {};
 
-    return {
-      menuId: menu.menuId,
-      menuName: menu.menuName,
-      icon: menu.icon,
-      relativePath: menu.relativePath,
+    if (Array.isArray(rmMenu.submenus)) {
+      rmMenu.submenus.forEach(sm => {
+        if (typeof sm === "string") {
+          allowedSubmenuIds.add(sm);
+        } else if (sm && sm.id) {
+          allowedSubmenuIds.add(sm.id);
+          if (typeof sm.sortOrder === "number") {
+            submenuSortMap[sm.id] = sm.sortOrder;
+          }
+        }
+      });
+    }
+
+    // Filter submenu definitions from Menu model
+    const filteredSubmenus = (menuDef.submenus || [])
+      .filter(sm => allowedSubmenuIds.has(sm.submenuId))
+      .map(sm => {
+        if (sm.permissions?.length) {
+          sm.permissions.forEach(p => mergedPermissions.add(p));
+        }
+
+        return {
+          submenuId: sm.submenuId,
+          submenuName: sm.submenuName,
+          icon: sm.icon,
+          relativePath: sm.relativePath,
+          permissions: sm.permissions,
+          sortOrder: (submenuSortMap[sm.submenuId] ?? sm.sortOrder ?? 9999)
+        };
+      })
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+
+    // Determine menu sortOrder (roleMenus is authoritative)
+    const menuSort = (typeof rmMenu.sortOrder === "number")
+      ? rmMenu.sortOrder
+      : (menuDef.sortOrder ?? 9999);
+
+    // Determine menu relativePath
+    let finalRelativePath = menuDef.relativePath;
+
+    // NEW RULE:
+    // If menu has no relativePath AND has submenus → use first submenu’s relativePath
+    if ((!finalRelativePath || finalRelativePath.trim() === "") &&
+        filteredSubmenus.length > 0) {
+      finalRelativePath = filteredSubmenus[0].relativePath;
+    }
+
+    finalMenus.push({
+      menuId: menuDef.menuId,
+      menuName: menuDef.menuName,
+      sortOrder: menuSort,
+      icon: menuDef.icon,
+      relativePath: finalRelativePath,
       submenus: filteredSubmenus
-    };
-  });
+    });
+  }
 
-  return filteredMenus;
+  // Sort menus by final sortOrder
+  finalMenus.sort((a, b) => a.sortOrder - b.sortOrder);
+
+  return finalMenus;
 }
+
+
+
