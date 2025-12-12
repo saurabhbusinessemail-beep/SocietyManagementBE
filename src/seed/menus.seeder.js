@@ -12,35 +12,35 @@ const menus = [
     menuId: "dashboard_admin",
     menuName: "Dashboard",
     icon: "dashboard",
-    relativePath: "/admin/dashboard",
+    relativePath: "/dashboard/admin",
     submenus: []
   },
   {
     menuId: "dashboard_manager",
     menuName: "Dashboard",
     icon: "dashboard",
-    relativePath: "/manager/dashboard",
+    relativePath: "/dashboard/manager",
     submenus: []
   },
   {
     menuId: "dashboard_owner",
     menuName: "Dashboard",
     icon: "dashboard",
-    relativePath: "/owner/dashboard",
+    relativePath: "/dashboard/owner",
     submenus: []
   },
   {
     menuId: "dashboard_tenant",
     menuName: "Dashboard",
     icon: "dashboard",
-    relativePath: "/tenant/dashboard",
+    relativePath: "/dashboard/tenant",
     submenus: []
   },
   {
     menuId: "dashboard_security",
     menuName: "Dashboard",
     icon: "dashboard",
-    relativePath: "/security/dashboard",
+    relativePath: "/dashboard/security",
     submenus: []
   },
 
@@ -48,7 +48,7 @@ const menus = [
   {
     menuId: "society",
     menuName: "Societies",
-    icon: "apartment",
+    icon: "society-icon",
     relativePath: "",
     submenus: [
       { submenuId: "society_list", submenuName: "Society List", relativePath: "/society/list", permissions: ["society.view"] },
