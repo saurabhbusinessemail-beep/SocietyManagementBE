@@ -1,3 +1,5 @@
+import * as UserService from '../services/user.service';
+
 const jwt = require('jsonwebtoken');
 const { User, Otp, Role, Menu, RoleMenu } = require('../models');
 
@@ -16,9 +18,13 @@ exports.requestOtp = async (req, res) => {
     const user = await User.findOne({ phoneNumber });
 
     if (!user) {
-      return res
-        .status(404)
-        .json({ message: 'User not found with this phoneNumber' });
+      const newUser = {
+        phoneNumber
+      }
+      await UserService.newUser(newUser);
+      // return res
+      //   .status(404)
+      //   .json({ message: 'User not found with this phoneNumber' });
     }
 
     // Generate random 6 digit OTP
