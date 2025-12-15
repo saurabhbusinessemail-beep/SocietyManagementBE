@@ -12,7 +12,7 @@ import {
   genericErrorHandler,
   notFound
 } from './middlewares/error.middleware';
-import logger, { logStream } from './config/logger';
+// import logger, { logStream } from './config/logger';
 
 import morgan from 'morgan';
 
@@ -30,7 +30,7 @@ app.use(cors({
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(morgan('combined', { stream: logStream }));
+// app.use(morgan('combined', { stream: logStream }));
 
 database();
 
@@ -40,7 +40,7 @@ app.use(genericErrorHandler);
 app.use(notFound);
 
 app.listen(port, () => {
-  logger.info(`Server started at ${host}:${port}/api/${api_version}/`);
+  console.log(`Server started at ${host}:${port}/api/${api_version}/`);
 });
 
 export default app;
