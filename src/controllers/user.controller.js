@@ -95,3 +95,22 @@ export const deleteUser = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Controller to search a user
+ * @param  {object} req - request object
+ * @param {object} res - response object
+ * @param {Function} next
+ */
+export const searchUser = async (req, res, next) => {
+  try {
+    const users = await UserService.searchUsers(req.params._searchText);
+    res.status(HttpStatus.OK).json({
+      success: true,
+      data: users,
+      message: ''
+    });
+  } catch (error) {
+    next(error);
+  }
+};

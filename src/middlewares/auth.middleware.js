@@ -1,6 +1,8 @@
 import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 
+const JWT_SECRET = process.env.JWT_SECRET || 'skSecret';
+
 /**
  * Middleware to authenticate if user has a valid Authorization token
  * Authorization: Bearer <token>
@@ -9,21 +11,44 @@ import jwt from 'jsonwebtoken';
  * @param {Object} res
  * @param {Function} next
  */
-export const userAuth = async (req, res, next) => {
+export const userAuth = (req, res, next) => {
   try {
-    let bearerToken = req.header('Authorization');
-    if (!bearerToken)
-      throw {
-        code: HttpStatus.BAD_REQUEST,
-        message: 'Authorization token is required'
-      };
-    bearerToken = bearerToken.split(' ')[1];
+    const authHeader = req.headers.authorization;
 
-    const { user } = await jwt.verify(bearerToken, 'your-secret-key');
-    res.locals.user = user;
+    if (!authHeader) {
+      return res.status(HttpStatus.UNAUTHORIZED).json({
+        success: false,
+        message: 'Authorization header missing'
+      });
+    }
+
+    if (!authHeader.startsWith('Bearer ')) {
+      return res.status(HttpStatus.UNAUTHORIZED).json({
+        success: false,
+        message: 'Authorization format must be Bearer <token>'
+      });
+    }
+
+    const bearerToken = authHeader.slice(7).trim(); // safer than split
+
+    if (!bearerToken) {
+      return res.status(HttpStatus.UNAUTHORIZED).json({
+        success: false,
+        message: 'JWT token missing'
+      });
+    }
+
+    const decoded = jwt.verify(bearerToken, JWT_SECRET);
+
+    res.locals.user = decoded;
     res.locals.token = bearerToken;
+
     next();
   } catch (error) {
-    next(error);
+    return res.status(HttpStatus.UNAUTHORIZED).json({
+      success: false,
+      message:
+        error.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token'
+    });
   }
 };

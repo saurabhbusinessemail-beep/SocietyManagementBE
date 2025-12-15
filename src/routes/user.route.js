@@ -6,18 +6,21 @@ import { userAuth } from '../middlewares/auth.middleware';
 const router = express.Router();
 
 //route to get all users
-router.get('', userController.getAllUsers);
+router.get('', userAuth, userController.getAllUsers);
 
 //route to create a new user
-router.post('', newUserValidator, userController.newUser);
+router.post('', userAuth, newUserValidator, userController.newUser);
 
 //route to get a single user by their user id
 router.get('/:_id', userAuth, userController.getUser);
 
 //route to update a single user by their user id
-router.put('/:_id', userController.updateUser);
+router.put('/:_id', userAuth, userController.updateUser);
 
 //route to delete a single user by their user id
-router.delete('/:_id', userController.deleteUser);
+router.delete('/:_id', userAuth, userController.deleteUser);
+
+//route to search users by their name, phone or email
+router.get('/search/:_searchText', userAuth, userController.searchUser);
 
 export default router;

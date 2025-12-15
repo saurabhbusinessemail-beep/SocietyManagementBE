@@ -1,6 +1,8 @@
 const express = require("express");
-const router = express.Router();
+import { userAuth } from '../middlewares/auth.middleware';
 const authController = require("../controllers/auth.controller");
+
+const router = express.Router();
 
 // Step 1 → Request OTP
 router.post("/request-otp", authController.requestOtp);
@@ -9,6 +11,6 @@ router.post("/request-otp", authController.requestOtp);
 router.post("/verify-otp", authController.verifyOtp);
 
 // Get profile using token
-router.get("/me", authController.getProfile);
+router.get("/me", userAuth, authController.getProfile);
 
-module.exports = router;
+export default router;

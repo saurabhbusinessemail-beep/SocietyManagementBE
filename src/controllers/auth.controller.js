@@ -3,10 +3,10 @@ import * as UserService from '../services/user.service';
 const jwt = require('jsonwebtoken');
 const { User, Otp, Role, Menu, RoleMenu } = require('../models');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecret123';
+const JWT_SECRET = process.env.JWT_SECRET || 'skSecret';
 
 // STEP 1: Generate OTP
-exports.requestOtp = async (req, res) => {
+export const requestOtp = async (req, res) => {
   try {
     const { phoneNumber } = req.body;
 
@@ -46,7 +46,7 @@ exports.requestOtp = async (req, res) => {
 };
 
 // STEP 2: Verify OTP + generate JWT token
-exports.verifyOtp = async (req, res) => {
+export const verifyOtp = async (req, res) => {
   try {
     const { phoneNumber, otp } = req.body;
 
@@ -97,18 +97,11 @@ exports.verifyOtp = async (req, res) => {
 };
 
 // ME API: Get user details from JWT token
-exports.getProfile = async (req, res) => {
+export const getProfile = async (req, res) => {
   try {
-    const token = req.headers['authorization'];
-
-    if (!token) {
-      return res.status(401).json({ message: 'Token missing' });
-    }
-
-    const decoded = jwt.verify(token, JWT_SECRET);
 
     // Fetch user
-    const user = await User.findById(decoded.userId).lean();
+    const user = await User.findById(res.locals.user.userId).lean();
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -148,7 +141,7 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-async function getRoleMenu(role) {
+const getRoleMenu = async (role) => {
   const roleMenu = await RoleMenu.findOne({ role });
   if (!roleMenu) {
     return [];
