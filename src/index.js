@@ -22,7 +22,7 @@ const port = process.env.APP_PORT;
 const api_version = process.env.API_VERSION;
 
 app.use(cors({
-  origin: 'http://localhost:4200',
+  origin: '*',
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
