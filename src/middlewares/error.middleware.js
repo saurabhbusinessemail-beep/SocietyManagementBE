@@ -1,6 +1,6 @@
 import HttpStatus from 'http-status-codes';
 
-import logger from '../config/logger';
+// import logger from '../config/logger';
 
 /**
  * Error response middleware for 404 not found.
@@ -26,7 +26,7 @@ export function notFound(req, res) {
 // eslint-disable-next-line no-unused-vars
 export function appErrorHandler(err, req, res, next) {
   if (err.code && typeof err.code === 'number') {
-    logger.error(`
+    console.error(`
       status - ${err.code}
       message - ${err.message} 
       url - ${req.originalUrl} 
@@ -52,7 +52,7 @@ export function appErrorHandler(err, req, res, next) {
  */
 // eslint-disable-next-line no-unused-vars
 export function genericErrorHandler(err, req, res, next) {
-  logger.error(`
+  console.error(`
     status - ${HttpStatus.INTERNAL_SERVER_ERROR} 
     message - ${err.stack} 
     url - ${req.originalUrl} 

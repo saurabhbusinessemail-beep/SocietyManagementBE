@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import logger from './logger';
+// import logger from './logger';
 const seedRoles = require("../seed/role.seeder");
 const seedPermissions = require("../seed/permission.seeder");
 const seedFeatures = require("../seed/feature.seeder");
@@ -20,7 +20,7 @@ const database = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
-    logger.info('Connected to the database.');
+    console.info('Connected to the database.');
 
     // Add Seed Values
     await seedRoles();
@@ -30,7 +30,7 @@ const database = async () => {
     await seedRoleMenu();
 
   } catch (error) {
-    logger.error('Could not connect to the database.', error);
+    console.error('Could not connect to the database.', error);
   }
 };
 export default database;
