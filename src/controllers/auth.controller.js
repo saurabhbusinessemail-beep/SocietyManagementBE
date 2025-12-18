@@ -20,7 +20,7 @@ export const requestOtp = async (req, res) => {
     if (!user) {
       const newUser = {
         phoneNumber
-      }
+      };
       await UserService.newUser(newUser);
       // return res
       //   .status(404)
@@ -99,7 +99,6 @@ export const verifyOtp = async (req, res) => {
 // ME API: Get user details from JWT token
 export const getProfile = async (req, res) => {
   try {
-
     // Fetch user
     const user = await User.findById(res.locals.user.userId).lean();
     if (!user) {
@@ -141,6 +140,23 @@ export const getProfile = async (req, res) => {
   }
 };
 
+// ME API: Get user details from JWT token
+export const getAllRoleMenus = async (req, res) => {
+  try {
+    const roles = await Role.find();
+    let obj = {};
+    for(let role of roles) {
+      const roleMenu = await getRoleMenu(role.name);
+      obj[role.name] = roleMenu;
+    }
+    res.json(obj);
+  } catch (err) {
+    console.error(err);
+
+    return res.status(401).json({ message: 'Failed' });
+  }
+};
+
 const getRoleMenu = async (role) => {
   const roleMenu = await RoleMenu.findOne({ role });
   if (!roleMenu) {
@@ -167,12 +183,12 @@ const getRoleMenu = async (role) => {
     const submenuSortMap = {};
 
     if (Array.isArray(rmMenu.submenus)) {
-      rmMenu.submenus.forEach(sm => {
-        if (typeof sm === "string") {
+      rmMenu.submenus.forEach((sm) => {
+        if (typeof sm === 'string') {
           allowedSubmenuIds.add(sm);
         } else if (sm && sm.id) {
           allowedSubmenuIds.add(sm.id);
-          if (typeof sm.sortOrder === "number") {
+          if (typeof sm.sortOrder === 'number') {
             submenuSortMap[sm.id] = sm.sortOrder;
           }
         }
@@ -181,10 +197,10 @@ const getRoleMenu = async (role) => {
 
     // Filter submenu definitions from Menu model
     const filteredSubmenus = (menuDef.submenus || [])
-      .filter(sm => allowedSubmenuIds.has(sm.submenuId))
-      .map(sm => {
+      .filter((sm) => allowedSubmenuIds.has(sm.submenuId))
+      .map((sm) => {
         if (sm.permissions?.length) {
-          sm.permissions.forEach(p => mergedPermissions.add(p));
+          sm.permissions.forEach((p) => mergedPermissions.add(p));
         }
 
         return {
@@ -193,23 +209,26 @@ const getRoleMenu = async (role) => {
           icon: sm.icon,
           relativePath: sm.relativePath,
           permissions: sm.permissions,
-          sortOrder: (submenuSortMap[sm.submenuId] ?? sm.sortOrder ?? 9999)
+          sortOrder: submenuSortMap[sm.submenuId] ?? sm.sortOrder ?? 9999
         };
       })
       .sort((a, b) => a.sortOrder - b.sortOrder);
 
     // Determine menu sortOrder (roleMenus is authoritative)
-    const menuSort = (typeof rmMenu.sortOrder === "number")
-      ? rmMenu.sortOrder
-      : (menuDef.sortOrder ?? 9999);
+    const menuSort =
+      typeof rmMenu.sortOrder === 'number'
+        ? rmMenu.sortOrder
+        : menuDef.sortOrder ?? 9999;
 
     // Determine menu relativePath
     let finalRelativePath = menuDef.relativePath;
 
     // NEW RULE:
     // If menu has no relativePath AND has submenus → use first submenu’s relativePath
-    if ((!finalRelativePath || finalRelativePath.trim() === "") &&
-        filteredSubmenus.length > 0) {
+    if (
+      (!finalRelativePath || finalRelativePath.trim() === '') &&
+      filteredSubmenus.length > 0
+    ) {
       finalRelativePath = filteredSubmenus[0].relativePath;
     }
 
@@ -227,7 +246,4 @@ const getRoleMenu = async (role) => {
   finalMenus.sort((a, b) => a.sortOrder - b.sortOrder);
 
   return finalMenus;
-}
-
-
-
+};

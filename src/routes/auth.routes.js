@@ -13,4 +13,7 @@ router.post("/verify-otp", authController.verifyOtp);
 // Get profile using token
 router.get("/me", userAuth, authController.getProfile);
 
+
+router.get("/getAllRoleMenus", authController.getAllRoleMenus);
+
 export default router;
