@@ -75,3 +75,16 @@ export const searchSocieties = async (req, res, next) => {
     next(err);
   }
 };
+
+export const updateSocietySecretaries = async (req, res, next) => {
+  try {
+    const { secreataryIds } = req.body;
+    const data = await societyService.updateSocietySecretaries(
+      req.params.id,
+      secreataryIds
+    );
+    res.success(data);
+  } catch (err) {
+    next(err);
+  }
+};

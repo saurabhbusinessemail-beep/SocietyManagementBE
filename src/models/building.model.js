@@ -9,7 +9,8 @@ const BuildingSchema = new mongoose.Schema({
   // optional map of floor -> flats
   // floorMap: { type: mongoose.Schema.Types.Mixed },
 
-  secreataryId: { type: String }
+  secreataryId: { type: String },
+  flatIds: [{ type: String }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Building', BuildingSchema);

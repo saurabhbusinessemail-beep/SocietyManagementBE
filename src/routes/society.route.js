@@ -4,13 +4,14 @@ import { userAuth } from '../middlewares/auth.middleware';
 
 const router = express.Router();
 
-// router.use(auth);
+router.use(userAuth);
 
-router.get('/', userAuth, societyController.getAllSocieties);
-router.get('/search', userAuth, societyController.searchSocieties);
-router.get('/:id', userAuth, societyController.getSociety);
-router.post('/', userAuth, societyController.newSociety);
-router.put('/:id', userAuth, societyController.updateSociety);
-router.delete('/:id', userAuth, societyController.deleteSociety);
+router.get('/', societyController.getAllSocieties);
+router.get('/search', societyController.searchSocieties);
+router.get('/:id', societyController.getSociety);
+router.post('/', societyController.newSociety);
+router.put('/:id', societyController.updateSociety);
+router.put('/:id/secretaries', updateSocietySecretaries);
+router.delete('/:id', societyController.deleteSociety);
 
 export default router;
