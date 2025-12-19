@@ -18,12 +18,12 @@ const SocietySchema = new mongoose.Schema(
 
     // governance / contact
     adminContact: { type: String },
-    contactEmail: { type: String },
 
     // settings or preferences for the society
     settings: { type: mongoose.Schema.Types.Mixed },
 
     // lists of related ids kept as strings
+    secreataryIds: [{ type: String }],
     buildingIds: [{ type: String }],
     flatIds: [{ type: String }]
   },

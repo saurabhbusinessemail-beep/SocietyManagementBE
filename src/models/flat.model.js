@@ -2,14 +2,13 @@ const mongoose = require('mongoose');
 
 const FlatSchema = new mongoose.Schema({
   flatNumber: { type: String, required: true }, // e.g. 'A-101'
-  buildingId: { type: String, required: true },
+  buildingId: { type: String },
   societyId: { type: String },
+  flatType: { type: String, enum: ['1BHK', '2BHK', '3BHK', '4BHK', '5BHK', '6BHK'] },
   floor: { type: Number },
-  wing: { type: String },
-  areaSqFt: { type: Number },
 
   // status: owner / rented / vacant
-  status: { type: String, enum: ['Self', 'Tenant', 'Vacant'], default: 'Self' },
+  residingType: { type: String, enum: ['Self', 'Tenant', 'Vacant'], default: 'Self' },
 
   // owner and members stored as string ids
   ownerId: { type: String },
