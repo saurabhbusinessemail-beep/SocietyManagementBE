@@ -1,7 +1,8 @@
 import * as UserService from '../services/user.service';
 
 const jwt = require('jsonwebtoken');
-const { User, Otp, Role, Menu, RoleMenu } = require('../models');
+const { User, Otp, Role } = require('../models');
+const { getRoleMenu } = require('../services/user.service');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'skSecret';
 
@@ -145,7 +146,7 @@ export const getAllRoleMenus = async (req, res) => {
   try {
     const roles = await Role.find();
     let obj = {};
-    for(let role of roles) {
+    for (let role of roles) {
       const roleMenu = await getRoleMenu(role.name);
       obj[role.name] = roleMenu;
     }
@@ -155,95 +156,4 @@ export const getAllRoleMenus = async (req, res) => {
 
     return res.status(401).json({ message: 'Failed' });
   }
-};
-
-const getRoleMenu = async (role) => {
-  const roleMenu = await RoleMenu.findOne({ role });
-  if (!roleMenu) {
-    return [];
-  }
-
-  const allowedMenuIds = roleMenu.menus.map((m) => m.menuId);
-
-  // Fetch menu definitions
-  const menusFromDb = await Menu.find({ menuId: { $in: allowedMenuIds } });
-  const menuDefMap = {};
-  menusFromDb.forEach(m => { menuDefMap[m.menuId] = m; });
-
-  const finalMenus = [];
-  let mergedPermissions = new Set();
-
-  for (const rmMenu of roleMenu.menus) {
-    const menuId = rmMenu.menuId;
-    const menuDef = menuDefMap[menuId];
-    if (!menuDef) continue; // skip if not found
-
-    // Build submenu permission + sortOrder maps
-    const allowedSubmenuIds = new Set();
-    const submenuSortMap = {};
-
-    if (Array.isArray(rmMenu.submenus)) {
-      rmMenu.submenus.forEach((sm) => {
-        if (typeof sm === 'string') {
-          allowedSubmenuIds.add(sm);
-        } else if (sm && sm.id) {
-          allowedSubmenuIds.add(sm.id);
-          if (typeof sm.sortOrder === 'number') {
-            submenuSortMap[sm.id] = sm.sortOrder;
-          }
-        }
-      });
-    }
-
-    // Filter submenu definitions from Menu model
-    const filteredSubmenus = (menuDef.submenus || [])
-      .filter((sm) => allowedSubmenuIds.has(sm.submenuId))
-      .map((sm) => {
-        if (sm.permissions?.length) {
-          sm.permissions.forEach((p) => mergedPermissions.add(p));
-        }
-
-        return {
-          submenuId: sm.submenuId,
-          submenuName: sm.submenuName,
-          icon: sm.icon,
-          relativePath: sm.relativePath,
-          permissions: sm.permissions,
-          sortOrder: submenuSortMap[sm.submenuId] ?? sm.sortOrder ?? 9999
-        };
-      })
-      .sort((a, b) => a.sortOrder - b.sortOrder);
-
-    // Determine menu sortOrder (roleMenus is authoritative)
-    const menuSort =
-      typeof rmMenu.sortOrder === 'number'
-        ? rmMenu.sortOrder
-        : menuDef.sortOrder ?? 9999;
-
-    // Determine menu relativePath
-    let finalRelativePath = menuDef.relativePath;
-
-    // NEW RULE:
-    // If menu has no relativePath AND has submenus → use first submenu’s relativePath
-    if (
-      (!finalRelativePath || finalRelativePath.trim() === '') &&
-      filteredSubmenus.length > 0
-    ) {
-      finalRelativePath = filteredSubmenus[0].relativePath;
-    }
-
-    finalMenus.push({
-      menuId: menuDef.menuId,
-      menuName: menuDef.menuName,
-      sortOrder: menuSort,
-      icon: menuDef.icon,
-      relativePath: finalRelativePath,
-      submenus: filteredSubmenus
-    });
-  }
-
-  // Sort menus by final sortOrder
-  finalMenus.sort((a, b) => a.sortOrder - b.sortOrder);
-
-  return finalMenus;
 };
