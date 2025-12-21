@@ -1,16 +1,12 @@
 const mongoose = require('mongoose');
 
 const ParkingSchema = new mongoose.Schema({
-  parkingId: { type: String, unique: true },
-  societyId: { type: String },
-  buildingId: { type: String },
-  slotNumber: { type: String, required: true },
-  level: { type: String },
-  isReserved: { type: Boolean, default: false },
-  reservedForFlatId: { type: String },
-  vehicleId: { type: String }, // current parked vehicle (string)
+  parkingNumber: { type: String, required: true },
+  societyId: { type: mongoose.Types.ObjectId, ref: 'Society', required: true },
+  flatId: { type: mongoose.Types.ObjectId, ref: 'Flat' },
   type: { type: String, enum: ['twoWheeler', 'fourWheeler', 'compact', 'large', 'disabled'], default: 'fourWheeler' },
-  notes: { type: String }
+
+  ...require('./default-fields.model')
 }, { timestamps: true });
 
 module.exports = mongoose.model('Parking', ParkingSchema);

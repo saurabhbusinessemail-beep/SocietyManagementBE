@@ -17,15 +17,15 @@ const SocietySchema = new mongoose.Schema(
     numberOfBuildings: { type: Number },
 
     // governance / contact
-    adminContact: { type: String },
+    adminContacts: [{ type: mongoose.Types.ObjectId, ref: 'User', required: true }],
 
     // settings or preferences for the society
     settings: { type: mongoose.Schema.Types.Mixed },
 
     // lists of related ids kept as strings
-    secreataryIds: [{ type: String }],
-    buildingIds: [{ type: String }],
-    flatIds: [{ type: String }]
+    secreataryIds: [{ type: mongoose.Types.ObjectId, ref: 'User' }],
+
+    ...require('./default-fields.model')
   },
   { timestamps: true }
 );

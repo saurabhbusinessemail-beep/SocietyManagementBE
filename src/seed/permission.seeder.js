@@ -1,37 +1,39 @@
 const Permission = require("../models/permission.model");
 
 // ACTIONS per module
-const CRUD_ACTIONS = ["view", "add", "update", "delete", "manage"];
+const CRUD_ACTIONS = ["view", "add", "update", "delete"];
 
 // Additional actions for specific modules
 const EXTRA_ACTIONS = {
+  society: ['adminContact.view', 'adminContact.update', 'adminContact.add', 'adminContact.delete'],
+  flat: ['link.approve', 'link.reject'],
+  parking: ['link'],
   complaint: ["approve", "resolve", "reject", "reopen", "cancel"],
   gatepass: ["approve", "reject", "cancel"],
-  tempGatepass: ["approve", "reject", "cancel"],
   member: [],
   tenant: [],
-  vehicle: [],
+  vehicle: ['link'],
+  owner: ['approve'],
   visitor: [],
-  gateentry: [],
   user: [],
   permission:[],
-  role: []
+  role: [],
 };
 
 const MODULES = [
   "society",
+  "secretary",
   "building",
   "flat",
   "parking",
-  "feature",
   "vehicle",
+  "owner",
   "member",
   "tenant",
-  "visitor",
+  "security",
   "complaint",
   "gatepass",
-  "tempGatepass",
-  "gateentry",
+  "feature",
   "user",
   "permission",
   "role"

@@ -109,27 +109,27 @@ export const getProfile = async (req, res) => {
     // -----------------------------------------------------
     // FETCH ALL PERMISSIONS BASED ON USER ROLES
     // -----------------------------------------------------
-    let allPermissions = [];
-    let allMenus = [];
+    // let allPermissions = [];
+    // let allMenus = [];
 
-    if (user.role) {
-      const role = await Role.findOne({ name: user.role });
+    // if (user.role) {
+    //   const role = await Role.findOne({ name: user.role });
 
-      if (role.permissions && Array.isArray(role.permissions)) {
-        allPermissions.push(...role.permissions);
-      }
+    //   if (role.permissions && Array.isArray(role.permissions)) {
+    //     allPermissions.push(...role.permissions);
+    //   }
 
-      allMenus = await getRoleMenu(role.name);
-    }
+    //   allMenus = await getRoleMenu(role.name);
+    // }
 
-    // Merge + remove duplicates
-    allPermissions = [...new Set(allPermissions)];
+    // // Merge + remove duplicates
+    // allPermissions = [...new Set(allPermissions)];
 
     return res.json({
       success: true,
       user: user,
-      permissions: allPermissions,
-      menus: allMenus
+      // permissions: allPermissions,
+      // menus: allMenus
     });
   } catch (err) {
     console.error(err);

@@ -23,11 +23,11 @@ const database = async () => {
     console.info('Connected to the database.');
 
     // Add Seed Values
-    await seedRoles();
-    await seedPermissions();
-    await seedFeatures();
-    await seedMenus();
-    await seedRoleMenu();
+    // await seedRoles();
+    // await seedPermissions();
+    // await seedFeatures();
+    // await seedMenus();
+    // await seedRoleMenu();
 
   } catch (error) {
     console.error('Could not connect to the database.', error);

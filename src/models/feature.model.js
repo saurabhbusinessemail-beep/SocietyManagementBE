@@ -21,7 +21,6 @@ const FeatureSchema = new mongoose.Schema({
   rules: [RuleSchema],
 
   // Feature status
-  isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Feature", FeatureSchema);

@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const TenantSchema = new mongoose.Schema({
-  flatId: { type: String, required: true },
-  userId: { type: String }, // optional link to a user
+  flatId: { type: mongoose.Types.ObjectId, ref: 'Flat', required: true },
+  userId: { type: mongoose.Types.ObjectId, ref: 'User' }, // optional link to a user
   name: { type: String, required: true },
   contactNumber: { type: String },
   leaseStart: { type: Date },
