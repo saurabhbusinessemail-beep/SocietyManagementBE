@@ -1,4 +1,4 @@
-import { Flat } from '../models';
+import { Flat, FlatMember } from '../models';
 
 export const createFlat = (data) => {
     return Flat.create({
@@ -22,4 +22,10 @@ export const getFlats = ({ societyId, buildingId }) => {
     let filter = { societyId };
     if (buildingId) filter['buildingId'] = buildingId;
     return Flat.find(filter);
+}
+
+export const myFlats = (userId) => {
+    return FlatMember.find({
+        userId: { $in: userId }
+    });
 }

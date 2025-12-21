@@ -23,7 +23,7 @@ const SocietySchema = new mongoose.Schema(
     settings: { type: mongoose.Schema.Types.Mixed },
 
     // lists of related ids kept as strings
-    secreataryIds: [{ type: mongoose.Types.ObjectId, ref: 'User' }],
+    managerIds: [{ type: mongoose.Types.ObjectId, ref: 'User', required: true }],
 
     ...require('./default-fields.model')
   },

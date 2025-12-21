@@ -75,3 +75,15 @@ export const searchSocieties = async (search, options = {}) => {
     limit
   };
 };
+
+export const contactAdminSocieties = async (userId) => {
+  return await Society.find({
+    adminContacts: { $in: userId }
+  });
+};
+
+export const managerSocieties = async (userId) => {
+  return await Society.find({
+    managerIds: { $in: userId }
+  });
+};

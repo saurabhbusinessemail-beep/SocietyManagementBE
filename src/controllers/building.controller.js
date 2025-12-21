@@ -56,14 +56,14 @@ export const deleteBuilding = async (req, res, next) => {
 };
 
 /**
- * Building Secretary CRUD
+ * Building manager CRUD
  */
-export const updateBuildingSecretary = async (req, res, next) => {
+export const updateBuildingManager = async (req, res, next) => {
   try {
-    const { secreataryId } = req.body;
-    const data = await buildingService.updateBuildingSecretary(
+    const { managerId } = req.body;
+    const data = await buildingService.updateBuildingManager(
       req.params.id,
-      secreataryId
+      managerId
     );
     res.success(data);
   } catch (err) {

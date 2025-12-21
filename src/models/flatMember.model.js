@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const FlatMemberSchema = new mongoose.Schema({
+  societyId: { type: mongoose.Types.ObjectId, ref: 'Society', required: true },
   flatId: { type: mongoose.Types.ObjectId, ref: 'Flat', required: true },
   userId: { type: mongoose.Types.ObjectId, ref: 'User', required: true },
   name: { type: String, required: true },

@@ -1,8 +1,9 @@
 import * as UserService from '../services/user.service';
+import * as SocietyService from '../services/society.service';
+import * as FlatService from '../services/flat.service';
 
 const jwt = require('jsonwebtoken');
-const { User, Otp, Role } = require('../models');
-const { getRoleMenu } = require('../services/user.service');
+const { User, Otp, SocietyRole } = require('../models');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'skSecret';
 
@@ -77,9 +78,11 @@ export const verifyOtp = async (req, res) => {
     // Generate JWT with basic info only
     const token = jwt.sign(
       {
-        userId: user._id.toString(),
+        _id: user._id.toString(),
         name: user.name,
         phoneNumber: user.phoneNumber,
+        status: user.status,
+        profilePic: user.profilePic,
         role: user.role
       },
       JWT_SECRET,
@@ -101,35 +104,78 @@ export const verifyOtp = async (req, res) => {
 export const getProfile = async (req, res) => {
   try {
     // Fetch user
-    const user = await User.findById(res.locals.user.userId).lean();
+    const user = res.locals.user; // await User.findById(res.locals.user.userId).lean();
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // -----------------------------------------------------
-    // FETCH ALL PERMISSIONS BASED ON USER ROLES
-    // -----------------------------------------------------
-    // let allPermissions = [];
-    // let allMenus = [];
+    // Find my roles and my socities and flats
+    const myContactAdminSocities = await SocietyService.contactAdminSocieties(
+      user._id
+    );
+    const myManagerSocities = await SocietyService.managerSocieties(user._id);
+    const flatMembers = await FlatService.myFlats(user._id);
+    const myOwnerFlatMemberRecords = flatMembers.filter((f) => f.isOwner);
+    const myTenantFlatMemberRecords = flatMembers.filter((f) => f.isTenant);
+    const myMemberFlatMemberRecords = flatMembers.filter(
+      (f) => !f.isOwner && !f.isTenant
+    );
 
-    // if (user.role) {
-    //   const role = await Role.findOne({ name: user.role });
+    let societiesObj = [];
+    myContactAdminSocities.forEach((society) => {
+      societiesObj[society._id] = ['societyadmin'];
+    });
+    myManagerSocities.forEach((society) => {
+      if (societiesObj[society._id]) societiesObj[society._id].push('manager');
+      else societiesObj[society._id] = ['manager'];
+    });
+    myOwnerFlatMemberRecords.forEach((flatMember) => {
+      if (societiesObj[flatMember.societyId])
+        societiesObj[flatMember.societyId].push('owner');
+      else societiesObj[flatMember.societyId] = ['owner'];
+    });
+    myTenantFlatMemberRecords.forEach((tenant) => {
+      if (societiesObj[tenant.societyId])
+        societiesObj[tenant.societyId].push('tenant');
+      else societiesObj[tenant.societyId] = ['tenant'];
+    });
+    myMemberFlatMemberRecords.forEach((member) => {
+      if (societiesObj[member.societyId])
+        societiesObj[member.societyId].push('member');
+      else societiesObj[member.societyId] = ['member'];
+    });
 
-    //   if (role.permissions && Array.isArray(role.permissions)) {
-    //     allPermissions.push(...role.permissions);
-    //   }
+    let rolesObj = new Set();
+    let socities = [];
+    for (let key in Object.keys(societiesObj)) {
+      const societyId = key;
+      const roles = societiesObj[key];
 
-    //   allMenus = await getRoleMenu(role.name);
-    // }
+      roles.forEach((role) => rolesObj.add(role));
+      socities.push({ societyId, societyRoles: roles });
+    }
 
-    // // Merge + remove duplicates
-    // allPermissions = [...new Set(allPermissions)];
+    // Get Role Objects and map to society roles
+    const roles = [...rolesObj.values()];
+    const rolesFromDB = await SocietyRole.find({ name: { $in: roles } });
+    societiesObj.forEach((society) => {
+      society.societyRoles = society.societyRoles.map(
+        (role) => rolesFromDB.find((rdb) => rdb.name === role) ?? { role }
+      );
+    });
+
+    // Get Menus
+    const allMenus = user.role === 'user'
+    ? await UserService.getRoleMenu(roles)
+    : await UserService.getAllMenu();
 
     return res.json({
       success: true,
-      user: user,
-      // permissions: allPermissions,
-      // menus: allMenus
+      profile: {
+        user,
+        socities,
+        allMenus
+      }
     });
   } catch (err) {
     console.error(err);
@@ -138,22 +184,5 @@ export const getProfile = async (req, res) => {
       return res.status(401).json({ message: 'Token expired' });
     }
     return res.status(401).json({ message: 'Invalid token' });
-  }
-};
-
-// ME API: Get user details from JWT token
-export const getAllRoleMenus = async (req, res) => {
-  try {
-    const roles = await Role.find();
-    let obj = {};
-    for (let role of roles) {
-      const roleMenu = await getRoleMenu(role.name);
-      obj[role.name] = roleMenu;
-    }
-    res.json(obj);
-  } catch (err) {
-    console.error(err);
-
-    return res.status(401).json({ message: 'Failed' });
   }
 };

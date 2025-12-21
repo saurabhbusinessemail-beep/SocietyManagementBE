@@ -15,8 +15,8 @@ router.get('/:id', buildingController.getBuildingById);
 router.put('/:id', buildingController.updateBuilding);
 router.delete('/:id', buildingController.deleteBuilding);
 
-// secretary CRUD
-router.put('/:id/secretary', buildingController.updateBuildingSecretary);
+// manager CRUD
+router.put('/:id/manager', buildingController.updateBuildingManager);
 
 
 export default router;

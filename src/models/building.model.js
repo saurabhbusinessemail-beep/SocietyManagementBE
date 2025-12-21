@@ -13,7 +13,7 @@ const BuildingSchema = new mongoose.Schema(
     // optional map of floor -> flats
     // floorMap: { type: mongoose.Schema.Types.Mixed },
 
-    secreataryId: { type: mongoose.Types.ObjectId, ref: 'User' },
+    managerId: { type: mongoose.Types.ObjectId, ref: 'User' },
 
     ...require('./default-fields.model')
   },

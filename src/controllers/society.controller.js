@@ -76,12 +76,12 @@ export const searchSocieties = async (req, res, next) => {
   }
 };
 
-export const updateSocietySecretaries = async (req, res, next) => {
+export const updateSocietyManager = async (req, res, next) => {
   try {
-    const { secreataryIds } = req.body;
-    const data = await societyService.updateSocietySecretaries(
+    const { managerIds } = req.body;
+    const data = await societyService.updateSocietyManager(
       req.params.id,
-      secreataryIds
+      managerIds
     );
     res.success(data);
   } catch (err) {

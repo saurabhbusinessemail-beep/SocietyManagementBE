@@ -12,7 +12,7 @@ router.get('/search', checkPermissions(['society.view']), societyController.sear
 router.get('/:id', checkPermissions(['society.view']), societyController.getSociety);
 router.post('/', checkPermissions(['society.adds']), societyController.newSociety);
 router.put('/:id', checkPermissions(['society.update']), societyController.updateSociety);
-router.put('/:id/secretaries', checkPermissions(['society.update']), societyController.updateSocietySecretaries);
+router.put('/:id/managers', checkPermissions(['society.update']), societyController.updateSocietyManager);
 router.delete('/:id', checkPermissions(['society.society_delete']), societyController.deleteSociety);
 
 export default router;

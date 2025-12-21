@@ -14,6 +14,6 @@ router.post("/verify-otp", authController.verifyOtp);
 router.get("/me", userAuth, authController.getProfile);
 
 
-router.get("/getAllRoleMenus", authController.getAllRoleMenus);
+// router.get("/getAllRoleMenus", authController.getAllRoleMenus);
 
 export default router;

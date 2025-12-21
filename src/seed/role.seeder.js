@@ -1,4 +1,4 @@
-const { Role } = require('../models');
+const { SocietyRole } = require('../models');
 
 function createPerms(moduleName, permissions) {
   return permissions.split(', ').map(p => {
@@ -13,7 +13,7 @@ const defaultRoles = [
     description: 'Full society system access',
     permissions: [
       ...createPerms('society', 'view, update, adminContact.view'),
-      ...createPerms('secretary', 'view, add, update, delete'),
+      ...createPerms('manager', 'view, add, update, delete'),
       ...createPerms('building', 'view, add, update, delete'),
       ...createPerms('flat', 'view, add, update, delete, link.approve, link.reject'),
       ...createPerms('parking', 'view, add, update, delete'),
@@ -30,7 +30,7 @@ const defaultRoles = [
       'Can manage society, buildings, flats, parkings, complaints, gate passes',
     permissions: [
       ...createPerms('society', 'view, update, adminContact.view'),
-      ...createPerms('secretary', 'view'),
+      ...createPerms('manager', 'view'),
       ...createPerms('building', 'view, add, update, delete'),
       ...createPerms('flat', 'view, add, update, delete, link.approve, link.reject'),
       ...createPerms('parking', 'view, add, update, delete'),
@@ -48,7 +48,7 @@ const defaultRoles = [
     description: 'Owner of a flat',
     permissions: [
       ...createPerms('society', 'view, adminContact.view'),
-      ...createPerms('secretary', 'view'),
+      ...createPerms('manager', 'view'),
       ...createPerms('building', 'view'),
       ...createPerms('flat', 'view'),
       ...createPerms('parking', 'view, link'),
@@ -61,12 +61,28 @@ const defaultRoles = [
     ]
   },
   {
+    name: 'member',
+    displayName: 'Flat Owner',
+    description: 'Owner of a flat',
+    permissions: [
+      ...createPerms('society', 'view, adminContact.view'),
+      ...createPerms('manager', 'view'),
+      ...createPerms('building', 'view'),
+      ...createPerms('flat', 'view'),
+      ...createPerms('parking', 'view, link'),
+      ...createPerms('vehicle', 'view, add, update, delete, link'),
+      ...createPerms('complaint', 'view, add, update, delete'),
+      ...createPerms('gatepass', 'view, add, update, delete, approve, reject, cancel'),
+
+    ]
+  },
+  {
     name: 'tenant',
     displayName: 'Tenant',
     description: 'Tenant of a flat',
     permissions: [
       ...createPerms('society', 'view, adminContact.view'),
-      ...createPerms('secretary', 'view'),
+      ...createPerms('manager', 'view'),
       ...createPerms('building', 'view'),
       ...createPerms('flat', 'view'),
       ...createPerms('tenant', 'view, add, update, delete'),
@@ -80,7 +96,7 @@ const defaultRoles = [
     description: 'Gate security operations',
     permissions: [
       ...createPerms('society', 'view, adminContact.view'),
-      ...createPerms('secretary', 'view'),
+      ...createPerms('manager', 'view'),
       ...createPerms('building', 'view'),
       ...createPerms('gatepass', 'view, add, update, delete, approve, reject, cancel'),
     ]
@@ -90,10 +106,10 @@ const defaultRoles = [
 async function seedRoles() {
   try {
     for (let role of defaultRoles) {
-      const exists = await Role.findOne({ name: role.name });
+      const exists = await SocietyRole.findOne({ name: role.name });
 
       if (!exists) {
-        await Role.create(role);
+        await SocietyRole.create(role);
         console.log(`✔ Role created: ${role.name}`);
       } else {
         console.log(`✔ Role already exists: ${role.name}`);

@@ -1,50 +1,55 @@
-const Permission = require("../models/permission.model");
+const { Permission } = require('../models');
 
 // ACTIONS per module
-const CRUD_ACTIONS = ["view", "add", "update", "delete"];
+const CRUD_ACTIONS = ['view', 'add', 'update', 'delete'];
 
 // Additional actions for specific modules
 const EXTRA_ACTIONS = {
-  society: ['adminContact.view', 'adminContact.update', 'adminContact.add', 'adminContact.delete'],
+  society: [
+    'adminContact.view',
+    'adminContact.update',
+    'adminContact.add',
+    'adminContact.delete'
+  ],
   flat: ['link.approve', 'link.reject'],
   parking: ['link'],
-  complaint: ["approve", "resolve", "reject", "reopen", "cancel"],
-  gatepass: ["approve", "reject", "cancel"],
+  complaint: ['approve', 'resolve', 'reject', 'reopen', 'cancel'],
+  gatepass: ['approve', 'reject', 'cancel'],
   member: [],
   tenant: [],
   vehicle: ['link'],
   owner: ['approve'],
   visitor: [],
   user: [],
-  permission:[],
-  role: [],
+  permission: [],
+  role: []
 };
 
 const MODULES = [
-  "society",
-  "secretary",
-  "building",
-  "flat",
-  "parking",
-  "vehicle",
-  "owner",
-  "member",
-  "tenant",
-  "security",
-  "complaint",
-  "gatepass",
-  "feature",
-  "user",
-  "permission",
-  "role"
+  'society',
+  'manager',
+  'building',
+  'flat',
+  'parking',
+  'vehicle',
+  'owner',
+  'member',
+  'tenant',
+  'security',
+  'complaint',
+  'gatepass',
+  'feature',
+  'user',
+  'permission',
+  'role'
 ];
 
 function buildPermissions() {
   const result = [];
 
-  MODULES.forEach(module => {
+  MODULES.forEach((module) => {
     // Basic CRUD-like actions
-    CRUD_ACTIONS.forEach(action => {
+    CRUD_ACTIONS.forEach((action) => {
       result.push({
         key: `${module}.${action}`,
         module,
@@ -55,7 +60,7 @@ function buildPermissions() {
 
     // Extra actions for certain modules
     if (EXTRA_ACTIONS[module]) {
-      EXTRA_ACTIONS[module].forEach(action => {
+      EXTRA_ACTIONS[module].forEach((action) => {
         result.push({
           key: `${module}.${action}`,
           module,
@@ -84,7 +89,7 @@ async function seedPermissions() {
       }
     }
   } catch (err) {
-    console.error("❌ Error seeding permissions:", err);
+    console.error('❌ Error seeding permissions:', err);
   }
 }
 
