@@ -107,7 +107,7 @@ export const searchUser = async (req, res, next) => {
     const users = await UserService.searchUsers(req.params._searchText);
     res.status(HttpStatus.OK).json({
       success: true,
-      data: users,
+      ...users,
       message: ''
     });
   } catch (error) {

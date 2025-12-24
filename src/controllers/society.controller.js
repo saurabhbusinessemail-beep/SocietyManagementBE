@@ -1,11 +1,13 @@
 import * as societyService from '../services/society.service';
+import * as userService from '../services/user.service';
 
 /**
  * Get all societies
  */
 export const getAllSocieties = async (req, res, next) => {
   try {
-    const data = await societyService.getAllSocieties();
+    const filter = res.locals.filter ?? {};
+    const data = await societyService.getAllSocieties(filter);
     res.json(data);
   } catch (err) {
     next(err);
@@ -18,6 +20,15 @@ export const getAllSocieties = async (req, res, next) => {
 export const getSociety = async (req, res, next) => {
   try {
     const data = await societyService.getSociety(req.params.id);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getSocietyManagers = async (req, res) => {
+  try {
+    const data = await societyService.getSocietyManagers(req.params.id);
     res.json(data);
   } catch (err) {
     next(err);
@@ -76,14 +87,33 @@ export const searchSocieties = async (req, res, next) => {
   }
 };
 
-export const updateSocietyManager = async (req, res, next) => {
+export const newSocietyManager = async (req, res, next) => {
   try {
-    const { managerIds } = req.body;
-    const data = await societyService.updateSocietyManager(
-      req.params.id,
-      managerIds
-    );
-    res.success(data);
+    const societyId = req.params.id;
+    let payload = req.body;
+    if (!payload._id) {
+      // Found if existing user by phone number
+      const users = await userService.searchUsers(payload.phoneNumber);
+      if (users.data.length > 0) {
+        payload = users.data[0];
+      } else {
+        // No user found hence contact may have been added
+        payload = await userService.newUser(payload);
+      }
+    }
+    await societyService.newSocietyManager(societyId, payload);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteSocietyManager = async (req, res, next) => {
+  try {
+    const societyId = req.params.id;
+    const managerId = req.params.managerId;
+    await societyService.deleteSocietyManager(societyId, managerId);
+    res.json({ success: true });
   } catch (err) {
     next(err);
   }

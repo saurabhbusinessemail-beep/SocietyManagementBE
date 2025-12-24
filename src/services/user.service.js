@@ -1,4 +1,4 @@
-const { User, Menu, SocietyRoleMenu } = require('../models');
+const { User } = require('../models');
 
 //get all users
 export const getAllUsers = async () => {
@@ -76,47 +76,4 @@ export const searchUsers = async (search, options = {}) => {
   };
 };
 
-export const getRoleMenu = async (roles) => {
-  const roleMenus = await SocietyRoleMenu.find({ role: { $in: roles } });
-  if (!roleMenus || roleMenus.lenngth === 0) {
-    return [];
-  }
 
-  const allowedMenuIds = roleMenus.reduce((menuIds, roleMenu) => {
-    menuIds = menuIds.concat(roleMenu.menus.map((m) => m.menuId));
-    return menuIds;
-  }, []);
-  // .menus.map((m) => m.menuId);
-
-  // Fetch menu definitions
-  const menusFromDb = await Menu.find({ menuId: { $in: allowedMenuIds } });
-  const menuDefMap = {};
-  menusFromDb.forEach((m) => {
-    menuDefMap[m.menuId] = m;
-  });
-
-  const finalMenus = [];
-
-  for (const menuId of allowedMenuIds) {
-    const menuDef = menuDefMap[menuId];
-    if (!menuDef) continue; // skip if not found
-
-    finalMenus.push({
-      _id: menuDef._id,
-      menuId: menuDef.menuId,
-      menuName: menuDef.menuName,
-      icon: menuDef.icon,
-      relativePath: menuDef.relativePath,
-      sortOrder: rmMenu.sortOrder
-    });
-  }
-
-  // Sort menus by final sortOrder
-  finalMenus.sort((a, b) => a.sortOrder - b.sortOrder);
-
-  return finalMenus;
-};
-
-export const getAllMenu = async () => {
-  return await Menu.find();
-}

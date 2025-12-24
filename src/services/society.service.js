@@ -3,9 +3,21 @@ import { Society } from '../models';
 /**
  * Get all societies
  */
-export const getAllSocieties = async () => {
-  const data = await Society.find().sort({ createdAt: -1 });
-  return data;
+export const getAllSocieties = async (filter, options = {}) => {
+  const { page = 1, limit = 20 } = options;
+  const skip = (page - 1) * limit;
+  const [data, total] = await Promise.all([
+    Society.find(filter).skip(skip).limit(limit).sort({ societyName: 1 }),
+    Society.countDocuments(filter)
+  ]);
+
+  // const data = await Society.find(filter).sort({ createdAt: -1 });
+  return {
+    data,
+    total,
+    page,
+    limit
+  };
 };
 
 /**
@@ -36,7 +48,9 @@ export const deleteSociety = async (id) => {
  * Get single society
  */
 export const getSociety = async (id) => {
-  const data = await Society.findById(id);
+  const data = await Society.findById(id)
+    .populate('adminContacts')
+    .populate('managerIds');
   return data;
 };
 
@@ -86,4 +100,51 @@ export const managerSocieties = async (userId) => {
   return await Society.find({
     managerIds: { $in: userId }
   });
+};
+
+export const getMySocities = async (userId, withSocietyRoles = false) => {
+  const myContactAdminSocities = await contactAdminSocieties(userId);
+  const myManagerSocities = await managerSocieties(userId);
+
+  if (!withSocietyRoles)
+    return { socities: [...myContactAdminSocities, ...myManagerSocities] };
+
+  // Create { [societyId: string]: string[] }
+  let societiesObj = {};
+  myContactAdminSocities.forEach((society) => {
+    societiesObj[society._id] = ['societyadmin'];
+  });
+  myManagerSocities.forEach((society) => {
+    if (societiesObj[society._id]) societiesObj[society._id].push('manager');
+    else societiesObj[society._id] = ['manager'];
+  });
+
+  let rolesObj = new Set();
+  let socities = [];
+  for (let key of Object.keys(societiesObj)) {
+    const societyId = key;
+    const roles = societiesObj[key];
+    roles.forEach((role) => rolesObj.add(role));
+    socities.push({ societyId, societyRoles: roles });
+  }
+  const roles = [...rolesObj.values()];
+  return { socities, roles };
+};
+
+export const newSocietyManager = async (societyId, manager) => {
+  const society = await Society.findById(societyId);
+  if (!society.managerIds) society.managerIds = [];
+
+  if (!society.managerIds.some((m) => m === manager._id))
+    society.managerIds.push(manager._id);
+
+  await Society.findByIdAndUpdate({ _id: societyId }, society, { new: true });
+};
+
+export const deleteSocietyManager = async (societyId, managerId) => {
+  const society = await Society.findById(societyId);
+  if (!society.managerIds) society.managerIds = [];
+  society.managerIds = society.managerIds.filter(m => m != managerId);
+
+  await Society.findByIdAndUpdate({ _id: societyId }, society, { new: true });
 };
