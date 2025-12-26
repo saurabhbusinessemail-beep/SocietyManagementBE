@@ -7,7 +7,11 @@ import * as userService from '../services/user.service';
 export const getAllSocieties = async (req, res, next) => {
   try {
     const filter = res.locals.filter ?? {};
-    const data = await societyService.getAllSocieties(filter);
+    const { page, limit } = req.query;
+    const data = await societyService.getAllSocieties(filter, {
+      page: Number(page),
+      limit: Number(limit)
+    });
     res.json(data);
   } catch (err) {
     next(err);

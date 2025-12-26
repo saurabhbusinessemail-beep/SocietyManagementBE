@@ -1,8 +1,8 @@
 import express from 'express';
 import * as societyController from '../controllers/society.controller';
+import * as buildingController from '../controllers/building.controller';
 import { userAuth } from '../middlewares/auth.middleware';
 import {
-  attachSociety,
   checkPermissions,
   createSocietyFilter
 } from '../middlewares/society.middleware';
@@ -12,8 +12,8 @@ import { updateRecordFields } from '../middlewares/updateRecordFields';
 const router = express.Router();
 
 router.use(userAuth);
-router.use(attachSociety);
 
+// SOCITIES
 router.get(
   '/',
   checkPermissions(['society.view']),
@@ -49,6 +49,7 @@ router.delete(
   societyController.deleteSociety
 );
 
+// Managers
 router.post(
   '/:id/managers',
   checkPermissions(['adminContact.add']),
@@ -59,6 +60,33 @@ router.delete(
   '/:id/managers/:managerId',
   checkPermissions(['adminContact.delete']),
   societyController.deleteSocietyManager
+);
+
+// Buildings
+router.get(
+  '/:id/buildings',
+  // checkPermissions(['adminContact.add']),
+  buildingController.getBuildingsBySociety
+);
+
+router.post(
+  '/:id/buildings',
+  // checkPermissions(['adminContact.add']),
+  newRecordFields,
+  buildingController.createBuilding
+);
+
+router.put(
+  '/:id/buildings/:buildingId',
+  // checkPermissions(['adminContact.add']),
+  updateRecordFields,
+  buildingController.updateBuilding
+);
+
+router.delete(
+  '/:id/buildings/:buildingId',
+  // checkPermissions(['adminContact.add']),
+  buildingController.deleteBuilding
 );
 
 export default router;

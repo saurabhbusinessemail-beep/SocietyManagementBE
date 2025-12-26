@@ -70,20 +70,33 @@ export const verifyOtp = async (req, res) => {
 
     // Fetch user
     const user = await User.findOne({ phoneNumber });
-
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    const jwtUser = {
+      _id: user._id.toString(),
+      name: user.name,
+      phoneNumber: user.phoneNumber,
+      status: user.status,
+      profilePic: user.profilePic,
+      role: user.role
+    };
+
+    // Fetch Socities and Roles
+    const { socities, roles } = await userUtils.userSocitiesWithRole(user._id);
+
+    // Get Menus
+    const allMenus =
+      user.role === 'user'
+        ? await MenuService.getRoleMenu(roles)
+        : await MenuService.getAllMenu();
 
     // Generate JWT with basic info only
     const token = jwt.sign(
       {
-        _id: user._id.toString(),
-        name: user.name,
-        phoneNumber: user.phoneNumber,
-        status: user.status,
-        profilePic: user.profilePic,
-        role: user.role
+        user: jwtUser,
+        socities,
+        allMenus
       },
       JWT_SECRET,
       { expiresIn: '7d' }
@@ -104,19 +117,12 @@ export const verifyOtp = async (req, res) => {
 export const getProfile = async (req, res) => {
   try {
     // Fetch user
-    const user = res.locals.user; // await User.findById(res.locals.user.userId).lean();
+    const user = res.locals.user;
+    const socities = res.locals.socities ?? [];
+    const allMenus = res.locals.allMenus ?? [];
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    // Find my socities with my socity roles
-    const { socities, roles } = await userUtils.userSocitiesWithRole(user._id);
-
-    // Get Menus
-    const allMenus =
-      user.role === 'user'
-        ? await MenuService.getRoleMenu(roles)
-        : await MenuService.getAllMenu();
 
     return res.json({
       success: true,

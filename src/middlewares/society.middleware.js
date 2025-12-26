@@ -1,20 +1,3 @@
-import * as userUtils from '../utils/user.util';
-
-export const attachSociety = async (req, res, next) => {
-  const user = res.locals.user;
-
-  if (!user || !user._id || !user.role) {
-    return res.status(401).json({
-      message: 'Unauthorized: user context missing'
-    });
-  }
-
-  const { socities, roles } = await userUtils.userSocitiesWithRole(user._id);
-  res.locals.socities = socities;
-
-  next();
-};
-
 export const checkPermissions = (
   requiredPermissions = [],
   withId = undefined

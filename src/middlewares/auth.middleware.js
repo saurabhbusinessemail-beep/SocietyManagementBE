@@ -40,7 +40,17 @@ export const userAuth = (req, res, next) => {
 
     const decoded = jwt.verify(bearerToken, JWT_SECRET);
 
-    res.locals.user = decoded;
+    if (!decoded.user || !decoded.allMenus) {
+      res.status(HttpStatus.UNAUTHORIZED).json({
+        success: false,
+        message: 'Invalid token'
+      });
+      return;
+    }
+
+    res.locals.user = decoded.user;
+    res.locals.socities = decoded.socities ?? [];
+    res.locals.allMenus = decoded.allMenus ?? [];
     res.locals.token = bearerToken;
 
     next();

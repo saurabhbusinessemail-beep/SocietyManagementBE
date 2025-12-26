@@ -10,8 +10,7 @@ module.exports = {
   modifiedOn: { type: Date },
   modifiedByUserId: {
     type: mongoose.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: 'User'
   },
   isDeleted: { type: Boolean }
 };
