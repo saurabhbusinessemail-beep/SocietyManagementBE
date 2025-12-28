@@ -25,7 +25,7 @@ router.get('/search', societyController.searchSocieties);
 
 router.get(
   '/:id',
-  checkPermissions(['society.view'], 'societyId'),
+  checkPermissions(['society.view'], true),
   societyController.getSociety
 );
 
@@ -38,54 +38,54 @@ router.post(
 
 router.put(
   '/:id',
-  checkPermissions(['society.update']),
+  checkPermissions(['society.update'], true),
   updateRecordFields,
   societyController.updateSociety
 );
 
 router.delete(
   '/:id',
-  checkPermissions(['society.delete']),
+  checkPermissions(['society.delete'], true),
   societyController.deleteSociety
 );
 
 // Managers
 router.post(
   '/:id/managers',
-  checkPermissions(['adminContact.add']),
+  checkPermissions(['society.adminContact.add'], true),
   societyController.newSocietyManager
 );
 
 router.delete(
   '/:id/managers/:managerId',
-  checkPermissions(['adminContact.delete']),
+  checkPermissions(['adminContact.delete'], true),
   societyController.deleteSocietyManager
 );
 
 // Buildings
 router.get(
   '/:id/buildings',
-  // checkPermissions(['adminContact.add']),
+  checkPermissions(['building.view'], true),
   buildingController.getBuildingsBySociety
 );
 
 router.post(
   '/:id/buildings',
-  // checkPermissions(['adminContact.add']),
+  checkPermissions(['building.add'], true),
   newRecordFields,
   buildingController.createBuilding
 );
 
 router.put(
   '/:id/buildings/:buildingId',
-  // checkPermissions(['adminContact.add']),
+  checkPermissions(['building.update'], true),
   updateRecordFields,
   buildingController.updateBuilding
 );
 
 router.delete(
   '/:id/buildings/:buildingId',
-  // checkPermissions(['adminContact.add']),
+  checkPermissions(['building.delete'], true),
   buildingController.deleteBuilding
 );
 

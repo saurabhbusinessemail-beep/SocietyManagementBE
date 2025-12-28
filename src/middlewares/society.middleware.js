@@ -1,6 +1,6 @@
 export const checkPermissions = (
   requiredPermissions = [],
-  withId = undefined
+  withSocietyId = false
 ) => {
   return async (req, res, next) => {
     const user = res.locals.user;
@@ -11,7 +11,7 @@ export const checkPermissions = (
     const socities = res.locals.socities ?? [];
     const allowedSocities = socities.filter(
       (s) =>
-        (!withId || s[withId] === id) &&
+        (!withSocietyId || s.societyId === id) &&
         s.societyRoles.some((sr) =>
           sr.permissions.some((p) => requiredPermissions.includes(p))
         )
