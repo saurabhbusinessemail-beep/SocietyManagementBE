@@ -108,12 +108,21 @@ router.get(
   flatController.getFlatsBySocietyAndBuilding
 );
 
-router.post('/:id/flats', newRecordFields, flatController.createFlat); // societyId + optional buildingId
-router.post('/:id/flats/bulk', flatController.bulkCreateFlats);
+router.post(
+  '/:id/flats',
+  checkPermissions(['flat.add'], true),
+  newRecordFields,
+  flatController.createFlat
+);
+router.post(
+  '/:id/flats/bulk',
+  checkPermissions(['flat.add'], true),
+  flatController.bulkCreateFlats
+);
 
 router.delete(
   '/:id/flats/:flatId',
-  // checkPermissions(['building.delete'], true),
+  checkPermissions(['flat.delete'], true),
   flatController.deleteFlat
 );
 
