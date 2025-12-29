@@ -2,6 +2,7 @@ import express from 'express';
 import * as societyController from '../controllers/society.controller';
 import * as buildingController from '../controllers/building.controller';
 import * as flatController from '../controllers/flat.controller';
+import * as parkingController from '../controllers/parking.controller';
 import { userAuth } from '../middlewares/auth.middleware';
 import {
   checkPermissions,
@@ -124,6 +125,43 @@ router.delete(
   '/:id/flats/:flatId',
   checkPermissions(['flat.delete'], true),
   flatController.deleteFlat
+);
+
+// Parkings
+router.get(
+  '/:id/buildings/:buildingId/parkings',
+  checkPermissions(['parking.view'], true),
+  parkingController.getParkingsBySocietyAndBuilding
+);
+router.get(
+  '/:id/parkings',
+  checkPermissions(['parking.view'], true),
+  parkingController.getParkingsBySocietyAndBuilding
+);
+
+router.post(
+  '/:id/parkings',
+  checkPermissions(['parking.add'], true),
+  newRecordFields,
+  parkingController.createParking
+);
+router.post(
+  '/:id/parkings/bulk',
+  checkPermissions(['parking.add'], true),
+  parkingController.bulkCreateParkings
+);
+
+router.put(
+  '/:id/parkings/:parkingId',
+  checkPermissions(['parking.update'], true),
+  updateRecordFields,
+  parkingController.updateParking
+);
+
+router.delete(
+  '/:id/parkings/:parkingId',
+  checkPermissions(['parking.delete'], true),
+  parkingController.deleteParking
 );
 
 export default router;
