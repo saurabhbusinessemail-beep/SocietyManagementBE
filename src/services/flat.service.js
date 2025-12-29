@@ -1,27 +1,34 @@
 import { Flat, FlatMember } from '../models';
 
 export const createFlat = (data) => {
-  return Flat.create({
-    ...data,
-    societyId: data.societyId,
-    buildingId: data.buildingId || null
-  });
+  return Flat.create(data);
 };
 
-export const bulkCreateFlats = ({ societyId, buildingId, flats }) => {
-  return Flat.insertMany(
-    flats.map((f) => ({
-      ...f,
-      societyId,
-      buildingId: buildingId || null
-    }))
-  );
+export const bulkCreateFlats = (payload) => {
+  return Flat.insertMany(payload);
 };
 
-export const getFlats = ({ societyId, buildingId }) => {
-  let filter = { societyId };
-  if (buildingId) filter['buildingId'] = buildingId;
-  return Flat.find(filter);
+export const deleteFlat = async (id) => {
+  await Flat.findByIdAndDelete(id);
+  return '';
+};
+
+export const getFlatsBySocietyAndBuilding = async (filter, options = {}) => {
+  const { page = 1, limit = 500 } = options;
+  const skip = (page - 1) * limit;
+
+  const [data, total] = await Promise.all([
+    Flat.find(filter).skip(skip).limit(limit).sort({ floor: 1, flatNumber: 1 }),
+    Flat.countDocuments(filter)
+  ]);
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    success: true
+  };
 };
 
 export const myFlats = async (userId, withSocietyRoles = false) => {

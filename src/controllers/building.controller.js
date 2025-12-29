@@ -4,7 +4,9 @@ export const createBuilding = async (req, res, next) => {
   try {
     let building = req.body;
     if (building.managerId) {
-      building.managerId = await buildingService.getBuildingManagerUser(building.managerId);
+      building.managerId = await buildingService.getBuildingManagerUser(
+        building.managerId
+      );
     }
     const data = await buildingService.createBuilding(building);
     res.status(201).json(data);
@@ -28,13 +30,21 @@ export const getBuildingsBySociety = async (req, res, next) => {
     const filter = { ...(res.locals.filter ?? {}), societyId };
     const { page, limit } = req.query;
     const data = await buildingService.getBuildingsBySociety(
-      societyId,
       filter,
       {
         page: Number(page),
         limit: Number(limit)
       }
     );
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getBuilding = async (req, res, next) => {
+  try {
+    const data = await buildingService.gettBuilding(req.params.buildingId);
     res.json(data);
   } catch (err) {
     next(err);
@@ -54,7 +64,9 @@ export const updateBuilding = async (req, res, next) => {
   try {
     let building = req.body;
     if (building.managerId) {
-      building.managerId = await buildingService.getBuildingManagerUser(building.managerId);
+      building.managerId = await buildingService.getBuildingManagerUser(
+        building.managerId
+      );
     }
     const data = await buildingService.updateBuilding(
       req.params.buildingId,

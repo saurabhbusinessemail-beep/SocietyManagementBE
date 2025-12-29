@@ -3,7 +3,7 @@ const flatService = require('../services/flat.service');
 export const createFlat = async (req, res, next) => {
   try {
     const data = await flatService.createFlat(req.body);
-    res.success(data);
+    res.json(data);
   } catch (err) {
     next(err);
   }
@@ -11,22 +11,37 @@ export const createFlat = async (req, res, next) => {
 
 export const bulkCreateFlats = async (req, res, next) => {
   try {
-    const data = await flatService.bulkCreateFlats(req.body);
-    res.success(data);
+    const user = res.locals.user;
+    if (!user || !user._id) {
+      return res.status(403).json({
+        message: 'Access denied: no user identified.'
+      });
+    }
+
+    let flats = req.body;
+    flats.forEach((flat) => {
+      flat.createdOn = new Date();
+      flat.craetedByUserId = user._id;
+    });
+    const data = await flatService.bulkCreateFlats(flats);
+    res.json(data);
   } catch (err) {
     next(err);
   }
 };
 
-export const getFlats = async (req, res, next) => {
+export const getFlatsBySocietyAndBuilding = async (req, res, next) => {
   try {
-    const filter = {
-      societyId: req.query.societyId || req.body.societyId,
-      buildingId: req.query.buildingId || req.body.buildingId
+    const societyId = req.params.id;
+    const buildingId = req.params.buildingId;
+    let filter = {
+      ...(res.locals.filter ?? {}),
+      societyId
     };
+    if (buildingId) filter['buildingId'] = buildingId;
 
-    const data = await flatService.getFlats(filter);
-    res.success(data);
+    const data = await flatService.getFlatsBySocietyAndBuilding(filter);
+    res.json(data);
   } catch (err) {
     next(err);
   }
@@ -35,7 +50,7 @@ export const getFlats = async (req, res, next) => {
 export const getFlatById = async (req, res, next) => {
   try {
     const data = await flatService.getFlatById(req.params.id);
-    res.success(data);
+    res.json(data);
   } catch (err) {
     next(err);
   }
@@ -44,7 +59,7 @@ export const getFlatById = async (req, res, next) => {
 export const updateFlat = async (req, res, next) => {
   try {
     const data = await flatService.updateFlat(req.params.id, req.body);
-    res.success(data);
+    res.json(data);
   } catch (err) {
     next(err);
   }
@@ -52,8 +67,8 @@ export const updateFlat = async (req, res, next) => {
 
 export const deleteFlat = async (req, res, next) => {
   try {
-    const data = await flatService.deleteFlat(req.params.id);
-    res.success(data);
+    const data = await flatService.deleteFlat(req.params.flatId);
+    res.json(data);
   } catch (err) {
     next(err);
   }

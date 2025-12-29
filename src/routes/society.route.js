@@ -1,6 +1,7 @@
 import express from 'express';
 import * as societyController from '../controllers/society.controller';
 import * as buildingController from '../controllers/building.controller';
+import * as flatController from '../controllers/flat.controller';
 import { userAuth } from '../middlewares/auth.middleware';
 import {
   checkPermissions,
@@ -64,6 +65,12 @@ router.delete(
 
 // Buildings
 router.get(
+  '/:id/buildings/:buildingId',
+  checkPermissions(['building.view'], true),
+  buildingController.getBuilding
+);
+
+router.get(
   '/:id/buildings',
   checkPermissions(['building.view'], true),
   buildingController.getBuildingsBySociety
@@ -87,6 +94,27 @@ router.delete(
   '/:id/buildings/:buildingId',
   checkPermissions(['building.delete'], true),
   buildingController.deleteBuilding
+);
+
+// Flats
+router.get(
+  '/:id/buildings/:buildingId/flats',
+  checkPermissions(['flat.view'], true),
+  flatController.getFlatsBySocietyAndBuilding
+);
+router.get(
+  '/:id/flats',
+  checkPermissions(['flat.view'], true),
+  flatController.getFlatsBySocietyAndBuilding
+);
+
+router.post('/:id/flats', newRecordFields, flatController.createFlat); // societyId + optional buildingId
+router.post('/:id/flats/bulk', flatController.bulkCreateFlats);
+
+router.delete(
+  '/:id/flats/:flatId',
+  // checkPermissions(['building.delete'], true),
+  flatController.deleteFlat
 );
 
 export default router;

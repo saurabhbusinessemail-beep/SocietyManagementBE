@@ -86,7 +86,8 @@ export const searchSocieties = async (search, options = {}) => {
     data,
     total,
     page,
-    limit
+    limit,
+    success: true
   };
 };
 

@@ -12,11 +12,7 @@ export const bulkCreateBuildings = ({ societyId, buildings }) => {
   return Building.insertMany(buildings.map((b) => ({ ...b, societyId })));
 };
 
-export const getBuildingsBySociety = async (
-  societyId,
-  filter,
-  options = {}
-) => {
+export const getBuildingsBySociety = async (filter, options = {}) => {
   const { page = 1, limit = 20 } = options;
   const skip = (page - 1) * limit;
   const [data, total] = await Promise.all([
@@ -32,8 +28,14 @@ export const getBuildingsBySociety = async (
     data,
     total,
     page,
-    limit
+    limit,
+    success: true
   };
+};
+
+export const gettBuilding = async (id) => {
+  const data = await Building.findById(id).populate('managerId');
+  return data;
 };
 
 export const updateBuilding = async (_id, body) => {
