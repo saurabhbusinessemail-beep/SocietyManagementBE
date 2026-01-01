@@ -11,7 +11,7 @@ export const userSocitiesWithRole = async (userId) => {
       await SocietyService.getMySocities(userId, true);
 
     const { socities: socitiesByFlat, roles: rolesByFlat } =
-      await FlatService.myFlats(userId, true);
+      await FlatService.memberFlats(userId, true);
 
     const rolesFromDB = await SocietyRole.find({
       name: { $in: [...rolesBySociety, ...rolesByFlat] }
@@ -49,6 +49,6 @@ export const userSocitiesWithRole = async (userId) => {
     return { socities, roles };
   } catch (err) {
     console.log('Error ', err);
-    return [];
+    return { socities: [], roles: [] };
   }
 };

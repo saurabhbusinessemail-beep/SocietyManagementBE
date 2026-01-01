@@ -1,6 +1,5 @@
 import express from 'express';
 import * as userController from '../controllers/user.controller';
-import { newUserValidator } from '../validators/user.validator';
 import { userAuth } from '../middlewares/auth.middleware';
 
 const router = express.Router();
@@ -9,7 +8,7 @@ const router = express.Router();
 router.get('', userAuth, userController.getAllUsers);
 
 //route to create a new user
-router.post('', userAuth, newUserValidator, userController.newUser);
+router.post('', userAuth, userController.newUser);
 
 //route to get a single user by their user id
 router.get('/:_id', userAuth, userController.getUser);

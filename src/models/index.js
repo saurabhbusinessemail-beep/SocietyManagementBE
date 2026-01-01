@@ -12,7 +12,6 @@ const Permission = require('./permission.model');
 const Society = require('./society.model');
 const SocietyRole = require('./societyRole.model');
 const SocietyRoleMenu = require('./societyRoleMenu.model');
-const Tenant = require('./tenant.model');
 const User = require('./user.model');
 const Vehicle = require('./vehicle.model');
 
@@ -31,7 +30,6 @@ module.exports = {
   Society,
   SocietyRole,
   SocietyRoleMenu,
-  Tenant,
   User,
   Vehicle
 };

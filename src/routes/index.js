@@ -4,6 +4,8 @@ const router = express.Router();
 import userRoute from './user.route';
 import authRoute from './auth.routes';
 import societyRoutes from './society.route';
+import flatRoutes from './flat.route';
+import newUserRoutes from './newUser.routes';
 
 const seedRoles = require("../seed/role.seeder");
 const seedPermissions = require("../seed/permission.seeder");
@@ -30,6 +32,8 @@ const routes = () => {
   router.use('/users', userRoute);
   router.use('/auth', authRoute);
   router.use('/societies', societyRoutes);
+  router.use('/flats', flatRoutes);
+  router.use('/newUser', newUserRoutes);
 
   return router;
 };

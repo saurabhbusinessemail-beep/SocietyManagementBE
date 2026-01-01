@@ -1,7 +1,8 @@
 const { Menu, SocietyRoleMenu } = require('../models');
 
 export const getRoleMenu = async (roles) => {
-  const roleMenus = await SocietyRoleMenu.find({ role: { $in: roles } });
+  const uniqueRoles = [...(new Set(roles).values())];
+  const roleMenus = await SocietyRoleMenu.find({ role: { $in: uniqueRoles } });
   if (!roleMenus || roleMenus.lenngth === 0) {
     return [];
   }
@@ -18,9 +19,10 @@ export const getRoleMenu = async (roles) => {
     return menuIds;
   }, []);
   // .menus.map((m) => m.menuId);
+  const uniqueMenuIds = [...(new Set(allowedMenuIds))];
 
   // Fetch menu definitions
-  const menusFromDb = await Menu.find({ menuId: { $in: allowedMenuIds } });
+  const menusFromDb = await Menu.find({ menuId: { $in: uniqueMenuIds } });
   const menuDefMap = {};
   menusFromDb.forEach((m) => {
     menuDefMap[m.menuId] = m;
@@ -28,7 +30,7 @@ export const getRoleMenu = async (roles) => {
 
   const finalMenus = [];
 
-  for (const menuId of allowedMenuIds) {
+  for (const menuId of uniqueMenuIds) {
     const menuDef = menuDefMap[menuId];
     const rmMenu = roleMenuMap.get(menuId)
     if (!menuDef) continue; // skip if not found

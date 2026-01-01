@@ -18,7 +18,6 @@ router.use(userAuth);
 // SOCITIES
 router.get(
   '/',
-  checkPermissions(['society.view']),
   createSocietyFilter,
   societyController.getAllSocieties
 );
@@ -73,7 +72,6 @@ router.get(
 
 router.get(
   '/:id/buildings',
-  checkPermissions(['building.view'], true),
   buildingController.getBuildingsBySociety
 );
 
@@ -100,12 +98,10 @@ router.delete(
 // Flats
 router.get(
   '/:id/buildings/:buildingId/flats',
-  checkPermissions(['flat.view'], true),
   flatController.getFlatsBySocietyAndBuilding
 );
 router.get(
   '/:id/flats',
-  checkPermissions(['flat.view'], true),
   flatController.getFlatsBySocietyAndBuilding
 );
 

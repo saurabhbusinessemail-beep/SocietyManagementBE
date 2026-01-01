@@ -1,11 +1,7 @@
 import * as UserService from '../services/user.service';
-import * as MenuService from '../services/menu.service';
-import * as userUtils from '../utils/user.util';
+import * as AuthService from '../services/auth.service';
 
-const jwt = require('jsonwebtoken');
 const { User, Otp } = require('../models');
-
-const JWT_SECRET = process.env.JWT_SECRET || 'skSecret';
 
 // STEP 1: Generate OTP
 export const requestOtp = async (req, res) => {
@@ -68,39 +64,15 @@ export const verifyOtp = async (req, res) => {
     // OTP matched → Delete the OTP record (optional)
     await Otp.deleteMany({ phoneNumber });
 
+    
     // Fetch user
     const user = await User.findOne({ phoneNumber });
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json({ message: 'User not found' });
     }
-    const jwtUser = {
-      _id: user._id.toString(),
-      name: user.name,
-      phoneNumber: user.phoneNumber,
-      status: user.status,
-      profilePic: user.profilePic,
-      role: user.role
-    };
 
-    // Fetch Socities and Roles
-    const { socities, roles } = await userUtils.userSocitiesWithRole(user._id);
-
-    // Get Menus
-    const allMenus =
-      user.role === 'user'
-        ? await MenuService.getRoleMenu(roles)
-        : await MenuService.getAllMenu();
-
-    // Generate JWT with basic info only
-    const token = jwt.sign(
-      {
-        user: jwtUser,
-        socities,
-        allMenus
-      },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    // Fetch Token
+    const token = await AuthService.getUserToken(user);
 
     return res.json({
       success: true,

@@ -31,7 +31,18 @@ export const getFlatsBySocietyAndBuilding = async (filter, options = {}) => {
   };
 };
 
-export const myFlats = async (userId, withSocietyRoles = false) => {
+export const myFlats = async (userId, societyId = null) => {
+  let filter = { userId: { $in: userId } };
+  if (societyId) {
+    filter = {...filter, societyId };
+  }
+  return await FlatMember.find(filter)
+    .populate('societyId')
+    .populate('flatId')
+    .populate('userId');
+};
+
+export const memberFlats = async (userId, withSocietyRoles = false) => {
   const flats = await FlatMember.find({
     userId: { $in: userId }
   });

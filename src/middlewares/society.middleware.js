@@ -32,7 +32,7 @@ export const createSocietyFilter = async (req, res, next) => {
   const user = res.locals.user;
   if (user.role === 'admin') return next();
 
-  const allowedSocityIds = res.locals.allowedSocityIds ?? [];
+  const allowedSocityIds = res.locals.allowedSocityIds ?? (res.locals.socities ?? []).map(s => s.societyId);
   const filter = allowedSocityIds ? { _id: { $in: allowedSocityIds } } : {};
 
   res.locals.filter = filter;

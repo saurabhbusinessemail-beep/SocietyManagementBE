@@ -9,6 +9,12 @@ const menus = [
     relativePath: '/society/list'
   },
   {
+    menuId: 'myflats',
+    menuName: 'myFlats',
+    icon: 'home',
+    relativePath: '/myflats'
+  },
+  {
     menuId: 'visitors',
     menuName: 'Visitors',
     icon: 'people',

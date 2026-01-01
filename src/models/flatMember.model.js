@@ -13,6 +13,13 @@ const FlatMemberSchema = new mongoose.Schema({
   isOwner: { type: Boolean, default: false },
   isTenant: { type: Boolean, default: false },
 
+  // For Tenants specially
+  leaseStart: { type: Date },
+  leaseEnd: { type: Date },
+  rentAmount: { type: Number },
+  documents: [{ type: mongoose.Schema.Types.Mixed }],
+  status: { type: String, enum: ['active', 'expired', 'terminated'], default: 'active' },
+
   ...require('./default-fields.model')
 }, { timestamps: true });
 

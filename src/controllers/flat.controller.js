@@ -73,3 +73,13 @@ export const deleteFlat = async (req, res, next) => {
     next(err);
   }
 };
+
+export const myFlats = async (req, res, next) => {
+  try {
+    const societyId = req.params.id;
+    const data = await flatService.myFlats(res.locals.user._id, societyId);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}
