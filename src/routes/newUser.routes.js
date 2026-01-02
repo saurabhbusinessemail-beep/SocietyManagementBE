@@ -6,6 +6,6 @@ import * as newUserController from '../controllers/newUser.controller';
 const router = express.Router();
 router.use(userAuth);
 
-router.post('/owner', newRecordFields, newUserController.createFlatMember);
+router.post('/newFlatMember', newRecordFields, newUserController.newFlatMember);
 
 export default router;

@@ -20,9 +20,6 @@ export const requestOtp = async (req, res) => {
         phoneNumber
       };
       await UserService.newUser(newUser);
-      // return res
-      //   .status(404)
-      //   .json({ message: 'User not found with this phoneNumber' });
     }
 
     // Generate random 6 digit OTP

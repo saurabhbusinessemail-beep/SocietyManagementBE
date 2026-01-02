@@ -10,7 +10,7 @@ const menus = [
   },
   {
     menuId: 'myflats',
-    menuName: 'myFlats',
+    menuName: 'My Flats',
     icon: 'home',
     relativePath: '/myflats'
   },

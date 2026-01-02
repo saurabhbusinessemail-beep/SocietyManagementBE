@@ -39,7 +39,14 @@ export const myFlats = async (userId, societyId = null) => {
   return await FlatMember.find(filter)
     .populate('societyId')
     .populate('flatId')
-    .populate('userId');
+    .populate('userId')
+    .populate({
+      path: 'flatId',
+      populate: {
+        path: 'buildingId',
+        model: 'Building'
+      }
+    });
 };
 
 export const flatMember = async (flatMemberId) => {

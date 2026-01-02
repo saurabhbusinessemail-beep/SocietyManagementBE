@@ -6,7 +6,6 @@ export const areSameContacts = (contact1, contact2) => {};
 
 export const userSocitiesWithRole = async (userId) => {
   try {
-    const r = await SocietyService.getMySocities(userId, true);
     const { socities: socitiesBySociety, roles: rolesBySociety } =
       await SocietyService.getMySocities(userId, true);
 

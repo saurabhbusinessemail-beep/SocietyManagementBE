@@ -38,7 +38,7 @@ const roleMenus = [
   {
     role: 'tenant',
     menus: [
-      { menuId: 'myFlats', sortOrder: 1 },
+      { menuId: 'myflats', sortOrder: 1 },
       { menuId: 'visitors', sortOrder: 2 },
       { menuId: 'complaints', sortOrder: 3 },
       { menuId: 'tenants', sortOrder: 4 },
@@ -51,7 +51,7 @@ const roleMenus = [
   {
     role: 'member',
     menus: [
-      { menuId: 'myFlats', sortOrder: 1 },
+      { menuId: 'myflats', sortOrder: 1 },
       { menuId: 'visitors', sortOrder: 2 },
       { menuId: 'complaints', sortOrder: 3 },
       { menuId: 'tenants', sortOrder: 4 },
