@@ -42,6 +42,13 @@ export const myFlats = async (userId, societyId = null) => {
     .populate('userId');
 };
 
+export const flatMember = async (flatMemberId) => {
+  return await FlatMember.findById(flatMemberId)
+    .populate('societyId')
+    .populate('flatId')
+    .populate('userId');
+};
+
 export const memberFlats = async (userId, withSocietyRoles = false) => {
   const flats = await FlatMember.find({
     userId: { $in: userId }

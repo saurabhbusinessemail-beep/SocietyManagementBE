@@ -82,4 +82,14 @@ export const myFlats = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-}
+};
+
+export const flatMember = async (req, res, next) => {
+  try {
+    const flatMemberId = req.params.flatMemberId;
+    const data = await flatService.flatMember(flatMemberId);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
