@@ -16,7 +16,8 @@ export const getAllSocieties = async (filter, options = {}) => {
     data,
     total,
     page,
-    limit
+    limit,
+    success: true
   };
 };
 

@@ -24,7 +24,7 @@ const menus = [
     menuId: 'complaints',
     menuName: 'Complaints',
     icon: 'report_problem',
-    relativePath: '/abcd'
+    relativePath: '/complaints'
   },
   {
     menuId: 'tenants',

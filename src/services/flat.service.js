@@ -34,7 +34,7 @@ export const getFlatsBySocietyAndBuilding = async (filter, options = {}) => {
 export const myFlats = async (userId, societyId = null) => {
   let filter = { userId: { $in: userId } };
   if (societyId) {
-    filter = {...filter, societyId };
+    filter = { ...filter, societyId };
   }
   return await FlatMember.find(filter)
     .populate('societyId')
