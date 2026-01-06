@@ -41,9 +41,13 @@ export const getComplaints = async (req, res, next) => {
 
     const managerComplaints = await getManagetSocietyComplaint(req, res);
     const memberComplaints = await getMemberComplaints(req, res);
+    const allData = mergeUniqueComplaints(
+      managerComplaints.data,
+      memberComplaints.data
+    );
 
     res.json({
-      data: [...managerComplaints.data, ...memberComplaints.data],
+      data: allData,
       total: managerComplaints.total + memberComplaints.total,
       page: managerComplaints.page,
       limit: managerComplaints.limit,
@@ -52,6 +56,16 @@ export const getComplaints = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+};
+
+const mergeUniqueComplaints = (arr1, arr2) => {
+  const map = new Map();
+
+  [...arr1, ...arr2].forEach((doc) => {
+    map.set(doc._id.toString(), doc);
+  });
+
+  return Array.from(map.values());
 };
 
 const getAdminComplaints = async (req, res) => {
@@ -84,6 +98,8 @@ const getManagetSocietyComplaint = async (req, res) => {
   if (flatId) filter.flatId = flatId;
   else if (myManagerSocietyIds.length > 0)
     filter.societyId = { $in: myManagerSocietyIds };
+  else if (societyId) filter.societyId = societyId;
+
   if (complaintType) filter = { ...filter, complaintType };
 
   const data = await complaintService.getComplaints(filter, {
@@ -138,8 +154,12 @@ const getMemberComplaints = async (req, res) => {
       ]
     };
 
+    if (societyId) {
+      filter['$or'][0].societyId = societyId;
+    }
+
     if (complaintType) {
-      filter.$or[0].complaintType === complaintType;
+      filter['$or'][0].complaintType = complaintType;
     }
   }
 
@@ -165,7 +185,12 @@ export const changeStatus = async (req, res, next) => {
       return res.json({ success: false, message: 'No target status found' });
     }
 
-    await complaintService.updateStatus(complaintId, newStatus, user._id, societies);
+    await complaintService.updateStatus(
+      complaintId,
+      newStatus,
+      user._id,
+      societies
+    );
     res.json({ success: true });
   } catch (err) {
     next(err);
