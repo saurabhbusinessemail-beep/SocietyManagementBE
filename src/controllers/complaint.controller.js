@@ -56,7 +56,9 @@ export const getComplaints = async (req, res, next) => {
       .map((s) => s.societyId);
 
     // filter socities I am owner/member/tenant of (add filter by societyId and/or flatId if sent in req.body)
-    const flatMembers = await FlatMember.find({ userId: logUsr._id });
+    const flatMembers = await FlatMember.find({
+      $or: [{ userId: logUsr._id }, { societyId: { $in: myManagerSocietyIds } }]
+    });
     const flatMemberIds = flatMembers.map((fm) => fm.flatId.toString());
     const myMemberSocietyIds = filteredSocities
       .filter((s) =>
@@ -66,22 +68,27 @@ export const getComplaints = async (req, res, next) => {
       )
       .map((s) => s.societyId);
 
-    if (myManagerSocietyIds.length > 0) {
+
+    if (myManagerSocietyIds.length > 0 && !societyId && !flatId) {
       filter = {
         ...filter,
         societyId: { $in: [...myManagerSocietyIds] }
       };
     }
 
-    if (flatMemberIds && flatMemberIds.length > 0) {
+    if (flatMemberIds && flatMemberIds.length > 0 && !flatId) {
       filter = {
         ...filter,
         flatId: { $in: flatMemberIds }
       };
     }
 
-    console.log('\nfilter = ', filter);
-    if (myManagerSocietyIds.length > 0 && flatMemberIds.length > 0) {
+    if (
+      myManagerSocietyIds.length > 0 &&
+      flatMemberIds.length > 0 &&
+      !societyId &&
+      !flatId
+    ) {
       filter = {
         $or: [
           { societyId: { ...filter.societyId } },
@@ -89,7 +96,6 @@ export const getComplaints = async (req, res, next) => {
         ]
       };
     }
-    console.log('filter = ', filter);
 
     const data = await complaintService.getComplaints(filter, {
       page: Number(page),
