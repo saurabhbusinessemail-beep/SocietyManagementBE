@@ -19,7 +19,7 @@ const ComplaintSchema = new mongoose.Schema({
   priority: { type: String, enum: ['low', 'medium', 'high', 'urgent'], default: 'medium' },
 
   complaintType: { type: String, enum: ['Public', 'Private'], default: 'Private' },
-  status: { type: String, enum: ['open', 'in_progress', 'resolved', 'closed', 'rejected'], default: 'open' },
+  status: { type: String, enum: ['submitted', 'approved', 'in_progress', 'resolved', 'closed', 'rejected'], default: 'submitted' },
   assignedTo: { type: mongoose.Types.ObjectId, ref: 'User' },
   
   comments: [ComplaintCommentSchema],
@@ -31,4 +31,3 @@ const ComplaintSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model('Complaint', ComplaintSchema);
-1

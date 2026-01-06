@@ -63,7 +63,7 @@ export const getParkingsBySocietyAndBuilding = async (req, res, next) => {
 export const deleteParking = async (req, res, next) => {
   try {
     const data = await parkingService.deleteParking(req.params.parkingId);
-    res.json(data);
+    res.json({ success: true });
   } catch (err) {
     next(err);
   }

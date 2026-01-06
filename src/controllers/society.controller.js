@@ -69,7 +69,7 @@ export const updateSociety = async (req, res, next) => {
 export const deleteSociety = async (req, res, next) => {
   try {
     await societyService.deleteSociety(req.params.id);
-    res.json('');
+    res.json({ success: true });
   } catch (err) {
     next(err);
   }

@@ -8,17 +8,23 @@ export const bulkCreateFlats = (payload) => {
   return Flat.insertMany(payload);
 };
 
+export const getFlatById = async (id) => {
+  return await Flat.findById(id);
+}
+
 export const deleteFlat = async (id) => {
   await Flat.findByIdAndDelete(id);
   return '';
 };
 
 export const getFlatsBySocietyAndBuilding = async (filter, options = {}) => {
-  const { page = 1, limit = 500 } = options;
+  const { page = 1, limit = 1000 } = options;
   const skip = (page - 1) * limit;
 
   const [data, total] = await Promise.all([
-    Flat.find(filter).skip(skip).limit(limit).sort({ floor: 1, flatNumber: 1 }),
+    Flat.find(filter).skip(skip).limit(limit).sort({ floor: 1, flatNumber: 1 })
+    .populate('buildingId')
+    .populate('societyId'),
     Flat.countDocuments(filter)
   ]);
 
@@ -31,22 +37,40 @@ export const getFlatsBySocietyAndBuilding = async (filter, options = {}) => {
   };
 };
 
-export const myFlats = async (userId, societyId = null) => {
+export const myFlats = async (userId, societyId = null, options = {}) => {
+  const { page = 1, limit = 1000 } = options;
+  const skip = (page - 1) * limit;
+
   let filter = { userId: { $in: userId } };
   if (societyId) {
     filter = { ...filter, societyId };
   }
-  return await FlatMember.find(filter)
-    .populate('societyId')
-    .populate('flatId')
-    .populate('userId')
-    .populate({
-      path: 'flatId',
-      populate: {
-        path: 'buildingId',
-        model: 'Building'
-      }
-    });
+  const [data, total] = await Promise.all([
+    FlatMember.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .sort({ floor: 1, flatNumber: 1 })
+      .populate('societyId')
+      .populate('flatId')
+      .populate('userId')
+      .populate({
+        path: 'flatId',
+        populate: {
+          path: 'buildingId',
+          model: 'Building'
+        }
+      }),
+
+      FlatMember.countDocuments(filter)
+  ]);
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    success: true
+  };
 };
 
 export const flatMember = async (flatMemberId) => {

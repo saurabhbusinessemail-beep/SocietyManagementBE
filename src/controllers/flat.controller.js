@@ -34,13 +34,18 @@ export const getFlatsBySocietyAndBuilding = async (req, res, next) => {
   try {
     const societyId = req.params.id;
     const buildingId = req.params.buildingId;
+    const { page, limit } = req.query;
+
     let filter = {
       ...(res.locals.filter ?? {}),
       societyId
     };
     if (buildingId) filter['buildingId'] = buildingId;
 
-    const data = await flatService.getFlatsBySocietyAndBuilding(filter);
+    const data = await flatService.getFlatsBySocietyAndBuilding(filter, {
+      page: Number(page),
+      limit: Number(limit)
+    });
     res.json(data);
   } catch (err) {
     next(err);
@@ -49,7 +54,8 @@ export const getFlatsBySocietyAndBuilding = async (req, res, next) => {
 
 export const getFlatById = async (req, res, next) => {
   try {
-    const data = await flatService.getFlatById(req.params.id);
+    console.log('flatId = ', req.params.flatId)
+    const data = await flatService.getFlatById(req.params.flatId);
     res.json(data);
   } catch (err) {
     next(err);
@@ -68,7 +74,7 @@ export const updateFlat = async (req, res, next) => {
 export const deleteFlat = async (req, res, next) => {
   try {
     const data = await flatService.deleteFlat(req.params.flatId);
-    res.json(data);
+    res.json({ success: true });
   } catch (err) {
     next(err);
   }

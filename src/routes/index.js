@@ -5,6 +5,7 @@ import userRoute from './user.route';
 import authRoute from './auth.routes';
 import societyRoutes from './society.route';
 import flatRoutes from './flat.route';
+import complaintRoutes from './complaint.route';
 import newUserRoutes from './newUser.routes';
 
 const seedRoles = require("../seed/role.seeder");
@@ -33,6 +34,7 @@ const routes = () => {
   router.use('/auth', authRoute);
   router.use('/societies', societyRoutes);
   router.use('/flats', flatRoutes);
+  router.use('/complaint', complaintRoutes);
   router.use('/newUser', newUserRoutes);
 
   return router;
