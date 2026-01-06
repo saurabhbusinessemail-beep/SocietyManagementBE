@@ -1,4 +1,4 @@
-import { Complaint } from '../models';
+import { Complaint, FlatMember } from '../models';
 
 export const createComplaint = (data) => {
   return Complaint.create(data);
@@ -34,7 +34,12 @@ export const getComplaints = async (filter, options = {}) => {
   };
 };
 
-export const updateStatus = async (complaintId, newStatus, userId) => {
+export const updateStatus = async (
+  complaintId,
+  newStatus,
+  userId,
+  userSocities
+) => {
   const complaint = await Complaint.findOne(
     { _id: complaintId, isDeleted: { $ne: true } },
     { status: 1 }
@@ -46,6 +51,20 @@ export const updateStatus = async (complaintId, newStatus, userId) => {
 
   if (complaint.status === newStatus) {
     return complaint; // no change needed
+  }
+
+  if (
+    newStatus === 'closed' &&
+    !(await checkIfComplaintIsOfUserFlat(complaintId, userId))
+  ) {
+    throw new Error('Access denied');
+  }
+
+  if (
+    ['approved', 'rejected', 'in_progress'].includes(newStatus) &&
+    !(await checkIfUserIsManagerOfSocietyOfComplaint(complaintId, userSocities))
+  ) {
+    throw new Error('Access denied');
   }
 
   return Complaint.findByIdAndUpdate(
@@ -66,4 +85,43 @@ export const updateStatus = async (complaintId, newStatus, userId) => {
     },
     { new: true }
   );
+};
+
+const checkIfComplaintIsOfUserFlat = async (complaintId, userId) => {
+  const complaint = await Complaint.findById(complaintId);
+  if (!complaint) return false;
+
+  const flatMember = await FlatMember.find({
+    flatId: complaint.flatId,
+    userId
+  });
+  if (flatMember.length === 0) return false;
+
+  if (flatMember[0].isOwner) return true;
+
+  const isTenant = flatMember[0].isTenant;
+  const isMember = !flatMember[0].isTenant && !flatMember[0].isOwner;
+
+  if (isTenant || (isMember && complaint.modifiedByUserId !== userId))
+    return false;
+
+  return true;
+};
+
+const checkIfUserIsManagerOfSocietyOfComplaint = async (
+  complaintId,
+  userSocities
+) => {
+  const complaint = await Complaint.findById(complaintId);
+  if (!complaint) return false;
+
+  const hasSocietyWithManagerRole = userSocities.find(
+    (s) =>
+      s.societyId === complaint.societyId &&
+      s.societyRoles.some((sr) => ['societyadmin', 'manager'].includes(sr.name))
+  );
+
+  if (!hasSocietyWithManagerRole) return false;
+
+  return true;
 };

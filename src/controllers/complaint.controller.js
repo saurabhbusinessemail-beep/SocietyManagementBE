@@ -23,12 +23,6 @@ export const getComplaints = async (req, res, next) => {
   try {
     const { societyId, flatId } = req.body;
     const logUsr = res.locals.user;
-    const societies = res.locals.socities;
-    const filteredSocities = !societyId
-      ? societies
-      : societies.filter((s) => s.societyId === societyId);
-    const { page, limit } = req.query;
-    let filter = {};
 
     // for admin get complaints only if societyid and/or flat id is sent
     if (logUsr.role === 'admin') {
@@ -40,76 +34,127 @@ export const getComplaints = async (req, res, next) => {
           limit: 0,
           success: true
         });
+      } else {
+        return res.json(getAdminComplaints(req, res));
       }
     }
 
-    if (societyId) filter = { ...filter, societyId };
-    if (flatId) filter = { ...filter, flatId };
+    const managerComplaints = await getManagetSocietyComplaint(req, res);
+    const memberComplaints = await getMemberComplaints(req, res);
 
-    // filter societies for which I am manager of (add filter by societyId and/or flatId if sent in req.body)
-    const myManagerSocietyIds = filteredSocities
-      .filter((s) =>
-        s.societyRoles.some((sr) =>
-          ['societyadmin', 'manager'].includes(sr.name)
-        )
-      )
-      .map((s) => s.societyId);
-
-    // filter socities I am owner/member/tenant of (add filter by societyId and/or flatId if sent in req.body)
-    const flatMembers = await FlatMember.find({
-      $or: [{ userId: logUsr._id }, { societyId: { $in: myManagerSocietyIds } }]
+    res.json({
+      data: [...managerComplaints.data, ...memberComplaints.data],
+      total: managerComplaints.total + memberComplaints.total,
+      page: managerComplaints.page,
+      limit: managerComplaints.limit,
+      success: true
     });
-    const flatMemberIds = flatMembers.map((fm) => fm.flatId.toString());
-    const myMemberSocietyIds = filteredSocities
-      .filter((s) =>
-        s.societyRoles.some((sr) =>
-          ['owner', 'member', 'tenant'].includes(sr.name)
-        )
-      )
-      .map((s) => s.societyId);
-
-
-    if (myManagerSocietyIds.length > 0 && !societyId && !flatId) {
-      filter = {
-        ...filter,
-        societyId: { $in: [...myManagerSocietyIds] }
-      };
-    }
-
-    if (flatMemberIds && flatMemberIds.length > 0 && !flatId) {
-      filter = {
-        ...filter,
-        flatId: { $in: flatMemberIds }
-      };
-    }
-
-    if (
-      myManagerSocietyIds.length > 0 &&
-      flatMemberIds.length > 0 &&
-      !societyId &&
-      !flatId
-    ) {
-      filter = {
-        $or: [
-          { societyId: { ...filter.societyId } },
-          { flatId: { ...filter.flatId } }
-        ]
-      };
-    }
-
-    const data = await complaintService.getComplaints(filter, {
-      page: Number(page),
-      limit: Number(limit)
-    });
-    res.json(data);
   } catch (err) {
     next(err);
   }
 };
 
+const getAdminComplaints = async (req, res) => {
+  let filter = req.body;
+  const { page, limit } = req.query;
+
+  const data = await complaintService.getComplaints(filter, {
+    page: Number(page),
+    limit: Number(limit)
+  });
+  return data;
+};
+
+const getManagetSocietyComplaint = async (req, res) => {
+  let filter = {};
+  const { page, limit } = req.query;
+  const { societyId, flatId, complaintType } = req.body;
+  const societies = res.locals.socities;
+
+  const myManagerSocietyIds = societies
+    .filter(
+      (s) =>
+        (!societyId || s.societyId === societyId) &&
+        s.societyRoles.some((sr) =>
+          ['societyadmin', 'manager'].includes(sr.name)
+        )
+    )
+    .map((s) => s.societyId);
+
+  if (flatId) filter.flatId = flatId;
+  else if (myManagerSocietyIds.length > 0)
+    filter.societyId = { $in: myManagerSocietyIds };
+  if (complaintType) filter = { ...filter, complaintType };
+
+  const data = await complaintService.getComplaints(filter, {
+    page: Number(page),
+    limit: Number(limit)
+  });
+  return data;
+};
+
+const getMemberComplaints = async (req, res) => {
+  let filter = {};
+  const logUsr = res.locals.user;
+  const { page, limit } = req.query;
+  const { societyId, flatId, complaintType } = req.body;
+  const societies = res.locals.socities;
+
+  const myMemberSocietyIds = societies
+    .filter(
+      (s) =>
+        (!societyId || s.societyId === societyId) &&
+        s.societyRoles.some((sr) =>
+          ['owner', 'member', 'tenant'].includes(sr.name)
+        )
+    )
+    .map((s) => s.societyId);
+
+  if (flatId) {
+    filter.flatId = flatId;
+    if (complaintType) filter = { ...filter, complaintType };
+  } else {
+    // get my complaints
+    // get public complaint of my socities
+
+    const flatMembers = await FlatMember.find({
+      userId: logUsr._id
+    });
+    const flatIds = flatMembers.map((fm) => fm.flatId.toString());
+
+    filter = {
+      $or: [
+        // My own complaints (public + private)
+        {
+          flatId: { $in: flatIds }
+        },
+
+        // Other people's complaints, but ONLY public and ONLY in my member societies
+        {
+          craetedByUserId: { $ne: logUsr._id },
+          societyId: { $in: myMemberSocietyIds },
+          complaintType: 'Public'
+        }
+      ]
+    };
+
+    if (complaintType) {
+      filter.$or[0].complaintType === complaintType;
+    }
+  }
+
+  const data = await complaintService.getComplaints(filter, {
+    page: Number(page),
+    limit: Number(limit)
+  });
+  return data;
+};
+
 export const changeStatus = async (req, res, next) => {
   try {
     const user = res.locals.user;
+    const societies = res.locals.socities;
+
     if (!user) {
       return res.json({ success: false, message: 'No user found' });
     }
@@ -120,7 +165,7 @@ export const changeStatus = async (req, res, next) => {
       return res.json({ success: false, message: 'No target status found' });
     }
 
-    await complaintService.updateStatus(complaintId, newStatus, user._id);
+    await complaintService.updateStatus(complaintId, newStatus, user._id, societies);
     res.json({ success: true });
   } catch (err) {
     next(err);
