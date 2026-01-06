@@ -8,4 +8,6 @@ router.use(userAuth);
 
 router.post('/newFlatMember', newRecordFields, newUserController.newFlatMember);
 
+router.post('/newSecurity', newRecordFields, newUserController.newSecurity);
+
 export default router;

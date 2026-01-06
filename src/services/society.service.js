@@ -1,4 +1,5 @@
 import { Society } from '../models';
+import * as SecurityService from '../services/security.service';
 
 /**
  * Get all societies
@@ -107,6 +108,10 @@ export const managerSocieties = async (userId) => {
 export const getMySocities = async (userId, withSocietyRoles = false) => {
   const myContactAdminSocities = await contactAdminSocieties(userId);
   const myManagerSocities = await managerSocieties(userId);
+  const mySecuritySocities = await SecurityService.getSecuritySocities(
+    userId,
+    withSocietyRoles
+  );
 
   if (!withSocietyRoles)
     return { socities: [...myContactAdminSocities, ...myManagerSocities] };
@@ -119,6 +124,11 @@ export const getMySocities = async (userId, withSocietyRoles = false) => {
   myManagerSocities.forEach((society) => {
     if (societiesObj[society._id]) societiesObj[society._id].push('manager');
     else societiesObj[society._id] = ['manager'];
+  });
+  mySecuritySocities.forEach((security) => {
+    if (societiesObj[security.societyId])
+      societiesObj[security.societyId].push('security');
+    else societiesObj[security.societyId] = ['security'];
   });
 
   let rolesObj = new Set();
@@ -146,7 +156,7 @@ export const newSocietyManager = async (societyId, manager) => {
 export const deleteSocietyManager = async (societyId, managerId) => {
   const society = await Society.findById(societyId);
   if (!society.managerIds) society.managerIds = [];
-  society.managerIds = society.managerIds.filter(m => m != managerId);
+  society.managerIds = society.managerIds.filter((m) => m != managerId);
 
   await Society.findByIdAndUpdate({ _id: societyId }, society, { new: true });
 };
