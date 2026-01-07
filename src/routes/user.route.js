@@ -16,6 +16,9 @@ router.get('/:_id', userAuth, userController.getUser);
 //route to update a single user by their user id
 router.put('/:_id', userAuth, userController.updateUser);
 
+//route to update user name by their user id
+router.patch('/updateName', userAuth, userController.updateName);
+
 //route to delete a single user by their user id
 router.delete('/:_id', userAuth, userController.deleteUser);
 

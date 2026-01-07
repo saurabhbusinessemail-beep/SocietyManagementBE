@@ -1,5 +1,6 @@
 import HttpStatus from 'http-status-codes';
 import * as UserService from '../services/user.service';
+import * as AuthService from '../services/auth.service';
 
 /**
  * Controller to get all users available
@@ -71,6 +72,27 @@ export const updateUser = async (req, res, next) => {
       code: HttpStatus.ACCEPTED,
       data: data,
       message: 'User updated successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update User Name
+export const updateName = async (req, res, next) => {
+  try {
+    const { userName } = req.body;
+    const user = res.locals.user;
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const data = await UserService.updateUserName(user._id, userName);
+    const updatedToken = await AuthService.getUserToken(data);
+    res.status(201).json({
+      success: true,
+      message: 'Added Security',
+      token: updatedToken
     });
   } catch (error) {
     next(error);

@@ -26,6 +26,17 @@ export const updateUser = async (_id, body) => {
   return data;
 };
 
+//update single user
+export const updateUserName = async (_id, name) => {
+  const user = await User.findByIdAndUpdate(
+    _id,
+    { $set: { name } },   // ✅ ONLY this key updates
+    { new: true }         // return updated document
+  );
+
+  return user;
+};
+
 //delete single user
 export const deleteUser = async (id) => {
   await User.findByIdAndDelete(id);
