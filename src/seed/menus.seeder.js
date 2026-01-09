@@ -47,7 +47,7 @@ const menus = [
     menuId: 'gateentry', // for security
     menuName: 'Gate Entry',
     icon: 'input',
-    relativePath: '/dashboard/security'
+    relativePath: '/security/dashboard'
   }
 ];
 

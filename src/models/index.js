@@ -3,7 +3,7 @@ const Complaint = require('./complaint.model');
 const Feature = require('./feature.model');
 const Flat = require('./flat.model');
 const FlatMember = require('./flatMember.model');
-const GatePass = require('./gatepass.model');
+const GateEntry = require('./gateEntry.model');
 const Menu = require('./menu.model');
 const Notification = require('./notification.model');
 const Otp = require('./otp.model');
@@ -22,7 +22,7 @@ module.exports = {
   Feature,
   Flat,
   FlatMember,
-  GatePass,
+  GateEntry,
   Menu,
   Notification,
   Otp,
