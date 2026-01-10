@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const GateEntryHistorySchema = new mongoose.Schema(
   {
-    fromStatus: { type: String },
-    toStatus: { type: String },
+    fromStatus: { type: String, enum: ['requested', 'approved', 'rejected', 'cancelled', 'expired', 'completed'] },
+    toStatus: { type: String, enum: ['requested', 'approved', 'rejected', 'cancelled', 'expired', 'completed'] },
     note: { type: String },
 
     ...require('./default-fields.model')
@@ -13,32 +13,23 @@ const GateEntryHistorySchema = new mongoose.Schema(
 
 const GateEntrySchema = new mongoose.Schema(
   {
-    gatePassNumber: { type: String, unique: true }, // optional external id
-    flatId: { type: mongoose.Types.ObjectId, ref: 'Flat', required: true },
-    visitorName: { type: String, required: true },
+    gatePassId: { type: mongoose.Types.ObjectId, ref: 'Flat' }, // optional external id
+    flatId: { type: mongoose.Types.ObjectId, ref: 'Flat' },
+    visitorName: { type: String },
     visitorContact: { type: String },
     purpose: { type: String },
     vehicleNumber: { type: String },
-    entryTime: { type: Date },
-    exitTime: { type: Date, required: true },
-    expectedIn: { type: Date },
-    expectedOut: { type: Date },
+    entryTime: { type: Date, required: true },
+    exitTime: { type: Date },
     status: {
       type: String,
-      enum: [
-        'requested',
-        'approved',
-        'rejected',
-        'cancelled',
-        'expired',
-        'completed'
-      ],
-      default: 'requested'
+      enum: ['requested', 'approved', 'rejected', 'cancelled', 'expired', 'completed'],
+      default: 'requested',
+      required: true
     },
     approvedBy: { type: mongoose.Types.ObjectId, ref: 'User' },
     history: [GateEntryHistorySchema],
     expiryDate: { type: Date },
-    OTP: { type: Number },
     meta: { type: mongoose.Schema.Types.Mixed },
 
     ...require('./default-fields.model')

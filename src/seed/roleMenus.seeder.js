@@ -28,9 +28,10 @@ const roleMenus = [
       { menuId: 'myflats', sortOrder: 1 },
       { menuId: 'visitors', sortOrder: 2 },
       { menuId: 'complaints', sortOrder: 3 },
-      { menuId: 'tenants', sortOrder: 4 },
-      { menuId: 'members', sortOrder: 5 },
-      { menuId: 'announcements', sortOrder: 6 }
+      { menuId: 'gatepass', sortOrder: 4 },
+      { menuId: 'tenants', sortOrder: 5 },
+      { menuId: 'members', sortOrder: 6 },
+      { menuId: 'announcements', sortOrder: 7 }
     ]
   },
 
@@ -41,7 +42,7 @@ const roleMenus = [
       { menuId: 'myflats', sortOrder: 1 },
       { menuId: 'visitors', sortOrder: 2 },
       { menuId: 'complaints', sortOrder: 3 },
-      { menuId: 'tenants', sortOrder: 4 },
+      { menuId: 'gatepass', sortOrder: 4 },
       { menuId: 'members', sortOrder: 5 },
       { menuId: 'announcements', sortOrder: 6 }
     ]
@@ -54,7 +55,7 @@ const roleMenus = [
       { menuId: 'myflats', sortOrder: 1 },
       { menuId: 'visitors', sortOrder: 2 },
       { menuId: 'complaints', sortOrder: 3 },
-      { menuId: 'tenants', sortOrder: 4 },
+      { menuId: 'gatepass', sortOrder: 4 },
       { menuId: 'members', sortOrder: 5 },
       { menuId: 'announcements', sortOrder: 6 }
     ]

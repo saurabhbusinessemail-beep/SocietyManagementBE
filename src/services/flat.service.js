@@ -10,7 +10,7 @@ export const bulkCreateFlats = (payload) => {
 
 export const getFlatById = async (id) => {
   return await Flat.findById(id);
-}
+};
 
 export const deleteFlat = async (id) => {
   await Flat.findByIdAndDelete(id);
@@ -22,9 +22,12 @@ export const getFlatsBySocietyAndBuilding = async (filter, options = {}) => {
   const skip = (page - 1) * limit;
 
   const [data, total] = await Promise.all([
-    Flat.find(filter).skip(skip).limit(limit).sort({ floor: 1, flatNumber: 1 })
-    .populate('buildingId')
-    .populate('societyId'),
+    Flat.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .sort({ floor: 1, flatNumber: 1 })
+      .populate('buildingId')
+      .populate('societyId'),
     Flat.countDocuments(filter)
   ]);
 
@@ -61,7 +64,7 @@ export const myFlats = async (userId, societyId = null, options = {}) => {
         }
       }),
 
-      FlatMember.countDocuments(filter)
+    FlatMember.countDocuments(filter)
   ]);
 
   return {
@@ -128,4 +131,14 @@ export const memberFlats = async (userId, withSocietyRoles = false) => {
   const roles = [...rolesObj.values()];
 
   return { socities, roles };
+};
+
+export const getFlatMembersByFlatId = (flatId, userId = undefined) => {
+  let filter = { flatId };
+  if (userId) filter.userId = userId;
+
+  return FlatMember.find(filter)
+    .populate('societyId')
+    .populate('flatId')
+    .populate('userId');
 };

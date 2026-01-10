@@ -48,6 +48,12 @@ const menus = [
     menuName: 'Gate Entry',
     icon: 'input',
     relativePath: '/security/dashboard'
+  },
+  {
+    menuId: 'gatepass', // for security
+    menuName: 'Gate Pass',
+    icon: 'input',
+    relativePath: '/gatePass'
   }
 ];
 

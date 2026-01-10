@@ -41,7 +41,7 @@ export const updateStatus = async (
   userSocities
 ) => {
   const complaint = await Complaint.findOne(
-    { _id: complaintId, isDeleted: { $ne: true } },
+    { _id: complaintId },
     { status: 1 }
   ).lean();
 

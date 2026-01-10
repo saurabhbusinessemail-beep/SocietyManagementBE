@@ -4,6 +4,7 @@ const Feature = require('./feature.model');
 const Flat = require('./flat.model');
 const FlatMember = require('./flatMember.model');
 const GateEntry = require('./gateEntry.model');
+const GatePass = require('./gatePass.model');
 const Menu = require('./menu.model');
 const Notification = require('./notification.model');
 const Otp = require('./otp.model');
@@ -23,6 +24,7 @@ module.exports = {
   Flat,
   FlatMember,
   GateEntry,
+  GatePass,
   Menu,
   Notification,
   Otp,

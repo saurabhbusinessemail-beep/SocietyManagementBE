@@ -6,7 +6,6 @@ const FlatSchema = new mongoose.Schema({
   societyId: { type: mongoose.Types.ObjectId, ref: 'Society', required: true },
   flatType: { type: String, enum: ['1BHK', '2BHK', '3BHK', '4BHK', '5BHK', '6BHK'] },
   floor: { type: Number },
-  flatMemberId: { type: String, ref: 'FlatMember' },
 
   meta: { type: mongoose.Schema.Types.Mixed },
 
