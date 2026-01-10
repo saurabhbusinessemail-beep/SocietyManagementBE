@@ -1,12 +1,13 @@
 const gatePassService = require('../services/gatepass.service');
 const userService = require('../services/user.service');
+const flatService = require('../services/flat.service');
 
 export const createGatePass = async (req, res, next) => {
   try {
     let gatePass = req.body;
 
     // if user id is not sent as string rather sent as an object having name and phoneNumber then search or create user and update the userId
-    if (typeof gatePass.userId !== string) {
+    if (typeof gatePass.userId !== 'string') {
       const users = await userService.searchUsers(gatePass.userId.phoneNumber);
       if (users.data.length > 0) {
         gatePass.userId = users.data[0]._id;
@@ -16,8 +17,10 @@ export const createGatePass = async (req, res, next) => {
       }
     }
 
+    gatePass.otp = Math.floor(100000 + Math.random() * 900000).toString();
+
     const data = await gatePassService.createGatePass(gatePass);
-    res.status(201).json(data);
+    res.status(201).json({ data, success: true });
   } catch (err) {
     next(err);
   }
@@ -25,11 +28,26 @@ export const createGatePass = async (req, res, next) => {
 
 export const getGatePasses = async (req, res, next) => {
   try {
-    const societyId = req.params.societyId;
-    const flatId = req.params.flatId;
+    const user = res.locals.user;
+    if (!user) {
+      return res.json({ success: false, message: 'No user found' });
+    }
+
+    const { societyId, flatId } = req.body;
     let filter = {};
     if (societyId) filter.societyId = societyId;
     if (flatId) filter.flatId = flatId;
+
+    if (!flatId) {
+      const myFlatMemberRecords = (
+        await flatService.myFlats(user._id, societyId)
+      ).data;
+
+      const flatIds = myFlatMemberRecords.map((fm) => fm.flatId._id);
+      if (flatIds && flatIds.length > 0) {
+        filter.flatId = { $in: flatIds };
+      }
+    }
 
     const { page, limit } = req.query;
     const data = await gatePassService.getGatePasses(filter, {
@@ -54,10 +72,7 @@ export const getGatePass = async (req, res, next) => {
 export const updateGatePass = async (req, res, next) => {
   try {
     let gatePass = req.body;
-    const data = await gatePassService.updateGatePass(
-      req.params.id,
-      gatePass
-    );
+    const data = await gatePassService.updateGatePass(req.params.id, gatePass);
     res.json(data);
   } catch (err) {
     next(err);
@@ -72,4 +87,3 @@ export const deleteGatePass = async (req, res, next) => {
     next(err);
   }
 };
-

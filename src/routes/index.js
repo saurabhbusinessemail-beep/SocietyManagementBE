@@ -8,7 +8,7 @@ import flatRoutes from './flat.route';
 import complaintRoutes from './complaint.route';
 import newUserRoutes from './newUser.routes';
 import gatepassRoutes from './gatepass.route';
-import gatepentryRoutes from './gateentry.route';
+import gateentryRoutes from './gateentry.route';
 
 const seedRoles = require("../seed/role.seeder");
 const seedPermissions = require("../seed/permission.seeder");
@@ -39,7 +39,7 @@ const routes = () => {
   router.use('/complaint', complaintRoutes);
   router.use('/newUser', newUserRoutes);
   router.use('/gatepass', gatepassRoutes);
-  router.use('/gateentry', gatepassRoutes);
+  router.use('/gateentry', gateentryRoutes);
 
   return router;
 };

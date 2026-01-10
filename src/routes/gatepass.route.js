@@ -9,7 +9,7 @@ router.use(userAuth);
 
 router.get('/:id', gatePassController.getGatePass);
 
-router.get('/', gatePassController.getGatePasses);
+router.post('/myGatePasses', gatePassController.getGatePasses);
 
 router.post('/', newRecordFields, gatePassController.createGatePass);
 

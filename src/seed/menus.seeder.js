@@ -46,14 +46,14 @@ const menus = [
   {
     menuId: 'gateentry', // for security
     menuName: 'Gate Entry',
-    icon: 'input',
-    relativePath: '/security/dashboard'
+    icon: 'gateentry',
+    relativePath: '/gateentry/dashboard'
   },
   {
-    menuId: 'gatepass', // for security
+    menuId: 'gatepass',
     menuName: 'Gate Pass',
-    icon: 'input',
-    relativePath: '/gatePass'
+    icon: 'gatepass',
+    relativePath: '/gatepass'
   }
 ];
 

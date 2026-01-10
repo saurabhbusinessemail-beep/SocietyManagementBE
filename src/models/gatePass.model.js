@@ -18,11 +18,12 @@ const GatePassSchema = new mongoose.Schema(
 
     isAssignedBySociety: { type: Boolean },
 
-    OTP: { type: Number, required: true },
-    expectedDate: { type: Date },
+    otp: { type: Number, required: true },
+    expectedDate: { type: Date, required: true },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      ref: 'User',
+      required: true
     },
 
     remarks: {

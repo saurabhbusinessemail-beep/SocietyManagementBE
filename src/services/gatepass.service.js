@@ -16,7 +16,8 @@ export const getGatePasses = async (filter, options = {}) => {
       .limit(limit)
       .sort({ createdOn: -1 })
       .populate('societyId')
-      .populate('flatId'),
+      .populate('flatId')
+      .populate('userId'),
       GatePass.countDocuments(filter)
   ]);
 
