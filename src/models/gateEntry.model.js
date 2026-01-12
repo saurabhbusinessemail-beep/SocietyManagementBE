@@ -14,6 +14,7 @@ const GateEntryHistorySchema = new mongoose.Schema(
 const GateEntrySchema = new mongoose.Schema(
   {
     gatePassId: { type: mongoose.Types.ObjectId, ref: 'Flat' }, // optional external id
+    societyId: { type: mongoose.Types.ObjectId, ref: 'Society', required: true },
     flatId: { type: mongoose.Types.ObjectId, ref: 'Flat' },
     visitorName: { type: String },
     visitorContact: { type: String },

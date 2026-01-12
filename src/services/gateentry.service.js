@@ -17,6 +17,7 @@ export const getGateEntries = async (filter, options = {}) => {
       .limit(limit)
       .sort({ createdOn: -1 })
       .populate('gatePassId')
+      .populate('societyId')
       .populate('flatId')
       .populate('approvedBy'),
     GateEntry.countDocuments(filter)
@@ -34,6 +35,7 @@ export const getGateEntries = async (filter, options = {}) => {
 export const gettGateEntry = async (id) => {
   const data = await GateEntry.findById(id)
     .populate('gatePassId')
+    .populate('societyId')
     .populate('flatId')
     .populate('approvedBy');
   return data;

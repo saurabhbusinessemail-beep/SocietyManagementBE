@@ -9,13 +9,17 @@ router.use(userAuth);
 
 router.get('/:id', gatePassController.getGatePass);
 
+router.get('/validateGatePass/:gatePassId', gatePassController.validateGatePass);
+
 router.post('/myGatePasses', gatePassController.getGatePasses);
+
+router.post('/validateOTP', gatePassController.validateOTP);
 
 router.post('/', newRecordFields, gatePassController.createGatePass);
 
 router.put('/:id', updateRecordFields, gatePassController.updateGatePass);
 
 router.delete('/:id', gatePassController.deleteGatePass);
-// GatePass
+
 
 export default router;

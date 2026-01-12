@@ -87,3 +87,38 @@ export const deleteGatePass = async (req, res, next) => {
     next(err);
   }
 };
+
+export const validateOTP = async (req, res, next) => {
+  try {
+    const { otp, societyId, flatId } = req.body;
+    const gatePasses = await gatePassService.validateOTP(
+      otp,
+      societyId,
+      flatId
+    );
+    const gatePass = gatePasses.length > 0 ? gatePasses[0] : undefined;
+
+    res.json({
+      success: !!gatePass,
+      message: gatePass ? 'Valid OTP' : 'Invalid OTP',
+      data: gatePass
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const validateGatePass = async (req, res, next) => {
+  try {
+    const gatePassId = req.params.gatePassId;
+    const gatePass = await gatePassService.validateGatePass(gatePassId);
+
+    res.json({
+      success: !!gatePass,
+      message: gatePass ? 'Valid OTP' : 'Invalid OTP',
+      data: gatePass
+    });
+  } catch (err) {
+    next(err);
+  }
+};

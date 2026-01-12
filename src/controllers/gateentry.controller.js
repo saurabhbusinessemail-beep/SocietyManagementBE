@@ -32,7 +32,7 @@ export const createGateEntry = async (req, res, next) => {
 
       // pending implementation
     }
-    res.status(201).json(data);
+    res.status(201).json({ data, success: true });
   } catch (err) {
     next(err);
   }
