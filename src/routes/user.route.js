@@ -20,7 +20,7 @@ router.put('/:_id', userAuth, userController.updateUser);
 router.patch('/updateName', userAuth, userController.updateName);
 
 //route to update fcm token by their user id
-router.patch('/updateFCMToken', userAuth, userController.updateFCMToken);
+router.post('/updateFCMToken', userAuth, userController.updateFCMToken);
 
 //route to delete a single user by their user id
 router.delete('/:_id', userAuth, userController.deleteUser);
