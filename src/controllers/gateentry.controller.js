@@ -1,11 +1,11 @@
 const gateEntryService = require('../services/gateentry.service');
 import * as FlatService from '../services/flat.service';
+import * as UserService from '../services/user.service';
 import * as NotificationService from '../services/notification.service';
 
 export const createGateEntry = async (req, res, next) => {
   try {
     const fromUserId = res.locals.user._id;
-    const fcmToken = res.locals.fcmToken;
     if (!fromUserId) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -18,15 +18,21 @@ export const createGateEntry = async (req, res, next) => {
       const flatMembers = await FlatService.getFlatMembersByFlatId(
         gateEntry.flatId
       );
-      const arrNotificationPromises = flatMembers.map((fm) => {
-        const toUserId = fm.userId;
-        return NotificationService.sendGateEntryRequestNotification(
-          fromUserId,
-          toUserId,
-          data,
-          fcmToken
+      const arrNotificationPromises = [];
+      for (let i = 0; i < flatMembers.length; i++) {
+        const toUserId = flatMembers[i].userId;
+        const user = await UserService.getUser(toUserId);
+        if (!user || !user.fcmToken) continue;
+
+        arrNotificationPromises.push(
+          NotificationService.sendGateEntryRequestNotification(
+            fromUserId,
+            toUserId,
+            data,
+            user.fcmToken
+          )
         );
-      });
+      }
 
       if (arrNotificationPromises.length > 0)
         await Promise.all(arrNotificationPromises);
