@@ -12,8 +12,8 @@ import gateentryRoutes from './gateentry.route';
 
 const seedRoles = require("../seed/role.seeder");
 const seedPermissions = require("../seed/permission.seeder");
-const seedFeatures = require("../seed/feature.seeder");
 const seedMenus = require("../seed/menus.seeder");
+const seedFeatures = require("../seed/feature.seeder");
 const seedRoleMenu = require("../seed/roleMenus.seeder");
 
 /**
@@ -23,14 +23,17 @@ const seedRoleMenu = require("../seed/roleMenus.seeder");
  */
 const routes = () => {
   router.get('/', async (req, res) => {
+    res.json('Welcome');
+  });
+  router.get('/seed', async (req, res) => {
     
     await seedRoles();
     await seedPermissions();
-    await seedFeatures();
     await seedMenus();
+    await seedFeatures();
     await seedRoleMenu();
 
-    res.json('Welcome');
+    res.send('Seed Completed');
   });
   router.use('/users', userRoute);
   router.use('/auth', authRoute);
