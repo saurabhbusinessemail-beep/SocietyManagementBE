@@ -34,7 +34,11 @@ app.use(
     credentials: false
   })
 );
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false
+}));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 // app.use(morgan('combined', { stream: logStream }));
