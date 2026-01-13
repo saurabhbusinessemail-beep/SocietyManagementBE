@@ -8,7 +8,7 @@ export const sendGateEntryRequestNotification = async (
   fcmToken
 ) => {
   const title = 'Gate Entry Request';
-  const type = 'GATE_PASS'
+  const type = 'GATE_PASS';
   const message =
     `${gateEntry.visitorName} is requesting for gate entry` +
     (gateEntry.purpose ? ` for ${gateEntry.purpose}` : '.');
@@ -28,7 +28,8 @@ export const sendGateEntryRequestNotification = async (
   const notificationData = await Notification.create(payload);
   await sendNotificationToUser(fcmToken, title, message, {
     notificationId: notificationData._id,
-    gateEntryId: gateEntry._id, type
+    gateEntryId: gateEntry._id,
+    type
   });
   return notificationData;
 };
@@ -41,34 +42,73 @@ export const sendGateEntryResponseNotification = (
 
 export const sentMessage = () => {};
 
-const sendNotificationToUser = async ({ fcmToken, title, body, data = {} }) => {
-  // 2️⃣ Send Push via FCM
-  const message = {
-    token: fcmToken,
-
-    notification: {
-      title,
-      body
-    },
-
-    android: {
-      priority: 'high',
-      notification: {
-        channelId: 'high_priority_channel',
-        sound: 'alert_sound', // 🔔 custom sound
-        clickAction: 'OPEN_FROM_NOTIFICATION'
-      }
-    },
-
-    data: {
-      ...Object.entries(data).reduce((acc, [k, v]) => {
-        acc[k] = String(v);
-        return acc;
-      }, {})
+const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {
+  try {
+    // Validate that fcmToken exists
+    if (!fcmToken || fcmToken.trim() === '') {
+      console.error('FCM Token is required but was empty or undefined');
+      throw new Error('FCM Token is required');
     }
-  };
 
-  await admin.messaging().send(message);
+    // 2️⃣ Send Push via FCM
+    const message = {
+      token: fcmToken,
+      notification: {
+        title,
+        body
+      },
+      android: {
+        priority: 'high',
+        notification: {
+          channelId: 'high_priority_channel',
+          sound: 'alert_sound', // 🔔 custom sound
+          clickAction: 'OPEN_FROM_NOTIFICATION'
+        }
+      },
+      apns: {
+        // Add iOS configuration if needed
+        payload: {
+          aps: {
+            sound: 'alert_sound.wav',
+            badge: 1
+          }
+        }
+      },
+      data: {
+        ...Object.entries(data).reduce((acc, [k, v]) => {
+          acc[k] = String(v);
+          return acc;
+        }, {})
+      }
+    };
 
-  return notification;
+    console.log(
+      'Sending FCM message with token:',
+      fcmToken
+    );
+
+    // Send the notification
+    const response = await admin.messaging().send(message);
+    console.log('Successfully sent message:', response);
+
+    return response;
+  } catch (error) {
+    console.error('Error sending notification:', error);
+
+    // More specific error handling
+    if (error.errorInfo) {
+      console.error('Firebase error details:', error.errorInfo);
+
+      // Handle specific Firebase errors
+      if (
+        error.errorInfo.code === 'messaging/invalid-registration-token' ||
+        error.errorInfo.code === 'messaging/registration-token-not-registered'
+      ) {
+        // Token is invalid or expired - you might want to remove it from your database
+        console.error('Invalid or expired FCM token:', fcmToken);
+      }
+    }
+
+    throw error;
+  }
 };
