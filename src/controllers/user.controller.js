@@ -112,7 +112,6 @@ export const updateFCMToken = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: 'FCM Token Updated',
-      token: updatedToken
     });
   } catch (error) {
     next(error);
