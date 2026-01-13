@@ -20,7 +20,9 @@ export const sendGateEntryRequestNotification = async (
     title,
     message,
     data: gateEntry,
-    triggeredByUserId: fromUserId
+    triggeredByUserId: fromUserId,
+    craetedByUserId: fromUserId,
+    createdOn: new Date()
   };
 
   const notificationData = await Notification.create(payload);
