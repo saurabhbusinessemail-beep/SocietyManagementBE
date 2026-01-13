@@ -4,8 +4,9 @@ import * as NotificationService from '../services/notification.service';
 
 export const createGateEntry = async (req, res, next) => {
   try {
-    const fromUser = res.locals.user;
-    if (!fromUser) {
+    const fromUserId = res.locals.user._id;
+    const fcmToken = res.locals.fcmToken;
+    if (!fromUserId) {
       return res.status(404).json({ message: 'User not found' });
     }
     let gateEntry = req.body;
@@ -18,11 +19,12 @@ export const createGateEntry = async (req, res, next) => {
         gateEntry.flatId
       );
       const arrNotificationPromises = flatMembers.map((fm) => {
-        const toUser = fm.userId;
+        const toUserId = fm.userId;
         return NotificationService.sendGateEntryRequestNotification(
-          fromUser,
-          toUser,
-          gateEntry
+          fromUserId,
+          toUserId,
+          data,
+          fcmToken
         );
       });
 

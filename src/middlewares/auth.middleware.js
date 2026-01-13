@@ -14,6 +14,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'skSecret';
 export const userAuth = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
+    const fcmToken = req.headers.fcmToken;
 
     if (!authHeader) {
       return res.status(HttpStatus.UNAUTHORIZED).json({
@@ -52,6 +53,7 @@ export const userAuth = (req, res, next) => {
     res.locals.socities = decoded.socities ?? [];
     res.locals.allMenus = decoded.allMenus ?? [];
     res.locals.token = bearerToken;
+    res.locals.fcmToken = fcmToken;
 
     next();
   } catch (error) {

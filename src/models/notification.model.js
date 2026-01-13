@@ -1,17 +1,67 @@
 const mongoose = require('mongoose');
 
-const NotificationSchema = new mongoose.Schema({
-  toUserId: { type: mongoose.Types.ObjectId, ref: 'User' }, // single recipient
-  toUserIds: [{ type: mongoose.Types.ObjectId, ref: 'User' }], // batch recipients
-  notificationType: { type: String, enum: ['Approval', 'Alert', 'Circular', 'Update', 'Events', 'Complaint'], default: 'info' },
-  title: { type: String },
-  body: { type: String },
-  isRead: { type: Boolean, default: false },
-  payload: { type: mongoose.Schema.Types.Mixed }, // extra data
-  channel: { type: String, enum: ['inapp', 'email', 'sms', 'push'], default: 'inapp' },
+const NotificationSchema = new mongoose.Schema(
+  {
+    // Who will receive the notification
+    userId: {
+      type: mongoose.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true
+    },
 
-  ...require('./default-fields.model')
-  // sentAt: { type: Date }
-}, { timestamps: true });
+    // Optional society / group context
+    societyId: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Society',
+      index: true
+    },
+
+    // Notification type (for UI routing / icons)
+    type: {
+      type: String,
+      required: true,
+      enum: ['COMPLAINT', 'ANNOUNCEMENT', 'PAYMENT', 'GATE_PASS', 'GENERAL']
+    },
+
+    title: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    message: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    // Extra data for deep linking / navigation
+    data: {
+      type: Object, // example: { complaintId, route, flatId }
+      default: {}
+    },
+
+    // Read status
+    isRead: {
+      type: Boolean,
+      default: false,
+      index: true
+    },
+
+    readAt: {
+      type: Date
+    },
+
+    // Optional sender (admin / system / user)
+    triggeredByUserId: {
+      type: mongoose.Types.ObjectId,
+      ref: 'User'
+    },
+
+    ...require('./default-fields.model')
+  },
+  { timestamps: true }
+);
 
 module.exports = mongoose.model('Notification', NotificationSchema);
