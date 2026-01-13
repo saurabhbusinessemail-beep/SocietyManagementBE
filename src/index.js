@@ -25,7 +25,7 @@ app.use(cors({
   origin: '*',
   methods: ['GET','POST','PUT','DELETE','OPTIONS','PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: false
 }));
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
