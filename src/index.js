@@ -24,7 +24,7 @@ const api_version = process.env.API_VERSION;
 app.use(cors({
   origin: '*',
   methods: ['GET','POST','PUT','DELETE','OPTIONS','PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'fcmToken'],
   credentials: true
 }));
 app.use(helmet());

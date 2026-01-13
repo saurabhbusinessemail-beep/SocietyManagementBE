@@ -15,8 +15,6 @@ export const userAuth = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     const fcmToken = req.headers.fcmToken;
-    console.log('authHeader = ', authHeader)
-    console.log('fcmToken = ', fcmToken)
 
     if (!authHeader) {
       return res.status(HttpStatus.UNAUTHORIZED).json({
