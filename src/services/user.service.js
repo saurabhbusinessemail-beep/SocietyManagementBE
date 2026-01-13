@@ -37,6 +37,17 @@ export const updateUserName = async (_id, name) => {
   return user;
 };
 
+//update single user fcm token
+export const updateFCMToken = async (_id, fcmToken) => {
+  const user = await User.findByIdAndUpdate(
+    _id,
+    { $set: { fcmToken } },   // ✅ ONLY this key updates
+    { new: true }         // return updated document
+  );
+
+  return user;
+};
+
 //delete single user
 export const deleteUser = async (id) => {
   await User.findByIdAndDelete(id);

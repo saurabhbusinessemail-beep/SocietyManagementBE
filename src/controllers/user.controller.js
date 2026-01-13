@@ -91,7 +91,27 @@ export const updateName = async (req, res, next) => {
     const updatedToken = await AuthService.getUserToken(data);
     res.status(201).json({
       success: true,
-      message: 'Added Security',
+      message: 'User Name Updated',
+      token: updatedToken
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update FCM Token
+export const updateFCMToken = async (req, res, next) => {
+  try {
+    const { fcmToken } = req.body;
+    const user = res.locals.user;
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const data = await UserService.updateFCMToken(user._id, fcmToken);
+    res.status(201).json({
+      success: true,
+      message: 'FCM Token Updated',
       token: updatedToken
     });
   } catch (error) {
