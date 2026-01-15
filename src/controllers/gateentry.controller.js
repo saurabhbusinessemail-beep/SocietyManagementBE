@@ -2,6 +2,8 @@ const gateEntryService = require('../services/gateentry.service');
 import * as FlatService from '../services/flat.service';
 import * as UserService from '../services/user.service';
 import * as NotificationService from '../services/notification.service';
+import { FlatMember } from '../models';
+import { getISTDayRange } from '../utils/other.util';
 
 export const createGateEntry = async (req, res, next) => {
   try {
@@ -15,30 +17,18 @@ export const createGateEntry = async (req, res, next) => {
     // If status is requested then send notification to all flat members
     // rest all other stuses will be maintained in other functions with separate api calls
     if (gateEntry.status === 'requested') {
-      const flatMembers = await FlatService.getFlatMembersByFlatId(
-        gateEntry.flatId
-      );
+      const flatMembers = await FlatService.getFlatMembersByFlatId(gateEntry.flatId);
       const arrNotificationPromises = [];
       for (let i = 0; i < flatMembers.length; i++) {
         const toUserId = flatMembers[i].userId;
         const user = await UserService.getUser(toUserId);
-        if (!user || !user.fcmToken) continue;
+        if (!user) continue;
 
-        arrNotificationPromises.push(
-          NotificationService.sendGateEntryRequestNotification(
-            fromUserId,
-            toUserId,
-            data,
-            user.fcmToken
-          )
-        );
+        arrNotificationPromises.push(NotificationService.sendGateEntryRequestNotification(fromUserId, toUserId, data, user.fcmToken));
       }
 
-      if (arrNotificationPromises.length > 0)
-        await Promise.all(arrNotificationPromises);
+      if (arrNotificationPromises.length > 0) await Promise.all(arrNotificationPromises);
       else return res.status(404).json({ message: 'No flat member found' });
-
-      // pending implementation
     }
     res.status(201).json({ data, success: true });
   } catch (err) {
@@ -48,14 +38,59 @@ export const createGateEntry = async (req, res, next) => {
 
 export const getGateEntries = async (req, res, next) => {
   try {
-    const societyId = req.params.societyId;
-    const flatId = req.params.flatId;
-    let filter = {};
-    if (societyId) filter.societyId = societyId;
-    if (flatId) filter.flatId = flatId;
-
+    const { societyId, flatId, status, createdOn, exitPending = false } = req.body;
+    const user = res.locals.user;
+    const societies = res.locals.socities;
     const { page, limit } = req.query;
-    const data = await gateEntryService.getGateEntryes(filter, {
+
+    if (!user) {
+      return res.json({ success: false, message: 'No user found' });
+    }
+
+    // Member / Tenant / Owner Society Ids
+    const mySecuritySocietyIds = societies.filter((s) => (!societyId || s.societyId === societyId) && s.societyRoles.some((sr) => ['security'].includes(sr.name))).map((s) => s.societyId);
+
+    // My Flat Ids
+    const flatMembers = await FlatMember.find({ userId: user._id });
+    const myFlatIds = flatMembers.map((fm) => fm.flatId);
+
+    // Create Filter
+    let filter = { $and: [] };
+    if (societyId) filter.$and.push({ societyId });
+    if (flatId) filter.$and.push({ flatId });
+    if (status) filter.$and.push({ status });
+    if (exitPending) filter.$and.push({ $or: [{ exitTime: null }, { exitTime: { $exists: false } }] });
+    if (createdOn) {
+      console.log('createdOn = ', createdOn);
+      const { start, end } = getISTDayRange(new Date(createdOn));
+
+      filter.$and.push({ createdOn: { $gte: start, $lt: end } });
+    }
+
+    /* CHECK for USER ROLES and add filter for them */
+    if (myFlatIds.length > 0 || mySecuritySocietyIds.length > 0) {
+      let orCondition = { $or: [] };
+
+      // for SECURITY add pendingGateEntryFilter
+      if (mySecuritySocietyIds.length > 0 && !societyId) {
+        orCondition.$or.push({
+          $and: [{ craetedByUserId: user._id }, { societyId: { $in: mySecuritySocietyIds } }]
+        });
+      }
+
+      // for member/owner/tenant add userId filter
+      if (myFlatIds.length > 0 && !flatId) {
+        orCondition.$or.push({
+          $and: [{ flatId: { $in: myFlatIds } }]
+        });
+      }
+
+      if (orCondition.$or.length > 0) filter.$and.push(orCondition);
+    }
+
+    console.log('\n filter = ', JSON.stringify(filter));
+
+    const data = await gateEntryService.getGateEntries(filter, {
       page: Number(page),
       limit: Number(limit)
     });
@@ -67,7 +102,7 @@ export const getGateEntries = async (req, res, next) => {
 
 export const getGateEntry = async (req, res, next) => {
   try {
-    const data = await gateEntryService.gettGateEntry(req.params.id);
+    const data = await gateEntryService.gettGateEntry(req.params.gateEntryId);
     res.json(data);
   } catch (err) {
     next(err);
@@ -82,18 +117,15 @@ export const updateGateEntryStatus = async (req, res, next) => {
       return res.json({ success: false, message: 'No user found' });
     }
 
-    const gateEntryId = req.params.id;
+    const gateEntryId = req.params.gateEntryId;
     const { newStatus } = req.body;
+
     if (!newStatus) {
       return res.json({ success: false, message: 'No target status found' });
     }
 
-    await gateEntryService.updateGateEntryStatus(
-      gateEntryId,
-      newStatus,
-      user._id
-    );
-    res.json({ success: true });
+    const data = await gateEntryService.updateGateEntryStatus(gateEntryId, newStatus, user._id);
+    res.json({ success: true, data });
   } catch (err) {
     next(err);
   }
@@ -101,7 +133,7 @@ export const updateGateEntryStatus = async (req, res, next) => {
 
 export const deleteGateEntry = async (req, res, next) => {
   try {
-    const data = await gateEntryService.deleteGateEntry(req.params.id);
+    const data = await gateEntryService.deleteGateEntry(req.params.gateEntryId);
     res.json({ success: true });
   } catch (err) {
     next(err);

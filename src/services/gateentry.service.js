@@ -11,17 +11,7 @@ export const createGateEntry = (data, fromUser, toUser) => {
 export const getGateEntries = async (filter, options = {}) => {
   const { page = 1, limit = 20 } = options;
   const skip = (page - 1) * limit;
-  const [data, total] = await Promise.all([
-    GateEntry.find(filter)
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdOn: -1 })
-      .populate('gatePassId')
-      .populate('societyId')
-      .populate('flatId')
-      .populate('approvedBy'),
-    GateEntry.countDocuments(filter)
-  ]);
+  const [data, total] = await Promise.all([GateEntry.find(filter).skip(skip).limit(limit).sort({ createdOn: -1 }).populate('gatePassId').populate('societyId').populate('flatId').populate('approvedBy'), GateEntry.countDocuments(filter)]);
 
   return {
     data,
@@ -33,11 +23,7 @@ export const getGateEntries = async (filter, options = {}) => {
 };
 
 export const gettGateEntry = async (id) => {
-  const data = await GateEntry.findById(id)
-    .populate('gatePassId')
-    .populate('societyId')
-    .populate('flatId')
-    .populate('approvedBy');
+  const data = await GateEntry.findById(id).populate('gatePassId').populate('societyId').populate('flatId').populate('approvedBy');
   return data;
 };
 
@@ -52,7 +38,7 @@ export const updateGateEntryStatus = async (gateEntryId, newStatus, userId) => {
     throw new Error('Gate entry not found');
   }
 
-  if (complaint.status === newStatus) {
+  if (gateEntry.status === newStatus) {
     return gateEntry; // no change needed
   }
 
@@ -63,10 +49,7 @@ export const updateGateEntryStatus = async (gateEntryId, newStatus, userId) => {
     throw new Error('Access denied');
   }
 
-  if (
-    ['cancelled'].includes(newStatus) &&
-    !(await authorisedToCancelGateEntry(gateEntry, userId))
-  ) {
+  if (['cancelled'].includes(newStatus) && !(await authorisedToCancelGateEntry(gateEntry, userId))) {
     throw new Error('Access denied');
   }
 
@@ -87,12 +70,9 @@ export const updateGateEntryStatus = async (gateEntryId, newStatus, userId) => {
 };
 
 const authorisedToApproveGateEntry = async (gateEntry, userId) => {
-  const flatMembers = await FlatService.getFlatMembersByFlatId(
-    gateEntry.flatId,
-    userId
-  );
+  const flatMembers = await FlatService.getFlatMembersByFlatId(gateEntry.flatId, userId);
 
-  if (flatMembers.length > 0) true;
+  if (flatMembers.length > 0) return true;
   else return false;
 };
 

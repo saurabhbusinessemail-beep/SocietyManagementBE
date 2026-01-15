@@ -17,8 +17,8 @@ const menus = [
   {
     menuId: 'visitors',
     menuName: 'Visitors',
-    icon: 'people',
-    relativePath: '/abcd'
+    icon: 'visitor',
+    relativePath: '/visitors'
   },
   {
     menuId: 'complaints',
@@ -64,7 +64,10 @@ async function seedMenus() {
       await Menu.create(menu);
       console.log(`✔ Menu created: ${menu.menuId}`);
     } else {
-      console.log(`✔ Menu exists: ${menu.menuId}`);
+      if (exists.menuName !== menu.menuName || exists.icon !== menu.icon || exists.relativePath !== menu.relativePath) {
+        await Menu.findByIdAndUpdate(exists._id, menu);
+        console.log(`✔ Menu updated: ${menu.menuId}`);
+      } else console.log(`✔ Menu exists: ${menu.menuId}`);
     }
   }
 }

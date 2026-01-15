@@ -6,15 +6,15 @@ import { newRecordFields } from '../middlewares/newRecordFields';
 const router = express.Router();
 router.use(userAuth);
 
-router.get('/:id', gateEntryController.getGateEntry);
-
-router.get('/', gateEntryController.getGateEntries);
+router.get('/:gateEntryId', gateEntryController.getGateEntry);
 
 router.post('/', newRecordFields, gateEntryController.createGateEntry);
 
-router.post('/:id/changeStatus', gateEntryController.updateGateEntryStatus);
+router.post('/getGateEntries', gateEntryController.getGateEntries);
 
-router.delete('/:id', gateEntryController.deleteGateEntry);
-// GatePass
+router.post('/changeStatus/:gateEntryId', gateEntryController.updateGateEntryStatus);
+
+router.delete('/:gateEntryId', gateEntryController.deleteGateEntry);
+
 
 export default router;

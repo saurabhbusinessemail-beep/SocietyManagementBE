@@ -1,17 +1,10 @@
 import { Notification } from '../models';
 const admin = require('../firebase/firebase');
 
-export const sendGateEntryRequestNotification = async (
-  fromUserId,
-  toUserId,
-  gateEntry,
-  fcmToken
-) => {
+export const sendGateEntryRequestNotification = async (fromUserId, toUserId, gateEntry, fcmToken) => {
   const title = 'Gate Entry Request';
   const type = 'GATE_PASS';
-  const message =
-    `${gateEntry.visitorName} is requesting for gate entry` +
-    (gateEntry.purpose ? ` for ${gateEntry.purpose}` : '.');
+  const message = `${gateEntry.visitorName} is requesting for gate entry` + (gateEntry.purpose ? ` for ${gateEntry.purpose}` : '.');
 
   const payload = {
     userId: toUserId,
@@ -26,19 +19,22 @@ export const sendGateEntryRequestNotification = async (
   };
 
   const notificationData = await Notification.create(payload);
-  await sendNotificationToUser(fcmToken, title, message, {
-    notificationId: notificationData._id,
-    gateEntryId: gateEntry._id,
-    type
-  });
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        notificationId: notificationData._id,
+        gateEntryId: gateEntry._id,
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      throw new Error('Could not send approval alert to user. A notification has been sent');
+    }
+  }
   return notificationData;
 };
 
-export const sendGateEntryResponseNotification = (
-  fromUser,
-  toUser,
-  gateEntry
-) => {};
+export const sendGateEntryResponseNotification = (fromUser, toUser, gateEntry) => {};
 
 export const sentMessage = () => {};
 
@@ -82,10 +78,7 @@ const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {
       }
     };
 
-    console.log(
-      'Sending FCM message with token:',
-      fcmToken
-    );
+    console.log('Sending FCM message with token:', fcmToken);
 
     // Send the notification
     const response = await admin.messaging().send(message);
@@ -100,10 +93,7 @@ const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {
       console.error('Firebase error details:', error.errorInfo);
 
       // Handle specific Firebase errors
-      if (
-        error.errorInfo.code === 'messaging/invalid-registration-token' ||
-        error.errorInfo.code === 'messaging/registration-token-not-registered'
-      ) {
+      if (error.errorInfo.code === 'messaging/invalid-registration-token' || error.errorInfo.code === 'messaging/registration-token-not-registered') {
         // Token is invalid or expired - you might want to remove it from your database
         console.error('Invalid or expired FCM token:', fcmToken);
       }
