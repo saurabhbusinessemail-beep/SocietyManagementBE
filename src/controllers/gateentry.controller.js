@@ -61,7 +61,6 @@ export const getGateEntries = async (req, res, next) => {
     if (status) filter.$and.push({ status });
     if (exitPending) filter.$and.push({ $or: [{ exitTime: null }, { exitTime: { $exists: false } }] });
     if (createdOn) {
-      console.log('createdOn = ', createdOn);
       const { start, end } = getISTDayRange(new Date(createdOn));
 
       filter.$and.push({ createdOn: { $gte: start, $lt: end } });

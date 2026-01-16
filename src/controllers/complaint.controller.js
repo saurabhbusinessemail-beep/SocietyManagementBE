@@ -35,7 +35,7 @@ export const getComplaints = async (req, res, next) => {
           success: true
         });
       } else {
-        return res.json(getAdminComplaints(req, res));
+        return res.json(await getAdminComplaints(req, res));
       }
     }
 
