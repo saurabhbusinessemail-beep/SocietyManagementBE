@@ -46,7 +46,11 @@ export const resendNotification = async (type, dataId) => {
     const user = await User.findById(notifications[i].userId);
     if (!user || !user.fcmToken) continue;
 
-    await sendNotificationToUser(user.fcmToken, notifications[i].title, notifications[i].message, notifications[i].data);
+    await sendNotificationToUser(user.fcmToken, notifications[i].title, notifications[i].message, {
+      notificationId: notifications[i]._id,
+      gateEntryId: dataId,
+      type: notifications[i].type
+    });
   }
 };
 
