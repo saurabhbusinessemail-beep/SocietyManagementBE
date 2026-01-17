@@ -102,7 +102,7 @@ export const getGateEntries = async (req, res, next) => {
 export const getGateEntry = async (req, res, next) => {
   try {
     const data = await gateEntryService.gettGateEntry(req.params.gateEntryId);
-    res.json(data);
+    res.json({ success: true, data });
   } catch (err) {
     next(err);
   }
