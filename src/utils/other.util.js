@@ -1,14 +1,21 @@
 export const getISTDayRange = (dateInput = new Date()) => {
-  const date = new Date(dateInput);
+  // IST is UTC+5:30
+  const IST_OFFSET = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
 
-  console.log('date = ', date);
-  // Start of day IST
-  const start = new Date(date);
-  start.setHours(0, 0, 0, 0);
+  // Create date at 00:00:00 IST
+  const startOfDayIST = new Date(date);
+  startOfDayIST.setHours(0, 0, 0, 0);
 
-  // End of day IST
-  const end = new Date(date);
-  end.setHours(23, 59, 59, 999);
+  // Create date at 23:59:59.999 IST
+  const endOfDayIST = new Date(date);
+  endOfDayIST.setHours(23, 59, 59, 999);
 
-  return { start, end };
+  // Convert to UTC
+  const startUTC = new Date(startOfDayIST.getTime() - IST_OFFSET);
+  const endUTC = new Date(endOfDayIST.getTime() - IST_OFFSET);
+
+  return {
+    start: startUTC.toISOString(), // 2026-01-16T18:30:00.000Z
+    end: endUTC.toISOString() // 2026-01-17T18:29:59.999Z
+  };
 };
