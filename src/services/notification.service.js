@@ -1,5 +1,6 @@
-import { Notification } from '../models';
+import { Notification, User } from '../models';
 const admin = require('../firebase/firebase');
+const mongoose = require('mongoose');
 
 export const sendGateEntryRequestNotification = async (fromUserId, toUserId, gateEntry, fcmToken) => {
   const title = 'Gate Entry Request';
@@ -34,10 +35,26 @@ export const sendGateEntryRequestNotification = async (fromUserId, toUserId, gat
   return notificationData;
 };
 
+export const resendNotification = async (type, dataId) => {
+  const notifications = await Notification.find({
+    type,
+    'data._id': mongoose.Types.ObjectId(dataId)
+  });
+
+  if (!notifications || notifications.length === 0) return;
+  for (let i = 0; i < notifications.length; i++) {
+    const user = await User.findById(notifications[i].userId);
+    if (!user || !user.fcmToken) continue;
+
+    await sendNotificationToUser(user.fcmToken, notifications[i].title, notifications[i].message, notifications[i].data);
+  }
+};
+
 export const sendGateEntryResponseNotification = (fromUser, toUser, gateEntry) => {};
 
 export const sentMessage = () => {};
 
+/* FIREBASE Notification */
 const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {
   try {
     // Validate that fcmToken exists

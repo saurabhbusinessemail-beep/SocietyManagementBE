@@ -8,11 +8,14 @@ router.use(userAuth);
 
 router.get('/:gateEntryId', gateEntryController.getGateEntry);
 
+router.get('/resendNotification/:gateEntryId', gateEntryController.resendGateEntryRequestNotification);
+
 router.post('/', newRecordFields, gateEntryController.createGateEntry);
 
 router.post('/getGateEntries', gateEntryController.getGateEntries);
 
 router.post('/changeStatus/:gateEntryId', gateEntryController.updateGateEntryStatus);
+
 
 router.delete('/:gateEntryId', gateEntryController.deleteGateEntry);
 

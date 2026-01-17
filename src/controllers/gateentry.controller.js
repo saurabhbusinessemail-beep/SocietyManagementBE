@@ -138,3 +138,13 @@ export const deleteGateEntry = async (req, res, next) => {
     next(err);
   }
 };
+
+export const resendGateEntryRequestNotification = async (req, res, next) => {
+  try {
+    const gateEntryId = req.params.gateEntryId;
+    await NotificationService.resendNotification('GATE_PASS', gateEntryId);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+};
