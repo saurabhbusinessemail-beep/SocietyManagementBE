@@ -143,7 +143,9 @@ export const resendGateEntryRequestNotification = async (req, res, next) => {
   try {
     const gateEntryId = req.params.gateEntryId;
     await NotificationService.resendNotification('GATE_PASS', gateEntryId);
-    res.json({ success: true });
+    const data = await gateEntryService.updateGateEntryTime(gateEntryId);
+
+    res.json({ success: true, data });
   } catch (err) {
     next(err);
   }

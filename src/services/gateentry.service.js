@@ -42,10 +42,7 @@ export const updateGateEntryStatus = async (gateEntryId, newStatus, userId) => {
     return gateEntry; // no change needed
   }
 
-  if (
-    ['approved', 'rejected'].includes(newStatus) &&
-    !(await authorisedToApproveGateEntry(gateEntry, userId))
-  ) {
+  if (['approved', 'rejected'].includes(newStatus) && !(await authorisedToApproveGateEntry(gateEntry, userId))) {
     throw new Error('Access denied');
   }
 
@@ -67,6 +64,23 @@ export const updateGateEntryStatus = async (gateEntryId, newStatus, userId) => {
       }
     }
   });
+};
+
+export const updateGateEntryTime = async (gateEntryId) => {
+  const gateEntry = await GateEntry.findById(gateEntryId);
+  if (!gateEntry) {
+    throw new Error('Gate entry not found');
+  }
+
+  return GateEntry.findByIdAndUpdate(
+    gateEntryId,
+    {
+      $set: {
+        entryTime: new Date()
+      }
+    },
+    { new: true }
+  );
 };
 
 const authorisedToApproveGateEntry = async (gateEntry, userId) => {
