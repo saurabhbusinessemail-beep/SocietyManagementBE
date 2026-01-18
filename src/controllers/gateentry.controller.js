@@ -116,7 +116,7 @@ export const updateGateEntryStatus = async (req, res, next) => {
 
     const data = await gateEntryService.updateGateEntryStatus(gateEntryId, newStatus, user._id);
     loopThroughGateEntryFlatMembers(data, (toUserId, user) => {
-      if (user.fcmToken) return gateEntryService.sendGateEntryResponseNotification(fromUser, toUserId, data, user.fcmToken);
+      return gateEntryService.sendGateEntryResponseNotification(fromUser, toUserId, data, user.fcmToken);
     });
     res.json({ success: true, data });
   } catch (err) {
@@ -152,10 +152,9 @@ const loopThroughGateEntryFlatMembers = async (gateEntry, callBack) => {
   for (let i = 0; i < flatMembers.length; i++) {
     const toUserId = flatMembers[i].userId;
     const user = await UserService.getUser(toUserId);
-    if (!user) continue;
+    if (!user || !user.fcmToken) continue;
 
-    const callBackResult = callBack(toUserId, user);
-    if (callBackResult) arrNotificationPromises.push(callBackResult);
+    arrNotificationPromises.push(callBack(toUserId, user));
 
     if (arrNotificationPromises.length > 0) await Promise.all(arrNotificationPromises);
     else return new Error('No flat member found');
