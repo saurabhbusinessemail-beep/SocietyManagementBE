@@ -114,7 +114,7 @@ export const updateGateEntryStatus = async (req, res, next) => {
       return res.json({ success: false, message: 'No target status found' });
     }
 
-    const data = await gateEntryService.updateGateEntryStatus(gateEntryId, newStatus, user._id);
+    const data = await gateEntryService.updateGateEntryStatus(gateEntryId, newStatus, fromUser._id);
     loopThroughGateEntryFlatMembers(data, (toUserId, user) => {
       return gateEntryService.sendGateEntryResponseNotification(fromUser, toUserId, data, user.fcmToken);
     });
