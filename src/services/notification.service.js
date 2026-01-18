@@ -55,7 +55,7 @@ export const resendNotification = async (type, dataId) => {
   }
 };
 
-export const sendGateEntryResponseNotification = async (fromUserId, toUserId, gateEntry, fcmToken) => {
+export const sendGateEntryResponseNotification = async (fromUser, toUserId, gateEntry, fcmToken) => {
   const fromUserId = fromUser._id;
   const title = 'Gate Entry Request';
   const type = 'GATE_PASS_RESPONSE';
