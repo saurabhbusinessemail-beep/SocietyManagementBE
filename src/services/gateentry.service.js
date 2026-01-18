@@ -50,11 +50,14 @@ export const updateGateEntryStatus = async (gateEntryId, newStatus, userId) => {
     throw new Error('Access denied');
   }
 
+  const approvedByUpdate = ['approved', 'rejected'].includes(newStatus) ? { approvedBy: userId } : {};
+
   return GateEntry.findByIdAndUpdate(gateEntryId, {
     $set: {
       status: newStatus,
       modifiedOn: new Date(),
-      modifiedByUserId: userId
+      modifiedByUserId: userId,
+      ...approvedByUpdate
     },
     $push: {
       history: {

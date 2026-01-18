@@ -21,7 +21,7 @@ const NotificationSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ['COMPLAINT', 'ANNOUNCEMENT', 'PAYMENT', 'GATE_PASS', 'GENERAL']
+      enum: ['COMPLAINT', 'ANNOUNCEMENT', 'PAYMENT', 'GATE_PASS', 'GATE_PASS_RESPONSE', 'GENERAL']
     },
 
     title: {

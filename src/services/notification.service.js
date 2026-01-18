@@ -2,7 +2,8 @@ import { Notification, User } from '../models';
 const admin = require('../firebase/firebase');
 const mongoose = require('mongoose');
 
-export const sendGateEntryRequestNotification = async (fromUserId, toUserId, gateEntry, fcmToken) => {
+export const sendGateEntryRequestNotification = async (fromUser, toUserId, gateEntry, fcmToken) => {
+  const fromUserId = fromUser._id;
   const title = 'Gate Entry Request';
   const type = 'GATE_PASS';
   const message = `${gateEntry.visitorName} is requesting for gate entry` + (gateEntry.purpose ? ` for ${gateEntry.purpose}` : '.');
@@ -40,8 +41,8 @@ export const resendNotification = async (type, dataId) => {
     type,
     'data._id': mongoose.Types.ObjectId(dataId)
   });
-
   if (!notifications || notifications.length === 0) return;
+
   for (let i = 0; i < notifications.length; i++) {
     const user = await User.findById(notifications[i].userId);
     if (!user || !user.fcmToken) continue;
@@ -54,7 +55,39 @@ export const resendNotification = async (type, dataId) => {
   }
 };
 
-export const sendGateEntryResponseNotification = (fromUser, toUser, gateEntry) => {};
+export const sendGateEntryResponseNotification = async (fromUserId, toUserId, gateEntry, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = 'Gate Entry Request';
+  const type = 'GATE_PASS_RESPONSE';
+  const message = `Flat member has ${gateEntry.status} gate entry request for ${gateEntry.visitorName}`;
+
+  const payload = {
+    userId: toUserId,
+    societyId: gateEntry.societyId,
+    type,
+    title,
+    message,
+    data: gateEntry,
+    triggeredByUserId: fromUserId,
+    craetedByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        notificationId: notificationData._id,
+        gateEntryId: gateEntry._id,
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      throw new Error('Could not send approval alert to user. A notification has been sent');
+    }
+  }
+  return notificationData;
+};
 
 export const sentMessage = () => {};
 
@@ -73,6 +106,12 @@ const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {
       notification: {
         title,
         body
+      },
+      webpush: {
+        notification: {
+          title,
+          body
+        }
       },
       android: {
         priority: 'high',

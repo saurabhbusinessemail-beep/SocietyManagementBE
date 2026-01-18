@@ -7,8 +7,8 @@ import { getISTDayRange } from '../utils/other.util';
 
 export const createGateEntry = async (req, res, next) => {
   try {
-    const fromUserId = res.locals.user._id;
-    if (!fromUserId) {
+    const fromUser = res.locals.user;
+    if (!fromUser) {
       return res.status(404).json({ message: 'User not found' });
     }
     let gateEntry = req.body;
@@ -17,18 +17,9 @@ export const createGateEntry = async (req, res, next) => {
     // If status is requested then send notification to all flat members
     // rest all other stuses will be maintained in other functions with separate api calls
     if (gateEntry.status === 'requested') {
-      const flatMembers = await FlatService.getFlatMembersByFlatId(gateEntry.flatId);
-      const arrNotificationPromises = [];
-      for (let i = 0; i < flatMembers.length; i++) {
-        const toUserId = flatMembers[i].userId;
-        const user = await UserService.getUser(toUserId);
-        if (!user) continue;
-
-        arrNotificationPromises.push(NotificationService.sendGateEntryRequestNotification(fromUserId, toUserId, data, user.fcmToken));
-      }
-
-      if (arrNotificationPromises.length > 0) await Promise.all(arrNotificationPromises);
-      else return res.status(404).json({ message: 'No flat member found' });
+      loopThroughGateEntryFlatMembers(data, (toUserId, user) => {
+        return NotificationService.sendGateEntryRequestNotification(fromUser, toUserId, data, user.fcmToken);
+      });
     }
     res.status(201).json({ data, success: true });
   } catch (err) {
@@ -124,6 +115,9 @@ export const updateGateEntryStatus = async (req, res, next) => {
     }
 
     const data = await gateEntryService.updateGateEntryStatus(gateEntryId, newStatus, user._id);
+    loopThroughGateEntryFlatMembers(data, (toUserId, user) => {
+
+    })
     res.json({ success: true, data });
   } catch (err) {
     next(err);
@@ -148,5 +142,21 @@ export const resendGateEntryRequestNotification = async (req, res, next) => {
     res.json({ success: true, data });
   } catch (err) {
     next(err);
+  }
+};
+
+const loopThroughGateEntryFlatMembers = async (gateEntry, callBack) => {
+  const flatMembers = await FlatService.getFlatMembersByFlatId(gateEntry.flatId);
+  const arrNotificationPromises = [];
+
+  for (let i = 0; i < flatMembers.length; i++) {
+    const toUserId = flatMembers[i].userId;
+    const user = await UserService.getUser(toUserId);
+    if (!user) continue;
+
+    arrNotificationPromises.push(callBack(toUserId, user));
+
+    if (arrNotificationPromises.length > 0) await Promise.all(arrNotificationPromises);
+    else return new Error('No flat member found');
   }
 };
