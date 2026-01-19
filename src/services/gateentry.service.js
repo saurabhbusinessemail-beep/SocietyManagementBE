@@ -94,6 +94,6 @@ const authorisedToApproveGateEntry = async (gateEntry, userId) => {
 };
 
 const authorisedToCancelGateEntry = async (gateEntry, userId) => {
-  if (gateEntry.craetedByUserId === userId) true;
+  if (gateEntry.createdByUserId === userId) true;
   else return false;
 };

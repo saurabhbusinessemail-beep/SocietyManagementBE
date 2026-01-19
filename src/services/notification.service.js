@@ -16,7 +16,7 @@ export const sendGateEntryRequestNotification = async (fromUser, toUserId, gateE
     message,
     data: gateEntry,
     triggeredByUserId: fromUserId,
-    craetedByUserId: fromUserId,
+    createdByUserId: fromUserId,
     createdOn: new Date()
   };
 
@@ -69,7 +69,7 @@ export const sendGateEntryResponseNotification = async (fromUser, toUserId, gate
     message,
     data: gateEntry,
     triggeredByUserId: fromUserId,
-    craetedByUserId: fromUserId,
+    createdByUserId: fromUserId,
     createdOn: new Date()
   };
 

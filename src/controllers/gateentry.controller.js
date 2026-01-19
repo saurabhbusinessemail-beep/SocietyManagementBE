@@ -64,7 +64,7 @@ export const getGateEntries = async (req, res, next) => {
       // for SECURITY add pendingGateEntryFilter
       if (mySecuritySocietyIds.length > 0 && !societyId) {
         orCondition.$or.push({
-          $and: [{ craetedByUserId: user._id }, { societyId: { $in: mySecuritySocietyIds } }]
+          $and: [{ createdByUserId: user._id }, { societyId: { $in: mySecuritySocietyIds } }]
         });
       }
 
@@ -163,9 +163,9 @@ const loopThroughGateEntryFlatMembers = async (gateEntry, callBack, includeSecur
   }
 
   if (includeSecurity) {
-    console.log('sending notification to security ', gateEntry.craetedByUserId)
-    const user = await UserService.getUser(gateEntry.craetedByUserId);
-    arrNotificationPromises.push(callBack(gateEntry.craetedByUserId, user));
+    console.log('sending notification to security ', gateEntry.createdByUserId)
+    const user = await UserService.getUser(gateEntry.createdByUserId);
+    arrNotificationPromises.push(callBack(gateEntry.createdByUserId, user));
   }
 
   if (arrNotificationPromises.length > 0) await Promise.all(arrNotificationPromises);

@@ -21,7 +21,7 @@ export const bulkCreateFlats = async (req, res, next) => {
     let flats = req.body;
     flats.forEach((flat) => {
       flat.createdOn = new Date();
-      flat.craetedByUserId = user._id;
+      flat.createdByUserId = user._id;
     });
     const data = await flatService.bulkCreateFlats(flats);
     res.json(data);

@@ -21,7 +21,7 @@ export const getComplaints = async (filter, options = {}) => {
       .populate('flatId')
       .populate('societyId')
       .populate('assignedTo')
-      .populate('craetedByUserId'),
+      .populate('createdByUserId'),
     Complaint.countDocuments(filter)
   ]);
 

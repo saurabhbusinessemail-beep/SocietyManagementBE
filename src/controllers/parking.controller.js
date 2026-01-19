@@ -21,7 +21,7 @@ export const bulkCreateParkings = async (req, res, next) => {
     let parkings = req.body;
     parkings.forEach((parking) => {
       parking.createdOn = new Date();
-      parking.craetedByUserId = user._id;
+      parking.createdByUserId = user._id;
     });
     const data = await parkingService.bulkCreateParkings(parkings);
     res.json(data);

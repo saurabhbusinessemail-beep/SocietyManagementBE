@@ -8,7 +8,7 @@ export const newRecordFields = (req, res, next) => {
 
   let payload = req.body;
   payload.createdOn = new Date();
-  payload.craetedByUserId = user._id;
+  payload.createdByUserId = user._id;
 
   req.body = payload;
   next();

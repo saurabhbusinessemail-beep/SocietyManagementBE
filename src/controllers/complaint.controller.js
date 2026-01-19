@@ -147,7 +147,7 @@ const getMemberComplaints = async (req, res) => {
 
         // Other people's complaints, but ONLY public and ONLY in my member societies
         {
-          craetedByUserId: { $ne: logUsr._id },
+          createdByUserId: { $ne: logUsr._id },
           societyId: { $in: myMemberSocietyIds },
           complaintType: 'Public'
         }
