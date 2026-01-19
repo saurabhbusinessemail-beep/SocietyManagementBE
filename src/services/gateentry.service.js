@@ -52,21 +52,25 @@ export const updateGateEntryStatus = async (gateEntryId, newStatus, userId) => {
 
   const approvedByUpdate = ['approved', 'rejected'].includes(newStatus) ? { approvedBy: userId } : {};
 
-  return GateEntry.findByIdAndUpdate(gateEntryId, {
-    $set: {
-      status: newStatus,
-      modifiedOn: new Date(),
-      modifiedByUserId: userId,
-      ...approvedByUpdate
-    },
-    $push: {
-      history: {
-        fromStatus: gateEntry.status,
-        toStatus: newStatus,
-        note: `Status changed by user ${userId}`
+  return GateEntry.findByIdAndUpdate(
+    gateEntryId,
+    {
+      $set: {
+        status: newStatus,
+        modifiedOn: new Date(),
+        modifiedByUserId: userId,
+        ...approvedByUpdate
+      },
+      $push: {
+        history: {
+          fromStatus: gateEntry.status,
+          toStatus: newStatus,
+          note: `Status changed by user ${userId}`
+        }
       }
-    }
-  });
+    },
+    { new: true }
+  );
 };
 
 export const updateGateEntryTime = async (gateEntryId) => {
