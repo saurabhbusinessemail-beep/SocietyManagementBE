@@ -119,7 +119,7 @@ export const updateGateEntryStatus = async (req, res, next) => {
     loopThroughGateEntryFlatMembers(
       data,
       (toUserId, user) => {
-        return gateEntryService.sendGateEntryResponseNotification(fromUser, toUserId, data, user.fcmToken);
+        return NotificationService.sendGateEntryResponseNotification(fromUser, toUserId, data, user.fcmToken);
       },
       true
     );
