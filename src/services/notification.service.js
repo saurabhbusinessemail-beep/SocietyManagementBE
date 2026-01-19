@@ -107,12 +107,6 @@ const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {
         title,
         body
       },
-      webpush: {
-        notification: {
-          title,
-          body
-        }
-      },
       android: {
         priority: 'high',
         notification: {
