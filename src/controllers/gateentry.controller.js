@@ -115,6 +115,7 @@ export const updateGateEntryStatus = async (req, res, next) => {
     }
 
     const data = await gateEntryService.updateGateEntryStatus(gateEntryId, newStatus, fromUser._id);
+    console.log('updating status notification for ', data);
     loopThroughGateEntryFlatMembers(
       data,
       (toUserId, user) => {
