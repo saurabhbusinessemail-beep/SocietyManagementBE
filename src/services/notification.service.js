@@ -57,7 +57,7 @@ export const resendNotification = async (type, dataId) => {
 
 export const sendGateEntryResponseNotification = async (fromUser, toUserId, gateEntry, fcmToken) => {
   const fromUserId = fromUser._id;
-  const title = 'Gate Entry Request';
+  const title = 'Gate Entry Response';
   const type = 'GATE_PASS_RESPONSE';
   const message = `Flat member has ${gateEntry.status} gate entry request for ${gateEntry.visitorName}`;
 
@@ -72,6 +72,7 @@ export const sendGateEntryResponseNotification = async (fromUser, toUserId, gate
     createdByUserId: fromUserId,
     createdOn: new Date()
   };
+  console.log('payload = ', payload)
 
   const notificationData = await Notification.create(payload);
   if (fcmToken) {

@@ -99,6 +99,10 @@ export const getGateEntry = async (req, res, next) => {
   }
 };
 
+export const markGateExit = async (req, res, next) => {
+  
+}
+
 export const updateGateEntryStatus = async (req, res, next) => {
   try {
     const fromUser = res.locals.user;

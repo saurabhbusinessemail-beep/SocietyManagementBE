@@ -10,6 +10,8 @@ router.get('/:gateEntryId', gateEntryController.getGateEntry);
 
 router.get('/resendNotification/:gateEntryId', gateEntryController.resendGateEntryRequestNotification);
 
+router.get('/markGateExit/:gateEntryId', gateEntryController.markGateExit);
+
 router.post('/', newRecordFields, gateEntryController.createGateEntry);
 
 router.post('/getGateEntries', gateEntryController.getGateEntries);
