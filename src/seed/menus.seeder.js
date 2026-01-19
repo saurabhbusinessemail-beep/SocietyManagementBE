@@ -29,12 +29,12 @@ const menus = [
   {
     menuId: 'tenants',
     menuName: 'Tenant Management',
-    icon: 'supervisor_account',
-    relativePath: '/abcd'
+    icon: 'tenant',
+    relativePath: '/tenants'
   },
   {
     menuId: 'members',
-    menuName: 'Users & Members',
+    menuName: 'Members',
     icon: 'person',
     relativePath: '/abcd'
   },
