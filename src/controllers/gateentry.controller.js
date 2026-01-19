@@ -141,8 +141,7 @@ export const updateGateEntryStatus = async (req, res, next) => {
       fromUser,
       (toUserId, user) => {
         return NotificationService.sendGateEntryResponseNotification(fromUser, toUserId, data, user.fcmToken);
-      },
-      true
+      }
     );
     res.json({ success: true, data });
   } catch (err) {
