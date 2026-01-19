@@ -115,9 +115,13 @@ export const updateGateEntryStatus = async (req, res, next) => {
     }
 
     const data = await gateEntryService.updateGateEntryStatus(gateEntryId, newStatus, fromUser._id);
-    loopThroughGateEntryFlatMembers(data, (toUserId, user) => {
-      return gateEntryService.sendGateEntryResponseNotification(fromUser, toUserId, data, user.fcmToken);
-    });
+    loopThroughGateEntryFlatMembers(
+      data,
+      (toUserId, user) => {
+        return gateEntryService.sendGateEntryResponseNotification(fromUser, toUserId, data, user.fcmToken);
+      },
+      true
+    );
     res.json({ success: true, data });
   } catch (err) {
     next(err);
@@ -145,7 +149,7 @@ export const resendGateEntryRequestNotification = async (req, res, next) => {
   }
 };
 
-const loopThroughGateEntryFlatMembers = async (gateEntry, callBack) => {
+const loopThroughGateEntryFlatMembers = async (gateEntry, callBack, includeSecurity = false) => {
   const flatMembers = await FlatService.getFlatMembersByFlatId(gateEntry.flatId);
   const arrNotificationPromises = [];
 
@@ -155,8 +159,13 @@ const loopThroughGateEntryFlatMembers = async (gateEntry, callBack) => {
     if (!user || !user.fcmToken) continue;
 
     arrNotificationPromises.push(callBack(toUserId, user));
-
-    if (arrNotificationPromises.length > 0) await Promise.all(arrNotificationPromises);
-    else return new Error('No flat member found');
   }
+
+  if (includeSecurity) {
+    const user = await UserService.getUser(gateEntry.craetedByUserId);
+    arrNotificationPromises.push(callBack(gateEntry.craetedByUserId, user));
+  }
+
+  if (arrNotificationPromises.length > 0) await Promise.all(arrNotificationPromises);
+  else return new Error('No flat member found');
 };
