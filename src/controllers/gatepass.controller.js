@@ -118,7 +118,7 @@ export const validateOTP = async (req, res, next) => {
       const data = await gateEntryService.createGateEntry(gateEntryPayload);
 
       // send notification to flat members
-      await FlatService.loopThroughGateEntryFlatMembers(data, fromUser, (toUserId, user) => {
+      await flatService.loopThroughGateEntryFlatMembers(data, fromUser, (toUserId, user) => {
         return notificationService.sendGateEntryRequestNotification(fromUser, toUserId, data, user.fcmToken);
       });
     }
