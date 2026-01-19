@@ -1,4 +1,5 @@
 import { Flat, FlatMember } from '../models';
+import * as UserService from './user.service';
 
 export const createFlat = (data) => {
   return Flat.create(data);
@@ -141,4 +142,28 @@ export const getFlatMembersByFlatId = (flatId, userId = undefined) => {
     .populate('societyId')
     .populate('flatId')
     .populate('userId');
+};
+
+export const loopThroughGateEntryFlatMembers = async (gateEntry, fromUser, callBack, includeSecurity = false) => {
+  const flatMembers = await FlatService.getFlatMembersByFlatId(gateEntry.flatId);
+  const arrNotificationPromises = [];
+
+  for (let i = 0; i < flatMembers.length; i++) {
+    const toUserId = flatMembers[i].userId;
+    if (toUserId === fromUser._id) continue;
+
+    const user = await UserService.getUser(toUserId);
+    if (!user || !user.fcmToken) continue;
+
+    arrNotificationPromises.push(callBack(toUserId, user));
+  }
+
+  if (includeSecurity && gateEntry.createdByUserId !== fromUser._id) {
+    console.log('sending notification to security ', gateEntry.createdByUserId);
+    const user = await UserService.getUser(gateEntry.createdByUserId);
+    arrNotificationPromises.push(callBack(gateEntry.createdByUserId, user));
+  }
+
+  if (arrNotificationPromises.length > 0) await Promise.all(arrNotificationPromises);
+  else return new Error('No flat member found');
 };

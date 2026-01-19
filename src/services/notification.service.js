@@ -5,8 +5,9 @@ const mongoose = require('mongoose');
 export const sendGateEntryRequestNotification = async (fromUser, toUserId, gateEntry, fcmToken) => {
   const fromUserId = fromUser._id;
   const title = 'Gate Entry Request';
-  const type = 'GATE_PASS';
-  const message = `${gateEntry.visitorName} is requesting for gate entry` + (gateEntry.purpose ? ` for ${gateEntry.purpose}` : '.');
+  const isRequested = gateEntry.status === 'requested';
+  const type = isRequested ? 'GATE_PASS' : 'GENERAL';
+  const message = isRequested ? `${gateEntry.visitorName} is requesting for gate entry` + (gateEntry.purpose ? ` for ${gateEntry.purpose}` : '.') : `${gateEntry.visitorName} has entered premises`;
 
   const payload = {
     userId: toUserId,
@@ -72,7 +73,7 @@ export const sendGateEntryResponseNotification = async (fromUser, toUserId, gate
     createdByUserId: fromUserId,
     createdOn: new Date()
   };
-  console.log('payload = ', payload)
+  console.log('payload = ', payload);
 
   const notificationData = await Notification.create(payload);
   if (fcmToken) {
@@ -107,7 +108,7 @@ export const sendGateExitNotification = async (fromUser, toUserId, gateEntry, fc
     createdByUserId: fromUserId,
     createdOn: new Date()
   };
-  console.log('payload = ', payload)
+  console.log('payload = ', payload);
 
   const notificationData = await Notification.create(payload);
   if (fcmToken) {

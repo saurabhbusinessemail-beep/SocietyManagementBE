@@ -1,7 +1,7 @@
 import { GateEntry } from '../models';
 import * as FlatService from '../services/flat.service';
 
-export const createGateEntry = (data, fromUser, toUser) => {
+export const createGateEntry = (data) => {
   return GateEntry.create({
     ...data,
     societyId: data.societyId
