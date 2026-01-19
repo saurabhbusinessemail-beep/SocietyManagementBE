@@ -99,30 +99,6 @@ export const validateOTP = async (req, res, next) => {
     const gatePasses = await gatePassService.validateOTP(otp, societyId, flatId);
     const gatePass = gatePasses.length > 0 ? gatePasses[0] : undefined;
 
-    if (gatePass) {
-      // add a gate entry record
-      const gateEntryPayload = {
-        gatePassId: gatePass._id,
-        societyId: gatePass.societyId._id,
-        flatId: gatePass.flatId._id,
-        visitorName: gatePass.userId.name,
-        visitorContact: gatePass.userId.phoneNumber,
-        purpose: gatePass.remarks,
-        entryTime: new Date(),
-        status: 'approved',
-        approvedBy: gatePass.createdByUserId,
-        history: [],
-        createdOn: new Date(),
-        createdByUserId: fromUser._id
-      };
-      const data = await gateEntryService.createGateEntry(gateEntryPayload);
-
-      // send notification to flat members
-      await flatService.loopThroughGateEntryFlatMembers(data, fromUser, (toUserId, user) => {
-        return notificationService.sendGateEntryRequestNotification(fromUser, toUserId, data, user.fcmToken);
-      });
-    }
-
     res.json({
       success: !!gatePass,
       message: gatePass ? 'Valid OTP' : 'Invalid OTP',
@@ -142,30 +118,6 @@ export const validateGatePass = async (req, res, next) => {
 
     const gatePassId = req.params.gatePassId;
     const gatePass = await gatePassService.validateGatePass(gatePassId);
-
-    if (gatePass) {
-      // add a gate entry record
-      const gateEntryPayload = {
-        gatePassId: gatePass._id,
-        societyId: gatePass.societyId._id,
-        flatId: gatePass.flatId._id,
-        visitorName: gatePass.userId.name,
-        visitorContact: gatePass.userId.phoneNumber,
-        purpose: gatePass.remarks,
-        entryTime: new Date(),
-        status: 'approved',
-        approvedBy: gatePass.createdByUserId,
-        history: [],
-        createdOn: new Date(),
-        createdByUserId: fromUser._id
-      };
-      const data = await gateEntryService.createGateEntry(gateEntryPayload);
-
-      // send notification to flat members
-      await flatService.loopThroughGateEntryFlatMembers(data, fromUser, (toUserId, user) => {
-        return notificationService.sendGateEntryRequestNotification(fromUser, toUserId, data, user.fcmToken);
-      });
-    }
 
     res.json({
       success: !!gatePass,
