@@ -116,6 +116,7 @@ export const markGateExit = async (req, res, next) => {
     },
     true
   );
+  res.json({ success: true, data });
 };
 
 export const updateGateEntryStatus = async (req, res, next) => {
