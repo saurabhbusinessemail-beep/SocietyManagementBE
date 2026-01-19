@@ -90,7 +90,40 @@ export const sendGateEntryResponseNotification = async (fromUser, toUserId, gate
   return notificationData;
 };
 
-export const sentMessage = () => {};
+export const sendGateExitNotification = async (fromUser, toUserId, gateEntry, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = 'Gate Exit';
+  const type = 'GATE_EXIT';
+  const message = `${gateEntry.visitorName} has exited the premises.`;
+
+  const payload = {
+    userId: toUserId,
+    societyId: gateEntry.societyId,
+    type,
+    title,
+    message,
+    data: gateEntry,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+  console.log('payload = ', payload)
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        notificationId: notificationData._id,
+        gateEntryId: gateEntry._id,
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      throw new Error('Could not send approval alert to user. A notification has been sent');
+    }
+  }
+  return notificationData;
+};
 
 /* FIREBASE Notification */
 const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {

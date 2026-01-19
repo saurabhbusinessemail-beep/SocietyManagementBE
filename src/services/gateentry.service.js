@@ -90,6 +90,25 @@ export const updateGateEntryTime = async (gateEntryId) => {
   );
 };
 
+export const updateGateExitTime = async (gateEntryId, userId) => {
+  const gateEntry = await GateEntry.findById(gateEntryId);
+  if (!gateEntry) {
+    throw new Error('Gate entry not found');
+  }
+
+  return GateEntry.findByIdAndUpdate(
+    gateEntryId,
+    {
+      $set: {
+        exitTime: new Date(),
+        modifiedOn: new Date(),
+        modifiedByUserId: userId
+      }
+    },
+    { new: true }
+  );
+};
+
 const authorisedToApproveGateEntry = async (gateEntry, userId) => {
   const flatMembers = await FlatService.getFlatMembersByFlatId(gateEntry.flatId, userId);
 

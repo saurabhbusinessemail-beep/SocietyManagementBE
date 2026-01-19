@@ -17,7 +17,7 @@ export const createGateEntry = async (req, res, next) => {
     // If status is requested then send notification to all flat members
     // rest all other stuses will be maintained in other functions with separate api calls
     if (gateEntry.status === 'requested') {
-      loopThroughGateEntryFlatMembers(data, fromUser, (toUserId, user) => {
+      await loopThroughGateEntryFlatMembers(data, fromUser, (toUserId, user) => {
         return NotificationService.sendGateEntryRequestNotification(fromUser, toUserId, data, user.fcmToken);
       });
     }
@@ -100,8 +100,23 @@ export const getGateEntry = async (req, res, next) => {
 };
 
 export const markGateExit = async (req, res, next) => {
+  const fromUser = res.locals.user;
+  if (!fromUser) {
+    return res.status(404).json({ message: 'User not found' });
+  }
   
-}
+  const gateEntryId = req.params.gateEntryId;
+
+  const data = await gateEntryService.updateGateExitTime(gateEntryId, fromUser._id);
+  await loopThroughGateEntryFlatMembers(
+    data,
+    fromUser,
+    (toUserId, user) => {
+      return NotificationService.sendGateExitNotification(fromUser, toUserId, data, user.fcmToken);
+    },
+    true
+  );
+};
 
 export const updateGateEntryStatus = async (req, res, next) => {
   try {
@@ -120,8 +135,9 @@ export const updateGateEntryStatus = async (req, res, next) => {
 
     const data = await gateEntryService.updateGateEntryStatus(gateEntryId, newStatus, fromUser._id);
     console.log('updating status notification for ', data);
-    loopThroughGateEntryFlatMembers(
-      data, fromUser,
+    await loopThroughGateEntryFlatMembers(
+      data,
+      fromUser,
       (toUserId, user) => {
         return NotificationService.sendGateEntryResponseNotification(fromUser, toUserId, data, user.fcmToken);
       },
@@ -169,7 +185,7 @@ const loopThroughGateEntryFlatMembers = async (gateEntry, fromUser, callBack, in
   }
 
   if (includeSecurity && gateEntry.createdByUserId !== fromUser._id) {
-    console.log('sending notification to security ', gateEntry.createdByUserId)
+    console.log('sending notification to security ', gateEntry.createdByUserId);
     const user = await UserService.getUser(gateEntry.createdByUserId);
     arrNotificationPromises.push(callBack(gateEntry.createdByUserId, user));
   }
