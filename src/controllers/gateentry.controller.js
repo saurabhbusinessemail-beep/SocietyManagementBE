@@ -162,6 +162,7 @@ const loopThroughGateEntryFlatMembers = async (gateEntry, callBack, includeSecur
   }
 
   if (includeSecurity) {
+    console.log('sending notification to security ', gateEntry.craetedByUserId)
     const user = await UserService.getUser(gateEntry.craetedByUserId);
     arrNotificationPromises.push(callBack(gateEntry.craetedByUserId, user));
   }
