@@ -17,7 +17,7 @@ export const createGateEntry = async (req, res, next) => {
     // If status is requested then send notification to all flat members
     // rest all other stuses will be maintained in other functions with separate api calls
     if (gateEntry.status === 'requested') {
-      loopThroughGateEntryFlatMembers(data, (toUserId, user) => {
+      loopThroughGateEntryFlatMembers(data, fromUser, (toUserId, user) => {
         return NotificationService.sendGateEntryRequestNotification(fromUser, toUserId, data, user.fcmToken);
       });
     }
@@ -117,7 +117,7 @@ export const updateGateEntryStatus = async (req, res, next) => {
     const data = await gateEntryService.updateGateEntryStatus(gateEntryId, newStatus, fromUser._id);
     console.log('updating status notification for ', data);
     loopThroughGateEntryFlatMembers(
-      data,
+      data, fromUser,
       (toUserId, user) => {
         return NotificationService.sendGateEntryResponseNotification(fromUser, toUserId, data, user.fcmToken);
       },
@@ -150,19 +150,21 @@ export const resendGateEntryRequestNotification = async (req, res, next) => {
   }
 };
 
-const loopThroughGateEntryFlatMembers = async (gateEntry, callBack, includeSecurity = false) => {
+const loopThroughGateEntryFlatMembers = async (gateEntry, fromUser, callBack, includeSecurity = false) => {
   const flatMembers = await FlatService.getFlatMembersByFlatId(gateEntry.flatId);
   const arrNotificationPromises = [];
 
   for (let i = 0; i < flatMembers.length; i++) {
     const toUserId = flatMembers[i].userId;
+    if (toUserId === fromUser._id) continue;
+
     const user = await UserService.getUser(toUserId);
     if (!user || !user.fcmToken) continue;
 
     arrNotificationPromises.push(callBack(toUserId, user));
   }
 
-  if (includeSecurity) {
+  if (includeSecurity && gateEntry.createdByUserId !== fromUser._id) {
     console.log('sending notification to security ', gateEntry.createdByUserId)
     const user = await UserService.getUser(gateEntry.createdByUserId);
     arrNotificationPromises.push(callBack(gateEntry.createdByUserId, user));
