@@ -145,7 +145,7 @@ export const getFlatMembersByFlatId = (flatId, userId = undefined) => {
 };
 
 export const loopThroughGateEntryFlatMembers = async (gateEntry, fromUser, callBack, includeSecurity = false) => {
-  const flatMembers = await FlatService.getFlatMembersByFlatId(gateEntry.flatId);
+  const flatMembers = await getFlatMembersByFlatId(gateEntry.flatId);
   const arrNotificationPromises = [];
 
   for (let i = 0; i < flatMembers.length; i++) {
