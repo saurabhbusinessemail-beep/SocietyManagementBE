@@ -22,15 +22,7 @@ export const getFlatsBySocietyAndBuilding = async (filter, options = {}) => {
   const { page = 1, limit = 1000 } = options;
   const skip = (page - 1) * limit;
 
-  const [data, total] = await Promise.all([
-    Flat.find(filter)
-      .skip(skip)
-      .limit(limit)
-      .sort({ floor: 1, flatNumber: 1 })
-      .populate('buildingId')
-      .populate('societyId'),
-    Flat.countDocuments(filter)
-  ]);
+  const [data, total] = await Promise.all([Flat.find(filter).skip(skip).limit(limit).sort({ floor: 1, flatNumber: 1 }).populate('buildingId').populate('societyId'), Flat.countDocuments(filter)]);
 
   return {
     data,
@@ -41,6 +33,7 @@ export const getFlatsBySocietyAndBuilding = async (filter, options = {}) => {
   };
 };
 
+// Flat Members
 export const myFlats = async (userId, societyId = null, options = {}) => {
   const { page = 1, limit = 1000 } = options;
   const skip = (page - 1) * limit;
@@ -77,11 +70,50 @@ export const myFlats = async (userId, societyId = null, options = {}) => {
   };
 };
 
+export const myTenants = async (userId, societyId = null, flatId = null, options = {}) => {
+  const { page = 1, limit = 1000 } = options;
+  const skip = (page - 1) * limit;
+
+  const myFlatMemberRecords = await FlatMember.find({ userId, isOwner: true });
+  const myFlats = myFlatMemberRecords.map((fm) => fm.flatId);
+
+  let filter = { isTenant: true, flatId: { $in: myFlats } };
+  if (societyId) {
+    filter = { ...filter, societyId };
+  }
+  if (flatId) {
+    filter = { ...filter, flatId };
+  }
+  const [data, total] = await Promise.all([
+    FlatMember.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .sort({ floor: 1, flatNumber: 1 })
+      .populate('societyId')
+      .populate('flatId')
+      .populate('userId')
+      .populate({
+        path: 'flatId',
+        populate: {
+          path: 'buildingId',
+          model: 'Building'
+        }
+      }),
+
+    FlatMember.countDocuments(filter)
+  ]);
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    success: true
+  };
+};
+
 export const flatMember = async (flatMemberId) => {
-  return await FlatMember.findById(flatMemberId)
-    .populate('societyId')
-    .populate('flatId')
-    .populate('userId');
+  return await FlatMember.findById(flatMemberId).populate('societyId').populate('flatId').populate('userId');
 };
 
 export const memberFlats = async (userId, withSocietyRoles = false) => {
@@ -92,24 +124,17 @@ export const memberFlats = async (userId, withSocietyRoles = false) => {
 
   const myOwnerFlatMemberRecords = flats.filter((f) => f.isOwner);
   const myTenantFlatMemberRecords = flats.filter((f) => f.isTenant);
-  const myMemberFlatMemberRecords = flats.filter(
-    (f) => !f.isOwner && !f.isTenant
-  );
+  const myMemberFlatMemberRecords = flats.filter((f) => !f.isOwner && !f.isTenant);
 
   if (!withSocietyRoles) {
     return {
-      socities: [
-        ...myOwnerFlatMemberRecords,
-        ...myTenantFlatMemberRecords,
-        ...myMemberFlatMemberRecords
-      ]
+      socities: [...myOwnerFlatMemberRecords, ...myTenantFlatMemberRecords, ...myMemberFlatMemberRecords]
     };
   }
 
   let flatsObj = {};
   myOwnerFlatMemberRecords.forEach((flatMember) => {
-    if (flatsObj[flatMember.societyId])
-      flatsObj[flatMember.societyId].push('owner');
+    if (flatsObj[flatMember.societyId]) flatsObj[flatMember.societyId].push('owner');
     else flatsObj[flatMember.societyId] = ['owner'];
   });
   myTenantFlatMemberRecords.forEach((tenant) => {
@@ -138,10 +163,7 @@ export const getFlatMembersByFlatId = (flatId, userId = undefined) => {
   let filter = { flatId };
   if (userId) filter.userId = userId;
 
-  return FlatMember.find(filter)
-    .populate('societyId')
-    .populate('flatId')
-    .populate('userId');
+  return FlatMember.find(filter).populate('societyId').populate('flatId').populate('userId');
 };
 
 export const loopThroughGateEntryFlatMembers = async (gateEntry, fromUser, callBack, includeSecurity = false) => {
@@ -166,4 +188,23 @@ export const loopThroughGateEntryFlatMembers = async (gateEntry, fromUser, callB
 
   if (arrNotificationPromises.length > 0) await Promise.all(arrNotificationPromises);
   else return new Error('No flat member found');
+};
+
+export const updatedeleteFlatMemberLeaseEnd = async (id, dt, userId) => {
+  return await FlatMember.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        leaseEnd: new Date(dt),
+        modifiedOn: new Date(),
+        modifiedByUserId: userId
+      }
+    },
+    { new: true }
+  );
+};
+
+export const deleteFlatMember = async (id) => {
+  await FlatMember.findByIdAndDelete(id);
+  return '';
 };

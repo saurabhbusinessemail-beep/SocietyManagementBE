@@ -54,7 +54,7 @@ export const getFlatsBySocietyAndBuilding = async (req, res, next) => {
 
 export const getFlatById = async (req, res, next) => {
   try {
-    console.log('flatId = ', req.params.flatId)
+    console.log('flatId = ', req.params.flatId);
     const data = await flatService.getFlatById(req.params.flatId);
     res.json(data);
   } catch (err) {
@@ -94,6 +94,40 @@ export const flatMember = async (req, res, next) => {
   try {
     const flatMemberId = req.params.flatMemberId;
     const data = await flatService.flatMember(flatMemberId);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updatedeleteFlatMemberLeaseEnd = async (req, res, next) => {
+  try {
+    const flatMemberId = req.params.flatMemberId;
+    const { endDate } = req.body;
+    const data = await flatService.updatedeleteFlatMemberLeaseEnd(flatMemberId, endDate, res.locals.user._id);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteFlatMember = async (req, res, next) => {
+  try {
+    const data = await flatService.deleteFlatMember(req.params.flatMemberId);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const myTenants = async (req, res, next) => {
+  try {
+    const { societyId, flatId } = req.body;
+    const { page, limit } = req.query;
+    const data = await flatService.myTenants(res.locals.user._id, societyId, flatId, {
+      page: Number(page),
+      limit: Number(limit)
+    });
     res.json(data);
   } catch (err) {
     next(err);

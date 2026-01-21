@@ -1,6 +1,5 @@
 import { GatePass } from '../models';
 import { getISTDayRange } from '../utils/other.util';
-const mongoose = require('mongoose');
 
 export const createGatePass = (data) => {
   return GatePass.create({

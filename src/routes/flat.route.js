@@ -14,4 +14,10 @@ router.get('/:id/myFlats', flatController.myFlats);
 
 router.get('/myFlats/:flatMemberId', isFlatMember, flatController.flatMember);
 
+router.post('/myTenants', flatController.myTenants);
+
+router.patch('/updatedeleteFlatMemberLeaseEnd/:flatMemberId', flatController.updatedeleteFlatMemberLeaseEnd);
+
+router.delete('/deleteFlatMember/:flatMemberId', flatController.deleteFlatMember);
+
 export default router;
