@@ -112,6 +112,160 @@ export const myTenants = async (userId, societyId = null, flatId = null, options
   };
 };
 
+export const myFlatMembers = async (userId, societyId = null, flatId = null, userSocieties = [], options = {}) => {
+  const { page = 1, limit = 1000 } = options;
+  const skip = (page - 1) * limit;
+
+  // First, get all societies where user has roles
+  const societyIds = userSocieties.map((s) => s.societyId.toString());
+
+  // If societyId filter is provided, verify user has access to that society
+  if (societyId && !societyIds.includes(societyId.toString())) {
+    return {
+      data: [],
+      total: 0,
+      page,
+      limit,
+      success: false,
+      message: "You don't have access to this society"
+    };
+  }
+
+  // Get user's flat membership records
+  const myFlatMemberRecords = await FlatMember.find({ userId });
+  const myFlats = myFlatMemberRecords.map((fm) => fm.flatId);
+
+  // Build the base filter
+  let filter = {};
+
+  // Apply society filter if provided
+  if (societyId) {
+    filter.societyId = societyId;
+  } else {
+    // Filter by societies user has access to
+    filter.societyId = { $in: societyIds };
+  }
+
+  // Apply flat filter if provided
+  if (flatId) {
+    filter.flatId = flatId;
+
+    // Verify user has access to this flat
+    if (!myFlats.includes(flatId)) {
+      // Check if user has owner permissions in this society
+      const userSociety = userSocieties.find((s) => s.societyId.toString() === (societyId || myFlatMemberRecords.find((fm) => fm.flatId.toString() === flatId.toString())?.societyId?.toString()));
+
+      if (!userSociety) {
+        return {
+          data: [],
+          total: 0,
+          page,
+          limit,
+          success: false,
+          message: "You don't have access to this flat"
+        };
+      }
+    }
+  } else {
+    // If no flatId filter, show flats user has access to
+    filter.flatId = { $in: myFlats };
+  }
+
+  // Determine user's role in each flat they belong to
+  const userFlatRoles = {};
+  myFlatMemberRecords.forEach((fm) => {
+    const flatIdStr = fm.flatId.toString();
+    userFlatRoles[flatIdStr] = {
+      isOwner: fm.isOwner,
+      isTenant: fm.isTenant,
+      societyId: fm.societyId
+    };
+  });
+
+  // Build permission-based filters
+  let permissionFilter = [];
+
+  // For each flat, apply appropriate visibility rules
+  const flatIdsToFilter = flatId ? [flatId] : myFlats;
+
+  for (const flatIdStr of flatIdsToFilter) {
+    const userRole = userFlatRoles[flatIdStr];
+
+    if (userRole) {
+      if (userRole.isOwner) {
+        // Owners can see all members (both isMember and isTenantMember)
+        permissionFilter.push({
+          flatId: flatIdStr,
+          $or: [{ isMember: true }, { isTenantMember: true }]
+        });
+      } else if (userRole.isTenant) {
+        // Tenants can only see tenant members
+        permissionFilter.push({
+          flatId: flatIdStr,
+          isTenantMember: true
+        });
+      }
+    } else {
+      // User doesn't have direct membership in this flat
+      // Check if they have owner permissions in the society
+      // const society = userSocieties.find((s) => s.societyId.toString() === (societyId || userRole?.societyId?.toString()));
+      // if (society) {
+      //   const hasOwnerPermissions = society.societyRoles.some((role) => role.permissions.includes('owner.view'));
+      //   if (hasOwnerPermissions) {
+      //     // User with owner.view permission can see all members
+      //     permissionFilter.push({
+      //       flatId: flatIdStr,
+      //       $or: [{ isMember: true }, { isTenantMember: true }]
+      //     });
+      //   }
+      // }
+    }
+  }
+
+  // If no permission filters were added, return empty
+  if (permissionFilter.length === 0) {
+    return {
+      data: [],
+      total: 0,
+      page,
+      limit,
+      success: true
+    };
+  }
+
+  // Combine filters
+  if (permissionFilter.length > 0) {
+    filter.$or = permissionFilter;
+  }
+
+  // Execute query
+  const [data, total] = await Promise.all([
+    FlatMember.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .sort({ 'flatId.floor': 1, 'flatId.flatNumber': 1 })
+      .populate('societyId')
+      .populate('flatId')
+      .populate('userId')
+      .populate({
+        path: 'flatId',
+        populate: {
+          path: 'buildingId',
+          model: 'Building'
+        }
+      }),
+    FlatMember.countDocuments(filter)
+  ]);
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    success: true
+  };
+};
+
 export const flatMember = async (flatMemberId) => {
   return await FlatMember.findById(flatMemberId).populate('societyId').populate('flatId').populate('userId');
 };

@@ -35,8 +35,8 @@ const menus = [
   {
     menuId: 'members',
     menuName: 'Members',
-    icon: 'person',
-    relativePath: '/abcd'
+    icon: 'member',
+    relativePath: '/members'
   },
   {
     menuId: 'announcements',

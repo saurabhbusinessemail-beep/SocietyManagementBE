@@ -133,3 +133,20 @@ export const myTenants = async (req, res, next) => {
     next(err);
   }
 };
+
+export const myFlatMembers = async (req, res, next) => {
+  try {
+    const socities = res.locals.socities;
+    const { societyId, flatId } = req.body;
+    const { page, limit } = req.query;
+
+    const data = await flatService.myFlatMembers(res.locals.user._id, societyId, flatId, socities, {
+      page: Number(page),
+      limit: Number(limit)
+    });
+    res.json(data);
+  } catch (err) {
+    console.log('err = ', err)
+    next(err);
+  }
+};

@@ -12,6 +12,8 @@ const FlatMemberSchema = new mongoose.Schema({
 
   isOwner: { type: Boolean, default: false },
   isTenant: { type: Boolean, default: false },
+  isMember: { type: Boolean, default: false },
+  isTenantMember: { type: Boolean, default: false },
 
   // For Tenants specially
   leaseStart: { type: Date },
