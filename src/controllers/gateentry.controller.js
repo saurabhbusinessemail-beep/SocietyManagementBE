@@ -75,8 +75,6 @@ export const getGateEntries = async (req, res, next) => {
       if (orCondition.$or.length > 0) filter.$and.push(orCondition);
     }
 
-    console.log('\n filter = ', JSON.stringify(filter));
-
     const data = await gateEntryService.getGateEntries(filter, {
       page: Number(page),
       limit: Number(limit)
