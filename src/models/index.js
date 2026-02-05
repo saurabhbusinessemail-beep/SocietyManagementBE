@@ -1,4 +1,6 @@
+const Announcement = require('./announcement.model');
 const Building = require('./building.model');
+const Comments = require('./comments.model');
 const Complaint = require('./complaint.model');
 const Feature = require('./feature.model');
 const Flat = require('./flat.model');
@@ -18,7 +20,9 @@ const User = require('./user.model');
 const Vehicle = require('./vehicle.model');
 
 module.exports = {
+  Announcement,
   Building,
+  Comments,
   Complaint,
   Feature,
   Flat,
