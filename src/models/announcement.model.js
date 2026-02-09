@@ -90,7 +90,7 @@ const announcementSchema = new mongoose.Schema(
     },
     commentsEnabled: {
       type: Boolean,
-      default: true
+      default: false
     },
 
     ...require('./default-fields.model')

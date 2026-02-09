@@ -368,3 +368,30 @@ export const unpublishAnnouncement = async (req, res) => {
     });
   }
 };
+
+/**
+ * Track view for an announcement
+ */
+export const trackView = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userInfo = {
+      userAgent: req.headers['user-agent'],
+      ipAddress: req.ip
+    };
+
+    const result = await announcementService.trackView(id, res.locals.user._id, userInfo);
+
+    if (!result.success) {
+      return res.status(result.code || 500).json(result);
+    }
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};

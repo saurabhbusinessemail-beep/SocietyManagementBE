@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const announcementController = require('../controllers/announcement.controller');
-const { isSocietyAdmin, isSocietyMember } = require('../middlewares/announcement.middleware');
+const { isSocietyAdmin, isSocietyMember } = require('../middlewares/societyAnnouncement.middleware');
 import { userAuth } from '../middlewares/auth.middleware';
 import { newRecordFields } from '../middlewares/newRecordFields';
 
@@ -23,6 +23,8 @@ router.get('/society/:societyId/search', isSocietyMember, announcementController
 router.get('/society/:societyId/export', isSocietyMember, announcementController.exportAnnouncements);
 
 router.get('/:id', isSocietyMember, announcementController.getAnnouncement);
+
+router.post('/:id/view', isSocietyMember, announcementController.trackView);
 
 // router.get('/user/:userId', isSocietyMember, announcementController.getUserAnnouncements);
 
