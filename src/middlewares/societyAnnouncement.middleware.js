@@ -84,7 +84,7 @@ const hasAdminRole = (societyRoles) => {
 const isSocietyMember = async (req, res, next) => {
   try {
     // Get user's societies from res.locals (attached by auth middleware)
-    const userSocieties = res.locals.societies || [];
+    const userSocieties = res.locals.socities || [];
 
     if (!userSocieties || userSocieties.length === 0) {
       return res.status(403).json({
@@ -136,7 +136,7 @@ const isSocietyMember = async (req, res, next) => {
 const isSocietyAdmin = async (req, res, next) => {
   try {
     // Get user's societies from res.locals
-    const userSocieties = res.locals.societies || [];
+    const userSocieties = res.locals.socities || [];
 
     if (!userSocieties || userSocieties.length === 0) {
       return res.status(403).json({

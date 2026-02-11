@@ -41,7 +41,8 @@ const menus = [
   {
     menuId: 'announcements',
     menuName: 'Announcements',
-    icon: 'campaign'
+    icon: 'campaign',
+    relativePath: '/announcements'
   },
   {
     menuId: 'gateentry', // for security

@@ -16,11 +16,7 @@ export const createAnnouncement = async (data) => {
   // Populate creator info
   const populated = await announcement.populate('createdByUserId');
 
-  return {
-    success: true,
-    data: populated,
-    message: 'Announcement created successfully'
-  };
+  return populated;
 };
 
 /**
@@ -43,11 +39,7 @@ export const getAnnouncementById = async (id, userId = null) => {
     });
 
   if (!announcement) {
-    return {
-      success: false,
-      message: 'Announcement not found',
-      code: 404
-    };
+    return null;
   }
 
   // Check if user has viewed this announcement
@@ -69,11 +61,8 @@ export const getAnnouncementById = async (id, userId = null) => {
   });
 
   return {
-    success: true,
-    data: {
-      ...announcement.toObject(),
-      commentCount
-    }
+    ...announcement.toObject(),
+    commentCount
   };
 };
 
@@ -81,7 +70,7 @@ export const getAnnouncementById = async (id, userId = null) => {
  * Get announcements for a society with filters
  */
 export const getSocietyAnnouncements = async (societyId, filters = {}) => {
-  const { page = 1, limit = 10, category, priority, search, status = 'published', pinned, sortBy = 'latest', userId = null } = filters;
+  const { page = 1, limit = 10, category, priority, search, status, pinned, sortBy = 'latest', userId = null } = filters;
 
   const skip = (page - 1) * limit;
   const query = { societyId };
@@ -122,16 +111,18 @@ export const getSocietyAnnouncements = async (societyId, filters = {}) => {
     default: // 'latest'
       sort = { isPinned: -1, createdOn: -1 };
   }
+  
+  console.log('\nquery = ', JSON.stringify(query))
 
   // Get total count
   const total = await Announcement.countDocuments(query);
 
   // Get announcements
-  const announcements = await Announcement.find(query).sort(sort).skip(skip).limit(parseInt(limit)).populate('createdByUserId').lean();
+  const data = await Announcement.find(query).sort(sort).skip(skip).limit(parseInt(limit)).populate('createdByUserId').populate('societyId').lean();
 
   // Get comment counts for each announcement
-  if (announcements.length > 0) {
-    const announcementIds = announcements.map((a) => a._id);
+  if (data.length > 0) {
+    const announcementIds = data.map((a) => a._id);
 
     const commentCounts = await Comment.aggregate([
       {
@@ -155,7 +146,7 @@ export const getSocietyAnnouncements = async (societyId, filters = {}) => {
       return map;
     }, {});
 
-    announcements.forEach((announcement) => {
+    data.forEach((announcement) => {
       announcement.commentCount = commentCountMap[announcement._id.toString()] || 0;
 
       // Check if user has viewed each announcement
@@ -166,16 +157,11 @@ export const getSocietyAnnouncements = async (societyId, filters = {}) => {
   }
 
   return {
-    success: true,
-    data: {
-      announcements,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / limit),
-        totalItems: total,
-        itemsPerPage: parseInt(limit)
-      }
-    }
+    data,
+    total,
+    page: parseInt(page),
+    limit: parseInt(limit),
+    success: true
   };
 };
 
@@ -190,11 +176,7 @@ export const updateAnnouncement = async (id, updates, userId) => {
   const announcement = await Announcement.findById(id);
 
   if (!announcement) {
-    return {
-      success: false,
-      message: 'Announcement not found',
-      code: 404
-    };
+    return null;
   }
 
   // Check permissions
@@ -202,11 +184,7 @@ export const updateAnnouncement = async (id, updates, userId) => {
     // Verify if user has admin privileges (you'll need to implement this check)
     const isAdmin = true; // Replace with actual admin check
     if (!isAdmin) {
-      return {
-        success: false,
-        message: 'You do not have permission to update this announcement',
-        code: 403
-      };
+      throw new Error('You do not have permission to update this announcement');
     }
   }
 
@@ -219,12 +197,7 @@ export const updateAnnouncement = async (id, updates, userId) => {
   await announcement.save();
 
   const populated = await announcement.populate('createdByUserId');
-
-  return {
-    success: true,
-    data: populated,
-    message: 'Announcement updated successfully'
-  };
+  return populated;
 };
 
 /**
@@ -239,22 +212,14 @@ export const deleteAnnouncement = async (id, userId) => {
     const announcement = await Announcement.findById(id).session(session);
 
     if (!announcement) {
-      return {
-        success: false,
-        message: 'Announcement not found',
-        code: 404
-      };
+      return null;
     }
 
     // Check permissions
     if (announcement.createdByUserId.toString() !== userId.toString()) {
       const isAdmin = true; // Replace with actual admin check
       if (!isAdmin) {
-        return {
-          success: false,
-          message: 'You do not have permission to delete this announcement',
-          code: 403
-        };
+        throw new Error('You do not have permission to delete this announcement');
       }
     }
 
@@ -266,10 +231,7 @@ export const deleteAnnouncement = async (id, userId) => {
 
     await session.commitTransaction();
 
-    return {
-      success: true,
-      message: 'Announcement deleted successfully'
-    };
+    return '';
   } finally {
     session.endSession();
   }
@@ -282,32 +244,20 @@ export const togglePinAnnouncement = async (id, userId) => {
   const announcement = await Announcement.findById(id);
 
   if (!announcement) {
-    return {
-      success: false,
-      message: 'Announcement not found',
-      code: 404
-    };
+    return null;
   }
 
   // Check admin permissions
   const isAdmin = true; // Replace with actual admin check
   if (!isAdmin) {
-    return {
-      success: false,
-      message: 'Only admins can pin/unpin announcements',
-      code: 403
-    };
+    throw new Error('Only admins can pin/unpin announcements');
   }
 
   announcement.isPinned = !announcement.isPinned;
   await announcement.save();
 
   return {
-    success: true,
-    data: {
-      isPinned: announcement.isPinned
-    },
-    message: `Announcement ${announcement.isPinned ? 'pinned' : 'unpinned'} successfully`
+    isPinned: announcement.isPinned
   };
 };
 
@@ -412,10 +362,7 @@ export const getAnnouncementStats = async (societyId) => {
     }));
   }
 
-  return {
-    success: true,
-    data: formattedStats
-  };
+  return formattedStats;
 };
 
 /**
@@ -437,19 +384,14 @@ export const searchAnnouncements = async (societyId, searchTerm, options = {}) =
 
   const total = await Announcement.countDocuments(query);
 
-  const announcements = await Announcement.find(query).sort({ isPinned: -1, createdOn: -1 }).skip(skip).limit(parseInt(limit)).populate('createdByUserId').lean();
+  const data = await Announcement.find(query).sort({ isPinned: -1, createdOn: -1 }).skip(skip).limit(parseInt(limit)).populate('createdByUserId').lean();
 
   return {
-    success: true,
-    data: {
-      announcements,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / limit),
-        totalItems: total,
-        itemsPerPage: parseInt(limit)
-      }
-    }
+    data,
+    total,
+    page: parseInt(page),
+    limit: parseInt(limit),
+    success: true
   };
 };
 
@@ -488,11 +430,7 @@ export const bulkUpdateAnnouncements = async (ids, updates, userId) => {
     }).session(session);
 
     if (announcements.length !== ids.length) {
-      return {
-        success: false,
-        message: 'Some announcements not found',
-        code: 404
-      };
+      throw new Error('Some announcements not found');
     }
 
     // Update all announcements
@@ -501,12 +439,8 @@ export const bulkUpdateAnnouncements = async (ids, updates, userId) => {
     await session.commitTransaction();
 
     return {
-      success: true,
-      data: {
-        matchedCount: result.matchedCount,
-        modifiedCount: result.modifiedCount
-      },
-      message: 'Announcements updated successfully'
+      matchedCount: result.matchedCount,
+      modifiedCount: result.modifiedCount
     };
   } finally {
     session.endSession();
@@ -517,24 +451,16 @@ export const bulkUpdateAnnouncements = async (ids, updates, userId) => {
  * Export announcements to CSV/JSON
  */
 export const exportAnnouncements = async (societyId, format = 'json') => {
-  const announcements = await Announcement.find({ societyId }).populate('createdByUserId').sort({ createdOn: -1 }).lean();
+  const data = await Announcement.find({ societyId }).populate('createdByUserId').sort({ createdOn: -1 }).lean();
 
   if (format === 'csv') {
     // Convert to CSV format
-    const csvData = convertToCSV(announcements);
-    return {
-      success: true,
-      data: csvData,
-      format: 'csv'
-    };
+    const csvData = convertToCSV(data);
+    return csvData;
   }
 
   // Default to JSON
-  return {
-    success: true,
-    data: announcements,
-    format: 'json'
-  };
+  return data;
 };
 
 /**
@@ -570,20 +496,12 @@ export const publishAnnouncement = async (id, userId) => {
   const announcement = await Announcement.findById(id);
 
   if (!announcement) {
-    return {
-      success: false,
-      message: 'Announcement not found',
-      code: 404
-    };
+    return null;
   }
 
   // Check if announcement is already published
   if (announcement.status === 'published' && announcement.isPublished) {
-    return {
-      success: false,
-      message: 'Announcement is already published',
-      code: 400
-    };
+    throw new Error('Announcement is already published');
   }
 
   // Check permissions (only admin/manager or creator can publish)
@@ -591,11 +509,7 @@ export const publishAnnouncement = async (id, userId) => {
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'manager';
 
   if (announcement.createdBy.toString() !== userId.toString() && !isAdmin) {
-    return {
-      success: false,
-      message: 'You do not have permission to publish this announcement',
-      code: 403
-    };
+    throw new Error('You do not have permission to publish this announcement');
   }
 
   // Update announcement status
@@ -614,12 +528,7 @@ export const publishAnnouncement = async (id, userId) => {
   await announcement.save();
 
   const populated = await announcement.populate('createdBy', 'name email profilePicture');
-
-  return {
-    success: true,
-    data: populated,
-    message: 'Announcement published successfully'
-  };
+  return populated;
 };
 
 /**
@@ -629,20 +538,12 @@ export const unpublishAnnouncement = async (id, userId) => {
   const announcement = await Announcement.findById(id);
 
   if (!announcement) {
-    return {
-      success: false,
-      message: 'Announcement not found',
-      code: 404
-    };
+    return null;
   }
 
   // Check if announcement is already unpublished
   if (announcement.status === 'draft' && !announcement.isPublished) {
-    return {
-      success: false,
-      message: 'Announcement is already unpublished',
-      code: 400
-    };
+    throw new Error('Announcement is already unpublished');
   }
 
   // Check permissions (only admin/manager or creator can unpublish)
@@ -650,11 +551,7 @@ export const unpublishAnnouncement = async (id, userId) => {
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'manager';
 
   if (announcement.createdBy.toString() !== userId.toString() && !isAdmin) {
-    return {
-      success: false,
-      message: 'You do not have permission to unpublish this announcement',
-      code: 403
-    };
+    throw new Error('You do not have permission to unpublish this announcement');
   }
 
   // Update announcement status
@@ -663,12 +560,7 @@ export const unpublishAnnouncement = async (id, userId) => {
   await announcement.save();
 
   const populated = await announcement.populate('createdBy', 'name email profilePicture');
-
-  return {
-    success: true,
-    data: populated,
-    message: 'Announcement unpublished successfully'
-  };
+  return populated;
 };
 
 /**
@@ -678,11 +570,7 @@ export const trackView = async (announcementId, userId, userInfo = {}) => {
   const announcement = await Announcement.findById(announcementId);
 
   if (!announcement) {
-    return {
-      success: false,
-      message: 'Announcement not found',
-      code: 404
-    };
+    return null;
   }
 
   // Check if user has already viewed
@@ -708,12 +596,8 @@ export const trackView = async (announcementId, userId, userInfo = {}) => {
   await announcement.save();
 
   return {
-    success: true,
-    data: {
-      viewCount: announcement.viewCount,
-      hasViewed: true,
-      lastViewedAt: announcement.lastViewedAt
-    },
-    message: 'View tracked successfully'
+    viewCount: announcement.viewCount,
+    hasViewed: true,
+    lastViewedAt: announcement.lastViewedAt
   };
 };

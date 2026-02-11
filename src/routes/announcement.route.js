@@ -46,4 +46,4 @@ router.patch('/:id/publish', isSocietyAdmin, announcementController.publishAnnou
 
 router.patch('/:id/unpublish', isSocietyAdmin, announcementController.unpublishAnnouncement);
 
-module.exports = router;
+export default router;

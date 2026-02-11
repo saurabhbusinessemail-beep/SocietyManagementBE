@@ -42,20 +42,19 @@ const announcementSchema = new mongoose.Schema(
     ],
     isPublished: {
       type: Boolean,
-      default: true
+      default: false
     },
     publishDate: {
-      type: Date,
-      default: Date.now
+      type: Date
     },
     expiryDate: {
       type: Date,
-      validate: {
-        validator: function (value) {
-          return !value || value > this.publishDate;
-        },
-        message: 'Expiry date must be after publish date'
-      }
+      // validate: {
+      //   validator: function (value) {
+      //     return !value || value > this.publishDate;
+      //   },
+      //   message: 'Expiry date must be after publish date'
+      // }
     },
     views: [
       {
@@ -115,7 +114,7 @@ announcementSchema.index({ societyId: 1, publishDate: -1 });
 announcementSchema.index({ societyId: 1, isPinned: -1, publishDate: -1 });
 announcementSchema.index({ societyId: 1, status: 1 });
 announcementSchema.index({ societyId: 1, category: 1 });
-announcementSchema.index({ expiryDate: 1 }, { expireAfterSeconds: 0 }); // Auto-delete expired announcements
+// announcementSchema.index({ expiryDate: 1 }, { expireAfterSeconds: 0 }); // Auto-delete expired announcements
 
 // Method to check if announcement is active
 announcementSchema.methods.isActive = function () {
