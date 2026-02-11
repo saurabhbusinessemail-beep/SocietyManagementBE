@@ -9,12 +9,14 @@ import complaintRoutes from './complaint.route';
 import newUserRoutes from './newUser.routes';
 import gatepassRoutes from './gatepass.route';
 import gateentryRoutes from './gateentry.route';
+import announcement from './announcement.route';
+import comments from './comment.route';
 
-const seedRoles = require("../seed/role.seeder");
-const seedPermissions = require("../seed/permission.seeder");
-const seedMenus = require("../seed/menus.seeder");
-const seedFeatures = require("../seed/feature.seeder");
-const seedRoleMenu = require("../seed/roleMenus.seeder");
+const seedRoles = require('../seed/role.seeder');
+const seedPermissions = require('../seed/permission.seeder');
+const seedMenus = require('../seed/menus.seeder');
+const seedFeatures = require('../seed/feature.seeder');
+const seedRoleMenu = require('../seed/roleMenus.seeder');
 
 /**
  * Function contains Application routes
@@ -26,7 +28,6 @@ const routes = () => {
     res.json('Welcome');
   });
   router.get('/seed', async (req, res) => {
-    
     await seedRoles();
     await seedPermissions();
     await seedMenus();
@@ -43,6 +44,8 @@ const routes = () => {
   router.use('/newUser', newUserRoutes);
   router.use('/gatepass', gatepassRoutes);
   router.use('/gateentry', gateentryRoutes);
+  router.use('/announcement', announcement);
+  router.use('/comments', comments);
 
   return router;
 };
