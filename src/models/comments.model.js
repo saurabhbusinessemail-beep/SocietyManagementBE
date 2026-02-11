@@ -379,13 +379,13 @@ commentSchema.statics.getCommentTree = async function (announcementId, maxDepth 
 
 // Static method to soft delete comment and its replies
 commentSchema.statics.softDeleteComment = async function (commentId, deletedBy, reason = '') {
-  const session = await mongoose.startSession();
+  // const session = await mongoose.startSession();
 
   try {
-    session.startTransaction();
+    // session.startTransaction();
 
     // Get the comment and all its nested replies using path
-    const comment = await this.findById(commentId).session(session);
+    const comment = await this.findById(commentId)//.session(session);
 
     if (!comment) {
       throw new Error('Comment not found');
@@ -399,7 +399,7 @@ commentSchema.statics.softDeleteComment = async function (commentId, deletedBy, 
     // Find all comments in this thread
     const commentsToDelete = await this.find({
       $or: [{ _id: commentId }, { path: regexPattern }]
-    }).session(session);
+    })//.session(session);
 
     // Soft delete all comments in thread
     const deletePromises = commentsToDelete.map((c) =>
@@ -414,22 +414,22 @@ commentSchema.statics.softDeleteComment = async function (commentId, deletedBy, 
           likes: [],
           likeCount: 0
         },
-        { session }
+        // { session }
       )
     );
 
     await Promise.all(deletePromises);
-    await session.commitTransaction();
+    // await session.commitTransaction();
 
     return {
       success: true,
       deletedCount: commentsToDelete.length
     };
   } catch (error) {
-    await session.abortTransaction();
+    // await session.abortTransaction();
     throw error;
   } finally {
-    session.endSession();
+    // session.endSession();
   }
 };
 

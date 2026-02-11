@@ -49,12 +49,12 @@ const announcementSchema = new mongoose.Schema(
     },
     expiryDate: {
       type: Date,
-      // validate: {
-      //   validator: function (value) {
-      //     return !value || value > this.publishDate;
-      //   },
-      //   message: 'Expiry date must be after publish date'
-      // }
+      validate: {
+        validator: function (value) {
+          return !value || !this.publishDate || value > this.publishDate;
+        },
+        message: 'Expiry date must be after publish date'
+      }
     },
     views: [
       {

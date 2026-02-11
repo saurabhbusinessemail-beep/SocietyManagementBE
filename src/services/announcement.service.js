@@ -1,5 +1,4 @@
-const Announcement = require('../models/announcement.model');
-const Comment = require('../models/comments.model');
+import { Announcement, Comments, User } from '../models';
 const mongoose = require('mongoose');
 
 /**
@@ -54,7 +53,7 @@ export const getAnnouncementById = async (id, userId = null) => {
   }
 
   // Get comment count
-  const commentCount = await Comment.countDocuments({
+  const commentCount = await Comments.countDocuments({
     announcementId: id,
     isDeleted: false,
     isHidden: false
@@ -111,8 +110,6 @@ export const getSocietyAnnouncements = async (societyId, filters = {}) => {
     default: // 'latest'
       sort = { isPinned: -1, createdOn: -1 };
   }
-  
-  console.log('\nquery = ', JSON.stringify(query))
 
   // Get total count
   const total = await Announcement.countDocuments(query);
@@ -124,7 +121,7 @@ export const getSocietyAnnouncements = async (societyId, filters = {}) => {
   if (data.length > 0) {
     const announcementIds = data.map((a) => a._id);
 
-    const commentCounts = await Comment.aggregate([
+    const commentCounts = await Comments.aggregate([
       {
         $match: {
           announcementId: { $in: announcementIds },
@@ -204,12 +201,12 @@ export const updateAnnouncement = async (id, updates, userId) => {
  * Delete announcement
  */
 export const deleteAnnouncement = async (id, userId) => {
-  const session = await mongoose.startSession();
+  // const session = await mongoose.startSession();
 
   try {
-    session.startTransaction();
+    // session.startTransaction();
 
-    const announcement = await Announcement.findById(id).session(session);
+    const announcement = await Announcement.findById(id); //.session(session);
 
     if (!announcement) {
       return null;
@@ -224,16 +221,16 @@ export const deleteAnnouncement = async (id, userId) => {
     }
 
     // Delete announcement
-    await Announcement.findByIdAndDelete(id).session(session);
+    await Announcement.findByIdAndDelete(id); //.session(session);
 
     // Delete associated comments
-    await Comment.deleteMany({ announcementId: id }).session(session);
+    await Comments.deleteMany({ announcementId: id }); //.session(session);
 
-    await session.commitTransaction();
+    // await session.commitTransaction();
 
     return '';
   } finally {
-    session.endSession();
+    // session.endSession();
   }
 };
 
@@ -469,7 +466,7 @@ export const exportAnnouncements = async (societyId, format = 'json') => {
 const convertToCSV = (announcements) => {
   if (announcements.length === 0) return '';
 
-  const headers = ['Title', 'Content', 'Category', 'Priority', 'Status', 'Created At', 'Created By', 'View Count', 'Comment Count', 'Is Pinned'].join(',');
+  const headers = ['Title', 'Content', 'Category', 'Priority', 'Status', 'Created At', 'Created By', 'View Count', 'Comments Count', 'Is Pinned'].join(',');
 
   const rows = announcements.map((announcement) =>
     [
@@ -550,7 +547,7 @@ export const unpublishAnnouncement = async (id, userId) => {
   const user = await User.findById(userId);
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'manager';
 
-  if (announcement.createdBy.toString() !== userId.toString() && !isAdmin) {
+  if (announcement.createdByUserId.toString() !== userId.toString() && !isAdmin) {
     throw new Error('You do not have permission to unpublish this announcement');
   }
 

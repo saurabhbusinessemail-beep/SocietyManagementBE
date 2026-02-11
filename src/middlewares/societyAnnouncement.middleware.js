@@ -32,7 +32,7 @@ const extractSocietyId = async (req) => {
     }
 
     // 4. From announcement ID in announcement routes (single announcement)
-    if (req.params.id && req.originalUrl.includes('/announcements/')) {
+    if (req.params.id && req.originalUrl.includes('/announcement/')) {
       const announcement = await Announcement.findById(req.params.id).select('societyId');
       if (announcement && announcement.societyId) {
         return announcement.societyId;

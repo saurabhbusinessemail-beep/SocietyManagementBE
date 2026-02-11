@@ -4,6 +4,7 @@ const announcementController = require('../controllers/announcement.controller')
 const { isSocietyAdmin, isSocietyMember } = require('../middlewares/societyAnnouncement.middleware');
 import { userAuth } from '../middlewares/auth.middleware';
 import { newRecordFields } from '../middlewares/newRecordFields';
+import { updateRecordFields } from '../middlewares/updateRecordFields';
 
 router.use(userAuth);
 
@@ -22,7 +23,7 @@ router.get('/society/:societyId/search', isSocietyMember, announcementController
 
 router.get('/society/:societyId/export', isSocietyMember, announcementController.exportAnnouncements);
 
-router.get('/:id', isSocietyMember, announcementController.getAnnouncement);
+router.get('/:id', announcementController.getAnnouncement);
 
 router.post('/:id/view', isSocietyMember, announcementController.trackView);
 
@@ -31,7 +32,7 @@ router.post('/:id/view', isSocietyMember, announcementController.trackView);
 // Admin/Manager routes
 router.post('/', isSocietyAdmin, newRecordFields, announcementController.createAnnouncement);
 
-router.put('/:id', isSocietyAdmin, announcementController.updateAnnouncement);
+router.put('/:id', updateRecordFields, isSocietyAdmin, announcementController.updateAnnouncement);
 
 router.delete('/:id', isSocietyAdmin, announcementController.deleteAnnouncement);
 
