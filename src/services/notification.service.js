@@ -22,7 +22,7 @@ export const sendOTPNotification = async (fromUser, toUserId, otp, fcmToken) => 
   const notificationData = await Notification.create(payload);
   if (fcmToken) {
     try {
-      await sendNotificationToUser(fcmToken, title, message, { otp });
+      await sendNotificationToUser(fcmToken, title, message, { otp, type });
     } catch (err) {
       await Notification.findByIdAndDelete(notificationData._id);
       throw new Error('Could not send approval alert to user. A notification has been sent');
