@@ -41,7 +41,7 @@ const menus = [
   {
     menuId: 'announcements',
     menuName: 'Announcements',
-    icon: 'campaign',
+    icon: 'announcement',
     relativePath: '/announcements'
   },
   {
