@@ -10,10 +10,17 @@ import * as AuthService from '../services/auth.service';
  */
 export const getAllUsers = async (req, res, next) => {
   try {
-    const data = await UserService.getAllUsers();
+    const { page, limit } = req.query;
+    const filter = {}; // Add any filters you need from req.query
+
+    const data = await UserService.getAllUsers(filter, {
+      page: Number(page) || 1,
+      limit: Number(limit) || 20
+    });
+
     res.status(HttpStatus.OK).json({
       code: HttpStatus.OK,
-      data: data,
+      ...data,
       message: 'All users fetched successfully'
     });
   } catch (error) {

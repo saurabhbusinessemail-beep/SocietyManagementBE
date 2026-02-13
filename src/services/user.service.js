@@ -1,9 +1,22 @@
 const { User } = require('../models');
 
 //get all users
-export const getAllUsers = async () => {
-  const data = await User.find();
-  return data;
+export const getAllUsers = async (filter = {}, options = {}) => {
+  const { page = 1, limit = 20 } = options;
+  const skip = (page - 1) * limit;
+
+  const [data, total] = await Promise.all([
+    User.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 }),
+    User.countDocuments(filter)
+  ]);
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    success: true
+  };
 };
 
 //create new user

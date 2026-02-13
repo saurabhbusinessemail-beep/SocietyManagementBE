@@ -1,6 +1,8 @@
 import * as UserService from '../services/user.service';
 import * as AuthService from '../services/auth.service';
+import * as MenuService from '../services/menu.service';
 import * as NotificationService from '../services/notification.service';
+import * as userUtils from '../utils/user.util';
 
 const { User, Otp } = require('../models');
 
@@ -91,11 +93,21 @@ export const getProfile = async (req, res) => {
   try {
     // Fetch user
     const user = res.locals.user;
-    const socities = res.locals.socities ?? [];
-    const allMenus = res.locals.allMenus ?? [];
+    // const socities = res.locals.socities ?? [];
+    // const allMenus = res.locals.allMenus ?? [];
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+
+    // Fetch Socities and Roles
+    const { socities, roles } = await userUtils.userSocitiesWithRole(user._id);
+
+    // Get Menus
+    const allMenus =
+      user.role === 'user'
+        ? await MenuService.getRoleMenu(roles)
+        : await MenuService.getAllMenu();
 
     return res.json({
       success: true,
@@ -111,6 +123,6 @@ export const getProfile = async (req, res) => {
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({ message: 'Token expired' });
     }
-    return res.status(401).json({ message: 'Invalid token' });
+    return res.status(401).json({ message: 'Invalid token1' });
   }
 };

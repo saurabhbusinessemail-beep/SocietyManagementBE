@@ -55,6 +55,12 @@ const menus = [
     menuName: 'Gate Pass',
     icon: 'gatepass',
     relativePath: '/gatepass'
+  },
+  {
+    menuId: 'user',
+    menuName: 'User',
+    icon: 'account',
+    relativePath: '/user'
   }
 ];
 
