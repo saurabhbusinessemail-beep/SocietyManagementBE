@@ -28,4 +28,7 @@ router.delete('/:_id', userAuth, userController.deleteUser);
 //route to search users by their name, phone or email
 router.get('/search/:_searchText', userAuth, userController.searchUser);
 
+// Profile picture upload route
+router.post('/upload-profile-picture', userAuth, userController.uploadProfilePicture);
+
 export default router;

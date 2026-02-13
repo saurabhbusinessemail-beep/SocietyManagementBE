@@ -6,7 +6,7 @@ export const newUserValidator = (req, res, next) => {
     email: Joi.string().email().allow(null, ""),
     phoneNumber: Joi.string().required(),
     status: Joi.string().valid("active", "inactive", "pending", "blocked"),
-    profilePic: Joi.string().allow(null, ""),
+    profilePicture: Joi.string().allow(null, ""),
   
     societyId: Joi.string().allow(null, ""),
     buildingId: Joi.string().allow(null, ""),

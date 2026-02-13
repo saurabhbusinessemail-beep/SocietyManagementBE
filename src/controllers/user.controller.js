@@ -1,6 +1,8 @@
 import HttpStatus from 'http-status-codes';
 import * as UserService from '../services/user.service';
 import * as AuthService from '../services/auth.service';
+const User = require('../models/user.model');
+const jwt = require('jsonwebtoken');
 
 /**
  * Controller to get all users available
@@ -118,7 +120,7 @@ export const updateFCMToken = async (req, res, next) => {
     const data = await UserService.updateFCMToken(user._id, fcmToken);
     res.status(201).json({
       success: true,
-      message: 'FCM Token Updated',
+      message: 'FCM Token Updated'
     });
   } catch (error) {
     next(error);
@@ -152,13 +154,71 @@ export const deleteUser = async (req, res, next) => {
  */
 export const searchUser = async (req, res, next) => {
   try {
-    const users = await UserService.searchUsers(req.params._searchText);
+    const data = await UserService.searchUsers(req.params._searchText);
     res.status(HttpStatus.OK).json({
       success: true,
-      ...users,
+      ...data,
       message: ''
     });
   } catch (error) {
     next(error);
+  }
+};
+
+// Upload profile picture
+export const uploadProfilePicture = async (req, res) => {
+  try {
+    const { profilePicture } = req.body;
+    const userId = res.locals.user._id;
+
+    if (!profilePicture) {
+      return res.status(400).json({
+        success: false,
+        message: 'No profile picture data provided'
+      });
+    }
+
+    // Validate base64 image format
+    if (!profilePicture.startsWith('data:image/')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid image format. Please provide a valid base64 image'
+      });
+    }
+
+    // Check file size (approximate - base64 is ~33% larger than binary)
+    const base64Size = Buffer.byteLength(profilePicture, 'utf8');
+    const estimatedFileSize = base64Size * 0.75; // Approximate binary size
+
+    if (estimatedFileSize > 2 * 1024 * 1024) {
+      // 2MB limit
+      return res.status(400).json({
+        success: false,
+        message: 'Image size should be less than 2MB'
+      });
+    }
+
+    // Update user with new profile picture (base64)
+    const user = await User.findByIdAndUpdate(userId, { profilePicture: profilePicture }, { new: true }).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile picture uploaded successfully',
+      data: user.profilePicture
+    });
+  } catch (error) {
+    console.error('Profile picture upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload profile picture',
+      error: error.message
+    });
   }
 };
