@@ -18,7 +18,8 @@ export const requestOtp = async (req, res) => {
 
     if (!user) {
       const newUser = {
-        phoneNumber, fcmToken
+        phoneNumber,
+        fcmToken
       };
       await UserService.newUser(newUser);
     } else {
@@ -34,7 +35,7 @@ export const requestOtp = async (req, res) => {
     console.log(`OTP for ${phoneNumber}: ${otp}`); // For Dev, remove in production
 
     // Send Notification
-    await NotificationService.sendOTPNotification(user, user, otp, fcmToken);
+    if (fcmToken) await NotificationService.sendOTPNotification(user, user, otp, fcmToken);
 
     return res.json({
       success: true,
@@ -52,9 +53,7 @@ export const verifyOtp = async (req, res) => {
     const { phoneNumber, otp } = req.body;
 
     if (!phoneNumber || !otp) {
-      return res
-        .status(400)
-        .json({ message: 'Phone number and OTP are required' });
+      return res.status(400).json({ message: 'Phone number and OTP are required' });
     }
 
     // check OTP
@@ -67,11 +66,10 @@ export const verifyOtp = async (req, res) => {
     // OTP matched → Delete the OTP record (optional)
     await Otp.deleteMany({ phoneNumber });
 
-    
     // Fetch user
     const user = await User.findOne({ phoneNumber });
     if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     // Fetch Token
