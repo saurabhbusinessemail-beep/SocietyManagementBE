@@ -2,6 +2,35 @@ import { Notification, User } from '../models';
 const admin = require('../firebase/firebase');
 const mongoose = require('mongoose');
 
+export const sendOTPNotification = async (fromUser, toUserId, otp, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = 'OTP Verification';
+  const type = 'OTP';
+  const message = `Your one-time verification code is: ${otp}. If you did not request this code, please ignore this message or contact our support team immediately.`;
+
+  const payload = {
+    userId: toUserId,
+    type,
+    title,
+    message,
+    data: otp,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, { otp });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      throw new Error('Could not send approval alert to user. A notification has been sent');
+    }
+  }
+  return notificationData;
+};
+
 export const sendGateEntryRequestNotification = async (fromUser, toUserId, gateEntry, fcmToken) => {
   const fromUserId = fromUser._id;
   const title = 'Gate Entry Request';
@@ -73,7 +102,6 @@ export const sendGateEntryResponseNotification = async (fromUser, toUserId, gate
     createdByUserId: fromUserId,
     createdOn: new Date()
   };
-  console.log('payload = ', payload);
 
   const notificationData = await Notification.create(payload);
   if (fcmToken) {
@@ -108,7 +136,6 @@ export const sendGateExitNotification = async (fromUser, toUserId, gateEntry, fc
     createdByUserId: fromUserId,
     createdOn: new Date()
   };
-  console.log('payload = ', payload);
 
   const notificationData = await Notification.create(payload);
   if (fcmToken) {

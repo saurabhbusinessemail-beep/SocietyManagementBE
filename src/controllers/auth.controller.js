@@ -1,12 +1,13 @@
 import * as UserService from '../services/user.service';
 import * as AuthService from '../services/auth.service';
+import * as NotificationService from '../services/notification.service';
 
 const { User, Otp } = require('../models');
 
 // STEP 1: Generate OTP
 export const requestOtp = async (req, res) => {
   try {
-    const { phoneNumber } = req.body;
+    const { phoneNumber, fcmToken } = req.body;
 
     if (!phoneNumber) {
       return res.status(400).json({ message: 'Phone number is required' });
@@ -17,7 +18,7 @@ export const requestOtp = async (req, res) => {
 
     if (!user) {
       const newUser = {
-        phoneNumber
+        phoneNumber, fcmToken
       };
       await UserService.newUser(newUser);
     }
@@ -29,6 +30,9 @@ export const requestOtp = async (req, res) => {
     await Otp.create({ phoneNumber, otp });
 
     console.log(`OTP for ${phoneNumber}: ${otp}`); // For Dev, remove in production
+
+    // Send Notification
+    NotificationService.sendOTPNotification(user, user, otp, fcmToken);
 
     return res.json({
       success: true,
