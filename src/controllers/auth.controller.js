@@ -34,7 +34,7 @@ export const requestOtp = async (req, res) => {
     console.log(`OTP for ${phoneNumber}: ${otp}`); // For Dev, remove in production
 
     // Send Notification
-    NotificationService.sendOTPNotification(user, user, otp, fcmToken);
+    await NotificationService.sendOTPNotification(user, user, otp, fcmToken);
 
     return res.json({
       success: true,
