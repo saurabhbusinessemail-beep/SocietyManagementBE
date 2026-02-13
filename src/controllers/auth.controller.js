@@ -22,7 +22,7 @@ export const requestOtp = async (req, res) => {
       };
       await UserService.newUser(newUser);
     } else {
-      UserService.updateFCMToken(user._id, fcmToken);
+      await UserService.updateFCMToken(user._id, fcmToken);
     }
 
     // Generate random 6 digit OTP
