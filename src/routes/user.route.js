@@ -29,6 +29,6 @@ router.delete('/:_id', userAuth, userController.deleteUser);
 router.get('/search/:_searchText', userAuth, userController.searchUser);
 
 // Profile picture upload route
-router.post('/upload-profile-picture', userAuth, userController.uploadProfilePicture);
+router.post('/upload-profile-picture', express.json({ limit: '3Mb' }), userAuth, userController.uploadProfilePicture);
 
 export default router;
