@@ -111,4 +111,9 @@ export const searchUsers = async (search, options = {}) => {
   };
 };
 
+export const getProfilePicture = async (userId) => {
+  const data = await User.findById(userId);
+  return data.profilePicture;
+}
+
 

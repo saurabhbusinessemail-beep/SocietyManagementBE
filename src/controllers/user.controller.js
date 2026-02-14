@@ -215,10 +215,20 @@ export const uploadProfilePicture = async (req, res) => {
     });
   } catch (error) {
     console.error('Profile picture upload error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to upload profile picture',
-      error: error.message
-    });
+    next(error)
   }
 };
+
+export const getMyProfilePicture = async (req, res) => {
+  try {
+    const user = res.locals.user;
+    const profilePicture = await UserService.getProfilePicture(user._id);
+    res.status(HttpStatus.OK).json({
+      success: true,
+      data: profilePicture ?? '',
+      message: ''
+    });
+  } catch (error) {
+    next(error)
+  }
+}

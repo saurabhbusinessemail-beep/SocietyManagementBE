@@ -6,7 +6,7 @@ const UserSchema = new mongoose.Schema({
   email: { type: String },
   phoneNumber: { type: String, required: true, unique: true },
   status: { type: String, enum: ['active', 'inactive', 'pending', 'blocked'], default: 'active' },
-  profilePicprofilePicture: { type: String },
+  profilePicture: { type: String },
 
   // multiple roles or role mappings stored as strings or small sub-docs
   role: { type: String, enum: ['admin', 'user'], default: 'user' }, // e.g. 'admin','manager'

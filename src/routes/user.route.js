@@ -10,6 +10,9 @@ router.get('', userAuth, userController.getAllUsers);
 //route to create a new user
 router.post('', userAuth, userController.newUser);
 
+// Get Profile picture
+router.get('/myProfilePicture', userAuth, userController.getMyProfilePicture);
+
 //route to get a single user by their user id
 router.get('/:_id', userAuth, userController.getUser);
 
