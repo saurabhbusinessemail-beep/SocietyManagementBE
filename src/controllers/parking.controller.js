@@ -33,10 +33,7 @@ export const bulkCreateParkings = async (req, res, next) => {
 export const updateParking = async (req, res, next) => {
   try {
     let parking = req.body;
-    const data = await parkingService.updateParking(
-      req.params.parkingId,
-      parking
-    );
+    const data = await parkingService.updateParking(req.params.parkingId, parking);
     res.json(data);
   } catch (err) {
     next(err);
@@ -45,6 +42,7 @@ export const updateParking = async (req, res, next) => {
 
 export const getParkingsBySocietyAndBuilding = async (req, res, next) => {
   try {
+    const { page, limit } = req.query;
     const societyId = req.params.id;
     const buildingId = req.params.buildingId;
     let filter = {
@@ -53,7 +51,10 @@ export const getParkingsBySocietyAndBuilding = async (req, res, next) => {
     };
     if (buildingId) filter['buildingId'] = buildingId;
 
-    const data = await parkingService.getParkingsBySocietyAndBuilding(filter);
+    const data = await parkingService.getParkingsBySocietyAndBuilding(filter, {
+      page: Number(page),
+      limit: Number(limit)
+    });
     res.json(data);
   } catch (err) {
     next(err);
