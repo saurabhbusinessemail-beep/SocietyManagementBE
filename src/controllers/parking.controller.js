@@ -45,11 +45,13 @@ export const getParkingsBySocietyAndBuilding = async (req, res, next) => {
     const { page, limit } = req.query;
     const societyId = req.params.id;
     const buildingId = req.params.buildingId;
+    const flatId = req.params.flatId;
     let filter = {
       ...(res.locals.filter ?? {}),
       societyId
     };
     if (buildingId) filter['buildingId'] = buildingId;
+    if (flatId) filter['flatId'] = flatId;
 
     const data = await parkingService.getParkingsBySocietyAndBuilding(filter, {
       page: Number(page),
