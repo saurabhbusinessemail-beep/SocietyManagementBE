@@ -8,7 +8,7 @@ export const getAllSocieties = async (filter, options = {}) => {
   const { page = 1, limit = 20 } = options;
   const skip = (page - 1) * limit;
   const [data, total] = await Promise.all([
-    Society.find(filter).skip(skip).limit(limit).sort({ societyName: 1 }),
+    Society.find(filter).skip(skip).limit(limit).sort({ societyName: 1 }).populate('adminContacts').populate('managerIds').populate('createdByUserId'),
     Society.countDocuments(filter)
   ]);
 
@@ -50,9 +50,7 @@ export const deleteSociety = async (id) => {
  * Get single society
  */
 export const getSociety = async (id) => {
-  const data = await Society.findById(id)
-    .populate('adminContacts')
-    .populate('managerIds');
+  const data = await Society.findById(id).populate('adminContacts').populate('managerIds').populate('createdByUserId');
   return data;
 };
 
@@ -79,10 +77,7 @@ export const searchSocieties = async (search, options = {}) => {
 
   const skip = (page - 1) * limit;
 
-  const [data, total] = await Promise.all([
-    Society.find(filter).skip(skip).limit(limit).sort({ societyName: 1 }),
-    Society.countDocuments(filter)
-  ]);
+  const [data, total] = await Promise.all([Society.find(filter).skip(skip).limit(limit).sort({ societyName: 1 }), Society.countDocuments(filter)]);
 
   return {
     data,
@@ -108,13 +103,9 @@ export const managerSocieties = async (userId) => {
 export const getMySocities = async (userId, withSocietyRoles = false) => {
   const myContactAdminSocities = await contactAdminSocieties(userId);
   const myManagerSocities = await managerSocieties(userId);
-  const mySecuritySocities = await SecurityService.getSecuritySocities(
-    userId,
-    withSocietyRoles
-  );
+  const mySecuritySocities = await SecurityService.getSecuritySocities(userId, withSocietyRoles);
 
-  if (!withSocietyRoles)
-    return { socities: [...myContactAdminSocities, ...myManagerSocities] };
+  if (!withSocietyRoles) return { socities: [...myContactAdminSocities, ...myManagerSocities] };
 
   // Create { [societyId: string]: string[] }
   let societiesObj = {};
@@ -126,8 +117,7 @@ export const getMySocities = async (userId, withSocietyRoles = false) => {
     else societiesObj[society._id] = ['manager'];
   });
   mySecuritySocities.forEach((security) => {
-    if (societiesObj[security.societyId])
-      societiesObj[security.societyId].push('security');
+    if (societiesObj[security.societyId]) societiesObj[security.societyId].push('security');
     else societiesObj[security.societyId] = ['security'];
   });
 
@@ -147,8 +137,7 @@ export const newSocietyManager = async (societyId, manager) => {
   const society = await Society.findById(societyId);
   if (!society.managerIds) society.managerIds = [];
 
-  if (!society.managerIds.some((m) => m === manager._id))
-    society.managerIds.push(manager._id);
+  if (!society.managerIds.some((m) => m === manager._id)) society.managerIds.push(manager._id);
 
   await Society.findByIdAndUpdate({ _id: societyId }, society, { new: true });
 };

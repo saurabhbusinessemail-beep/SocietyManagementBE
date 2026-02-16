@@ -27,7 +27,10 @@ export const getParkingsBySocietyAndBuilding = async (filter, options = {}) => {
       .skip(skip)
       .limit(limit)
       .sort({ floor: 1, flatNumber: 1 })
-      .populate('flatId'),
+      .populate('societyId')
+      .populate('buildingId')
+      .populate('flatId')
+      .populate('createdByUserId'),
     Parking.countDocuments(filter)
   ]);
 

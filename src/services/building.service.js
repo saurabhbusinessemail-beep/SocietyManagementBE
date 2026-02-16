@@ -15,14 +15,7 @@ export const bulkCreateBuildings = ({ societyId, buildings }) => {
 export const getBuildingsBySociety = async (filter, options = {}) => {
   const { page = 1, limit = 20 } = options;
   const skip = (page - 1) * limit;
-  const [data, total] = await Promise.all([
-    Building.find(filter)
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdOn: -1 })
-      .populate('managerId'),
-    Building.countDocuments(filter)
-  ]);
+  const [data, total] = await Promise.all([Building.find(filter).skip(skip).limit(limit).sort({ createdOn: -1 }).populate('managerId').populate('societyId').populate('createdByUserId').populate('modifiedByUserId'), Building.countDocuments(filter)]);
 
   return {
     data,
@@ -34,7 +27,7 @@ export const getBuildingsBySociety = async (filter, options = {}) => {
 };
 
 export const gettBuilding = async (id) => {
-  const data = await Building.findById(id).populate('managerId');
+  const data = await Building.findById(id).populate('managerId').populate('societyId').populate('createdByUserId').populate('modifiedByUserId');
   return data;
 };
 
