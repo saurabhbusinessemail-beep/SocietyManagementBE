@@ -9,7 +9,7 @@ const VehicleDocumentSchema = new mongoose.Schema({
 const VehicleSchema = new mongoose.Schema({
   flatId: { type: mongoose.Types.ObjectId, ref: 'Flat', required: true },
   vehicleNumber: { type: String, required: true, unique: false },
-  vehicleType: { type: String, enum: ['2 Wheeler', '3 Wheeler', '4 Wheeler', '6 Wheeler'], required: true },
+  vehicleType: { type: String, enum: ['2W', '3W', '4W', '6W'], required: true },
 
   ...require('./default-fields.model')
 }, { timestamps: true });

@@ -18,7 +18,8 @@ export const getGatePasses = async (filter, options = {}) => {
       .sort({ createdOn: -1 })
       .populate('societyId')
       .populate('flatId')
-      .populate('userId'),
+      .populate('userId')
+      .populate('createdByUserId'),
     GatePass.countDocuments(filter)
   ]);
 
@@ -35,7 +36,8 @@ export const gettGatePass = async (id) => {
   const data = await GatePass.findById(id)
     .populate('societyId')
     .populate('flatId')
-    .populate('userId');
+    .populate('userId')
+    .populate('createdByUserId');
   return data;
 };
 
@@ -64,12 +66,14 @@ export const validateOTP = async (otp, societyId, flatId) => {
   return await GatePass.find(filter)
     .populate('societyId')
     .populate('flatId')
-    .populate('userId');
+    .populate('userId')
+    .populate('createdByUserId');
 };
 
 export const validateGatePass = async (gatePassId) => {
   return await GatePass.findById(gatePassId)
     .populate('societyId')
     .populate('flatId')
-    .populate('userId');
+    .populate('userId')
+    .populate('createdByUserId');
 };

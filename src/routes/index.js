@@ -11,6 +11,7 @@ import gatepassRoutes from './gatepass.route';
 import gateentryRoutes from './gateentry.route';
 import announcement from './announcement.route';
 import comments from './comment.route';
+import vehicle from './vehicle.route';
 
 const seedRoles = require('../seed/role.seeder');
 const seedPermissions = require('../seed/permission.seeder');
@@ -46,6 +47,7 @@ const routes = () => {
   router.use('/gateentry', gateentryRoutes);
   router.use('/announcement', announcement);
   router.use('/comments', comments);
+  router.use('/vehicle', vehicle);
 
   return router;
 };
