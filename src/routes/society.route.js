@@ -131,7 +131,6 @@ router.get(
 );
 router.get(
   '/:id/flats/:flatId/parkings',
-  checkPermissions(['parking.view'], true),
   parkingController.getParkingsBySocietyAndBuilding
 );
 router.get(
