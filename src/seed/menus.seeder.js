@@ -57,6 +57,12 @@ const menus = [
     relativePath: '/gatepass'
   },
   {
+    menuId: 'vehicle',
+    menuName: 'Vehicles',
+    icon: 'vehicle',
+    relativePath: '/vehicles'
+  },
+  {
     menuId: 'user',
     menuName: 'User',
     icon: 'account',

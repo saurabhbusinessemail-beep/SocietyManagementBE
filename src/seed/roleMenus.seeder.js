@@ -31,7 +31,8 @@ const roleMenus = [
       { menuId: 'gatepass', sortOrder: 4 },
       { menuId: 'tenants', sortOrder: 5 },
       { menuId: 'members', sortOrder: 6 },
-      { menuId: 'announcements', sortOrder: 7 }
+      { menuId: 'announcements', sortOrder: 7 },
+      { menuId: 'vehicle', sortOrder: 8 },
     ]
   },
 
@@ -44,7 +45,8 @@ const roleMenus = [
       { menuId: 'complaints', sortOrder: 3 },
       { menuId: 'gatepass', sortOrder: 4 },
       { menuId: 'members', sortOrder: 5 },
-      { menuId: 'announcements', sortOrder: 6 }
+      { menuId: 'announcements', sortOrder: 6 },
+      { menuId: 'vehicle', sortOrder: 7 },
     ]
   },
 
@@ -57,7 +59,8 @@ const roleMenus = [
       { menuId: 'complaints', sortOrder: 3 },
       { menuId: 'gatepass', sortOrder: 4 },
       { menuId: 'members', sortOrder: 5 },
-      { menuId: 'announcements', sortOrder: 6 }
+      { menuId: 'announcements', sortOrder: 6 },
+      { menuId: 'vehicle', sortOrder: 7 },
     ]
   },
 
