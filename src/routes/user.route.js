@@ -1,6 +1,7 @@
 import express from 'express';
 import * as userController from '../controllers/user.controller';
 import { userAuth } from '../middlewares/auth.middleware';
+import { decacheCurrentUser } from '../middlewares/decache.middleware';
 
 const router = express.Router();
 
@@ -32,6 +33,6 @@ router.delete('/:_id', userAuth, userController.deleteUser);
 router.get('/search/:_searchText', userAuth, userController.searchUser);
 
 // Profile picture upload route
-router.post('/upload-profile-picture', express.json({ limit: '2mb' }), userAuth, userController.uploadProfilePicture);
+router.post('/upload-profile-picture', express.json({ limit: '2mb' }), userAuth, decacheCurrentUser, userController.uploadProfilePicture);
 
 export default router;

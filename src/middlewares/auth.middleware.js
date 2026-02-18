@@ -2,6 +2,7 @@ import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import * as userUtils from '../utils/user.util';
 import * as MenuService from '../services/menu.service';
+import cacheService from '../services/cache.service';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'skSecret';
 
@@ -32,7 +33,7 @@ export const userAuth = async (req, res, next) => {
       });
     }
 
-    const bearerToken = authHeader.slice(7).trim(); // safer than split
+    const bearerToken = authHeader.slice(7).trim();
 
     if (!bearerToken) {
       return res.status(HttpStatus.UNAUTHORIZED).json({
@@ -44,35 +45,62 @@ export const userAuth = async (req, res, next) => {
     const decoded = jwt.verify(bearerToken, JWT_SECRET);
 
     if (!decoded.user) {
-      res.status(HttpStatus.UNAUTHORIZED).json({
+      return res.status(HttpStatus.UNAUTHORIZED).json({
         success: false,
-        message: 'Invalid token2'
+        message: 'Invalid token'
       });
-      return;
     }
 
-    // Fetch Socities and Roles
-    const { socities, roles } = await userUtils.userSocitiesWithRole(decoded.user._id);
+    const userId = decoded.user._id;
 
-    // Get Menus
-    const allMenus =
-      decoded.user.role === 'user'
-        ? await MenuService.getRoleMenu(roles)
-        : await MenuService.getAllMenu();
+    // Try to get data from cache first
+    const cachedData = cacheService.get(userId);
 
+    if (cachedData) {
+      // Use cached data
+      res.locals.user = cachedData.user;
+      res.locals.socities = cachedData.socities;
+      res.locals.allMenus = cachedData.allMenus;
+      res.locals.token = bearerToken;
+      res.locals.fcmToken = fcmToken;
+      res.locals.fromCache = true; // Flag to indicate cache hit
+
+      console.log(`Serving from cache for user: ${userId}`);
+      return next();
+    }
+
+    // Cache miss - fetch fresh data
+    console.log(`Cache miss, fetching fresh data for user: ${userId}`);
+
+    // Fetch societies and roles
+    const { socities, roles } = await userUtils.userSocitiesWithRole(userId);
+
+    // Get menus based on role
+    const allMenus = decoded.user.role === 'user'
+      ? await MenuService.getRoleMenu(roles)
+      : await MenuService.getAllMenu();
+
+    // Store in locals
     res.locals.user = decoded.user;
     res.locals.socities = socities ?? [];
     res.locals.allMenus = allMenus ?? [];
     res.locals.token = bearerToken;
     res.locals.fcmToken = fcmToken;
+    res.locals.fromCache = false;
+
+    // Store complete data in cache
+    cacheService.set(userId, {
+      user: decoded.user,
+      socities: socities ?? [],
+      allMenus: allMenus ?? []
+    });
 
     next();
   } catch (error) {
-    console.log('Token Error: ', error)
+    console.log('Token Error: ', error);
     return res.status(HttpStatus.UNAUTHORIZED).json({
       success: false,
-      message:
-        error.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token3'
+      message: error.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token'
     });
   }
 };

@@ -91,38 +91,37 @@ export const verifyOtp = async (req, res) => {
 // ME API: Get user details from JWT token
 export const getProfile = async (req, res) => {
   try {
-    // Fetch user
     const user = res.locals.user;
-    // const socities = res.locals.socities ?? [];
-    // const allMenus = res.locals.allMenus ?? [];
+    const socities = res.locals.socities ?? [];
+    const allMenus = res.locals.allMenus ?? [];
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Fetch Socities and Roles
-    const { socities, roles } = await userUtils.userSocitiesWithRole(user._id);
-
-    // Get Menus
-    const allMenus =
-      user.role === 'user'
-        ? await MenuService.getRoleMenu(roles)
-        : await MenuService.getAllMenu();
-
-    return res.json({
+    const response = {
       success: true,
       profile: {
         user,
         socities,
         allMenus
       }
-    });
-  } catch (err) {
-    console.error(err);
+    };
 
-    if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: 'Token expired' });
+    // Optional: Add cache indicator for debugging
+    if (res.locals.fromCache) {
+      response.metadata = {
+        fromCache: true,
+        cachedAt: new Date().toISOString()
+      };
     }
-    return res.status(401).json({ message: 'Invalid token1' });
+
+    return res.json(response);
+  } catch (err) {
+    console.error('Get profile error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching profile'
+    });
   }
 };

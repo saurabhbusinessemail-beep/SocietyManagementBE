@@ -10,6 +10,7 @@ import {
 } from '../middlewares/society.middleware';
 import { newRecordFields } from '../middlewares/newRecordFields';
 import { updateRecordFields } from '../middlewares/updateRecordFields';
+import { decacheCurrentUser } from '../middlewares/decache.middleware';
 
 const router = express.Router();
 
@@ -34,6 +35,7 @@ router.post(
   '/',
   checkPermissions(['society.add']),
   newRecordFields,
+  decacheCurrentUser,
   societyController.newSociety
 );
 
@@ -41,12 +43,14 @@ router.put(
   '/:id',
   checkPermissions(['society.update'], true),
   updateRecordFields,
+  decacheCurrentUser,
   societyController.updateSociety
 );
 
 router.delete(
   '/:id',
   checkPermissions(['society.delete'], true),
+  decacheCurrentUser,
   societyController.deleteSociety
 );
 
