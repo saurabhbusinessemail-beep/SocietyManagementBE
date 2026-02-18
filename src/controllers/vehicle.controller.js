@@ -25,7 +25,7 @@ export const getVehicles = async (req, res, next) => {
   try {
     const filter = { flatId: req.params.flatId };
     const { page, limit } = req.query;
-    const data = vehicleService.getVehicles(filter, {
+    const data = await vehicleService.getVehicles(filter, {
       page: Number(page),
       limit: Number(limit)
     });

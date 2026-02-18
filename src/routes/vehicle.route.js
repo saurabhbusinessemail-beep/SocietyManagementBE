@@ -6,7 +6,7 @@ import { newRecordFields } from '../middlewares/newRecordFields';
 const router = express.Router();
 router.use(userAuth);
 
-router.post('/:flatId', vehicleController.getVehicles);
+router.post('/:flatId/get', vehicleController.getVehicles);
 
 router.post('/:flatId/add', newRecordFields, vehicleController.createVehicle);
 

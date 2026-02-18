@@ -10,7 +10,8 @@ export const bulkCreateFlats = (payload) => {
 };
 
 export const getFlatById = async (id) => {
-  return await Flat.findById(id);
+  return await Flat.findById(id)
+  .populate('buildingId').populate('societyId').populate('createdByUserId');
 };
 
 export const deleteFlat = async (id) => {
@@ -22,7 +23,8 @@ export const getFlatsBySocietyAndBuilding = async (filter, options = {}) => {
   const { page = 1, limit = 1000 } = options;
   const skip = (page - 1) * limit;
 
-  const [data, total] = await Promise.all([Flat.find(filter).skip(skip).limit(limit).sort({ floor: 1, flatNumber: 1 }).populate('buildingId').populate('societyId').populate('createdByUserId'), Flat.countDocuments(filter)]);
+  const [data, total] = await Promise.all([Flat.find(filter).skip(skip).limit(limit).sort({ floor: 1, flatNumber: 1 })
+    .populate('buildingId').populate('societyId').populate('createdByUserId'), Flat.countDocuments(filter)]);
 
   return {
     data,

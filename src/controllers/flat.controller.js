@@ -54,7 +54,6 @@ export const getFlatsBySocietyAndBuilding = async (req, res, next) => {
 
 export const getFlatById = async (req, res, next) => {
   try {
-    console.log('flatId = ', req.params.flatId);
     const data = await flatService.getFlatById(req.params.flatId);
     res.json(data);
   } catch (err) {
