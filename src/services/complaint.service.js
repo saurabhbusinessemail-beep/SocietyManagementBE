@@ -64,7 +64,7 @@ export const updateStatus = async (
     ['approved', 'rejected', 'in_progress'].includes(newStatus) &&
     !(await checkIfUserIsManagerOfSocietyOfComplaint(complaintId, userSocities))
   ) {
-    throw new Error('Access denied');
+    throw new Error('Access denied1');
   }
 
   return Complaint.findByIdAndUpdate(
@@ -115,12 +115,12 @@ const checkIfUserIsManagerOfSocietyOfComplaint = async (
   const complaint = await Complaint.findById(complaintId);
   if (!complaint) return false;
 
-  const hasSocietyWithManagerRole = userSocities.find(
-    (s) =>
-      s.societyId === complaint.societyId &&
-      s.societyRoles.some((sr) => ['societyadmin', 'manager'].includes(sr.name))
+  const hasSocietyWithManagerRole = userSocities.some(
+    (s) => {
+      return s.societyId == complaint.societyId &&
+        s.societyRoles.some((sr) => ['societyadmin', 'manager'].includes(sr.name))
+    }
   );
-
   if (!hasSocietyWithManagerRole) return false;
 
   return true;
