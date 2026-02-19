@@ -10,8 +10,7 @@ export const bulkCreateFlats = (payload) => {
 };
 
 export const getFlatById = async (id) => {
-  return await Flat.findById(id)
-    .populate('buildingId').populate('societyId').populate('createdByUserId');
+  return await Flat.findById(id).populate('buildingId').populate('societyId').populate('createdByUserId');
 };
 
 export const deleteFlat = async (id) => {
@@ -23,8 +22,7 @@ export const getFlatsBySocietyAndBuilding = async (filter, options = {}) => {
   const { page = 1, limit = 1000 } = options;
   const skip = (page - 1) * limit;
 
-  const [data, total] = await Promise.all([Flat.find(filter).skip(skip).limit(limit).sort({ floor: 1, flatNumber: 1 })
-    .populate('buildingId').populate('societyId').populate('createdByUserId'), Flat.countDocuments(filter)]);
+  const [data, total] = await Promise.all([Flat.find(filter).skip(skip).limit(limit).sort({ floor: 1, flatNumber: 1 }).populate('buildingId').populate('societyId').populate('createdByUserId'), Flat.countDocuments(filter)]);
 
   return {
     data,
@@ -376,6 +374,189 @@ export const updatedeleteFlatMemberLeaseEnd = async (id, dt, userId) => {
     },
     { new: true }
   );
+};
+
+export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId) => {
+  if (!flatMemberId || !moveOutDate || !modifiedByUserId) {
+    throw new Error('Missing required parameters: flatMemberId, moveOutDate, modifiedByUserId');
+  }
+
+  // 1. Find the target flat member (the tenant moving out)
+  const targetMember = await FlatMember.findById(flatMemberId);
+  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId });
+  if (!modifiedByMember) {
+    throw new Error('You are not a flat member.');
+  }
+  if (!modifiedByMember.isOwner) {
+    throw new Error('You do not have permission to move out a tenant.');
+  }
+  if (!targetMember) {
+    throw new Error('FlatMember not found');
+  }
+  if (targetMember.isDeleted) {
+    throw new Error('FlatMember is already deleted');
+  }
+  if (targetMember.residingType !== 'Tenant' && !targetMember.isTenant) {
+    throw new Error('The specified FlatMember is not a tenant');
+  }
+
+  const flatId = targetMember.flatId;
+  const now = new Date();
+
+  // Update all non-owner members of the flat to residingType = 'Vacant'
+  await FlatMember.updateMany(
+    {
+      flatId: flatId,
+      isOwner: false
+    },
+    {
+      $set: {
+        residingType: 'Vacant',
+        modifiedOn: now,
+        modifiedByUserId: modifiedByUserId,
+        status: 'expired'
+      }
+    }
+  );
+
+  // Update Owner flat members with proper residing type values
+  await FlatMember.updateMany(
+    {
+      flatId: flatId,
+      isOwner: true
+    },
+    {
+      $set: {
+        residingType: 'Vacant',
+        modifiedOn: now,
+        modifiedByUserId: modifiedByUserId
+      }
+    }
+  );
+
+  // Update the specific tenant with lease end date
+  const data = await FlatMember.findByIdAndUpdate(flatMemberId, {
+    $set: {
+      leaseEnd: moveOutDate
+    }
+  });
+
+  // Return some useful info (e.g., updated counts)
+  return {
+    success: true,
+    message: 'Tenant moved out successfully',
+    data
+  };
+};
+
+export const moveOutSelf = async (flatMemberId, modifiedByUserId) => {
+  const targetMember = await FlatMember.findById(flatMemberId);
+  if (!targetMember) {
+    throw new Error('FlatMember not found');
+  }
+  if (!targetMember.isOwner) {
+    throw new Error('You do not have permission to move out an owner.');
+  }
+  if (targetMember.isDeleted) {
+    throw new Error('FlatMember is already deleted');
+  }
+  if (targetMember.residingType !== 'Self' && !targetMember.isOwner) {
+    throw new Error('The specified FlatMember is not residing currently');
+  }
+
+  const flatId = targetMember.flatId;
+  const now = new Date();
+
+  await FlatMember.updateMany(
+    {
+      flatId: flatId
+    },
+    {
+      $set: {
+        residingType: 'Vacant',
+        modifiedOn: now,
+        modifiedByUserId: modifiedByUserId
+      }
+    }
+  );
+
+  await FlatMember.updateMany(
+    {
+      flatId: flatId,
+      isOwner: false // exclude owners
+    },
+    {
+      $set: {
+        status: 'expired'
+      }
+    }
+  );
+
+  const data = await FlatMember.findById(flatMemberId);
+  return {
+    success: true,
+    message: 'You moved out successfully',
+    data
+  };
+};
+
+export const moveInSelf = async (flatMemberId, modifiedByUserId, moveOutDate = new Date()) => {
+  if (!flatMemberId || !modifiedByUserId) {
+    throw new Error('Missing required parameters: flatMemberId, modifiedByUserId');
+  }
+
+  const targetMember = await FlatMember.findById(flatMemberId);
+  if (!targetMember) {
+    throw new Error('FlatMember not found');
+  }
+  if (!targetMember.isOwner) {
+    throw new Error('You do not have permission to move in yourself.');
+  }
+  if (targetMember.isDeleted) {
+    throw new Error('Target FlatMember is deleted; cannot perform move‑in');
+  }
+
+  const flatId = targetMember.flatId;
+  const now = new Date();
+
+  const activeTenants = await FlatMember.find({
+    flatId: flatId,
+    isTenant: true,
+    isDeleted: false,
+    residingType: 'Tenant',
+    status: 'active'
+  });
+
+  for (const tenant of activeTenants) {
+    await moveOutTenant(tenant._id, moveOutDate, modifiedByUserId);
+  }
+  
+  await FlatMember.updateMany(
+    { flatId: flatId },
+    {
+      $set: {
+        residingType: 'Self',
+        modifiedOn: now,
+        modifiedByUserId: modifiedByUserId
+      }
+    }
+  );
+
+  await FlatMember.updateMany(
+    { flatId: flatId, isMember: true },
+    {
+      $set: {
+        status: 'active',
+      }
+    }
+  );
+
+  const data = await FlatMember.findById(flatMemberId);
+  return {
+    success: true,
+    message: 'Move‑in self completed successfully',
+    data
+  };
 };
 
 export const deleteFlatMember = async (id) => {

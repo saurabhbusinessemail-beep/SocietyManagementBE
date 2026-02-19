@@ -110,6 +110,46 @@ export const updatedeleteFlatMemberLeaseEnd = async (req, res, next) => {
   }
 };
 
+export const moveOutTenant = async (req, res, next) => {
+  try {
+    const userId = res.locals.user?._id;
+    if (!userId) return res.json({ success: false, message: 'User not found!' });
+
+    const flatMemberId = req.params.flatMemberId;
+    const { endDate = new Date() } = req.body;
+    const data = await flatService.moveOutTenant(flatMemberId, endDate, userId);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const moveOutSelf = async (req, res, next) => {
+  try {
+    const userId = res.locals.user?._id;
+    if (!userId) return res.json({ success: false, message: 'User not found!' });
+
+    const flatMemberId = req.params.flatMemberId;
+    const data = await flatService.moveOutSelf(flatMemberId, userId);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const moveInSelf = async (req, res, next) => {
+  try {
+    const userId = res.locals.user?._id;
+    if (!userId) return res.json({ success: false, message: 'User not found!' });
+
+    const flatMemberId = req.params.flatMemberId;
+    const data = await flatService.moveInSelf(flatMemberId, userId);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const deleteFlatMember = async (req, res, next) => {
   try {
     const data = await flatService.deleteFlatMember(req.params.flatMemberId);
@@ -145,7 +185,7 @@ export const myFlatMembers = async (req, res, next) => {
     });
     res.json(data);
   } catch (err) {
-    console.log('err = ', err)
+    console.log('err = ', err);
     next(err);
   }
 };
