@@ -41,15 +41,3 @@ export const deleteBuilding = async (id) => {
   return '';
 };
 
-export const getBuildingManagerUser = async (manager) => {
-  if (!manager._id) {
-    const users = await userService.searchUsers(manager.phoneNumber);
-    if (users.data.length > 0) {
-      return users.data[0];
-    } else {
-      const newUser = userService.newUser(manager);
-      return newUser._id;
-    }
-  }
-  return manager._id;
-};

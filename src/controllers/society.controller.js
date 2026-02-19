@@ -96,14 +96,7 @@ export const newSocietyManager = async (req, res, next) => {
     const societyId = req.params.id;
     let payload = req.body;
     if (!payload._id) {
-      // Found if existing user by phone number
-      const users = await userService.searchUsers(payload.phoneNumber);
-      if (users.data.length > 0) {
-        payload = users.data[0];
-      } else {
-        // No user found hence contact may have been added
-        payload = await userService.newUser(payload);
-      }
+      payload = await userService.findOrCreateUser(payload);
     }
     await societyService.newSocietyManager(societyId, payload);
     res.json({ success: true });

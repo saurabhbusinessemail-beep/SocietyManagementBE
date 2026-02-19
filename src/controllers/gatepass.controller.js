@@ -10,13 +10,8 @@ export const createGatePass = async (req, res, next) => {
 
     // if user id is not sent as string rather sent as an object having name and phoneNumber then search or create user and update the userId
     if (typeof gatePass.userId !== 'string') {
-      const users = await userService.searchUsers(gatePass.userId.phoneNumber);
-      if (users.data.length > 0) {
-        gatePass.userId = users.data[0]._id;
-      } else {
-        const user = await userService.newUser(payload);
-        gatePass.userId = user._id;
-      }
+      const user = await userService.findOrCreateUser(gatePass.userId);
+      gatePass.userId = user._id;
     }
 
     gatePass.otp = Math.floor(100000 + Math.random() * 900000).toString();

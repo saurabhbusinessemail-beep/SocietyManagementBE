@@ -39,6 +39,18 @@ export const updateUser = async (_id, body) => {
   return data;
 };
 
+export const findOrCreateUser = async(payload) => {
+  if (!payload._id) {
+    const users = await searchUsers(payload.phoneNumber);
+    if (users.data.length > 0) {
+      return users.data[0];
+    } else {
+      const usr = newUser(payload);
+      return usr;
+    }
+  }
+}
+
 //update single user
 export const updateUserName = async (_id, name) => {
   const user = await User.findByIdAndUpdate(

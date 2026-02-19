@@ -2,6 +2,8 @@ import * as AuthService from '../services/auth.service';
 import * as newUserService from '../services/newUser.service';
 import * as UserService from '../services/user.service';
 import * as SecurityService from '../services/security.service';
+import { moveOutTenant, moveOutSelf } from '../services/flat.service';
+import { FlatMember } from '../models';
 
 export const newFlatMember = async (req, res, next) => {
   try {
@@ -11,22 +13,60 @@ export const newFlatMember = async (req, res, next) => {
     }
 
     let flatMember = req.body;
-    // If flat member is not a registered user then add user
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // normalise to start of day
+
+    // --- Check for auto‑vacate only if today is within the lease period ---
+    if (flatMember.isTenant && flatMember.leaseStart) {
+      const leaseStart = new Date(flatMember.leaseStart);
+      const leaseEnd = flatMember.leaseEnd ? new Date(flatMember.leaseEnd) : undefined;
+      leaseStart.setHours(0, 0, 0, 0);
+      if (leaseEnd) leaseEnd.setHours(0, 0, 0, 0);
+
+      if (today >= leaseStart && (!leaseEnd || today <= leaseEnd)) {
+        // Find the owner's record for the same flat
+        const owner = await FlatMember.findOne({
+          flatId: flatMember.flatId,
+          isOwner: true
+        });
+
+        if (owner) {
+          switch (owner.residingType) {
+            case 'Self':
+              await moveOutSelf(owner._id, today, user._id);
+              break;
+            case 'Tenant':
+              await moveOutTenant(owner._id, today, user._id);
+              break;
+            case 'Vacant':
+              // no action needed
+              break;
+          }
+        }
+      } else {
+        console.log(`Lease period does not include today. Scheduling for later.`);
+      }
+    }
+
+    // --- Create user if not registered ---
     if (!flatMember.userId) {
       const newUser = {
         phoneNumber: flatMember.contact,
         name: flatMember.name
       };
-      const user = await UserService.newUser(newUser);
+      const user = await UserService.findOrCreateUser(newUser);
       flatMember.userId = user._id;
     }
-    const data = await newUserService.creatFlatMember(flatMember);
-    await newUserService.updateFlatMember(flatMember.flatId, flatMember._id);
 
+    // --- Create the new flat member ---
+    const data = await newUserService.creatFlatMember(flatMember);
+    await newUserService.updateFlatMember(flatMember.flatId, flatMember._id); // Update Flats table
+
+    // --- Generate updated token and respond ---
     const updatedToken = await AuthService.getUserToken(user);
     res.status(201).json({
       success: true,
-      message: 'Added Flat Memeber',
+      message: 'Added Flat Member',
       token: updatedToken
     });
   } catch (err) {
