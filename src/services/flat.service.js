@@ -11,7 +11,7 @@ export const bulkCreateFlats = (payload) => {
 
 export const getFlatById = async (id) => {
   return await Flat.findById(id)
-  .populate('buildingId').populate('societyId').populate('createdByUserId');
+    .populate('buildingId').populate('societyId').populate('createdByUserId');
 };
 
 export const deleteFlat = async (id) => {
@@ -50,7 +50,6 @@ export const myFlats = async (userId, societyId = null, options = {}) => {
       .limit(limit)
       .sort({ floor: 1, flatNumber: 1 })
       .populate('societyId')
-      .populate('flatId')
       .populate('userId')
       .populate('createdByUserId')
       .populate({
@@ -93,7 +92,6 @@ export const myTenants = async (userId, societyId = null, flatId = null, options
       .limit(limit)
       .sort({ floor: 1, flatNumber: 1 })
       .populate('societyId')
-      .populate('flatId')
       .populate('userId')
       .populate({
         path: 'flatId',
@@ -248,7 +246,6 @@ export const myFlatMembers = async (userId, societyId = null, flatId = null, use
       .limit(limit)
       .sort({ 'flatId.floor': 1, 'flatId.flatNumber': 1 })
       .populate('societyId')
-      .populate('flatId')
       .populate('userId')
       .populate({
         path: 'flatId',
@@ -270,7 +267,17 @@ export const myFlatMembers = async (userId, societyId = null, flatId = null, use
 };
 
 export const flatMember = async (flatMemberId) => {
-  return await FlatMember.findById(flatMemberId).populate('societyId').populate('flatId').populate('userId');
+  return await FlatMember.findById(flatMemberId)
+    .populate('societyId')
+    .populate('userId')
+    .populate('createdByUserId')
+    .populate({
+      path: 'flatId',
+      populate: {
+        path: 'buildingId',
+        model: 'Building'
+      }
+    });
 };
 
 export const memberFlats = async (userId, withSocietyRoles = false) => {
@@ -320,7 +327,17 @@ export const getFlatMembersByFlatId = (flatId, userId = undefined) => {
   let filter = { flatId };
   if (userId) filter.userId = userId;
 
-  return FlatMember.find(filter).populate('societyId').populate('flatId').populate('userId');
+  return FlatMember.find(filter)
+    .populate('societyId')
+    .populate('userId')
+    .populate('createdByUserId')
+    .populate({
+      path: 'flatId',
+      populate: {
+        path: 'buildingId',
+        model: 'Building'
+      }
+    });
 };
 
 export const loopThroughGateEntryFlatMembers = async (gateEntry, fromUser, callBack, includeSecurity = false) => {
