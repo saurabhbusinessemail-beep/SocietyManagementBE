@@ -57,14 +57,27 @@ router.delete(
 // Managers
 router.post(
   '/:id/managers',
-  checkPermissions(['society.adminContact.add'], true),
+  checkPermissions(['manager.add'], true),
   societyController.newSocietyManager
 );
 
 router.delete(
   '/:id/managers/:managerId',
-  checkPermissions(['adminContact.delete'], true),
+  checkPermissions(['manager.delete'], true),
   societyController.deleteSocietyManager
+);
+
+// Admin Contacts
+router.post(
+  '/:id/adminContacts',
+  checkPermissions(['society.adminContact.add'], true),
+  societyController.newSocietyAdmin
+);
+
+router.delete(
+  '/:id/adminContacts/:adminId',
+  checkPermissions(['adminContact.delete'], true),
+  societyController.deleteSocietyAdmin
 );
 
 // Buildings

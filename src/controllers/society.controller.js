@@ -115,3 +115,28 @@ export const deleteSocietyManager = async (req, res, next) => {
     next(err);
   }
 };
+
+export const newSocietyAdmin = async (req, res, next) => {
+  try {
+    const societyId = req.params.id;
+    let payload = req.body;
+    if (!payload._id) {
+      payload = await userService.findOrCreateUser(payload);
+    }
+    await societyService.newSocietyAdmin(societyId, payload);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteSocietyAdmin = async (req, res, next) => {
+  try {
+    const societyId = req.params.id;
+    const adminId = req.params.adminId;
+    await societyService.deleteSocietyAdmin(societyId, adminId);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+};

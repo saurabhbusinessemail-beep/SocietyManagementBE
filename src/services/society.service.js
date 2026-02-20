@@ -149,3 +149,20 @@ export const deleteSocietyManager = async (societyId, managerId) => {
 
   await Society.findByIdAndUpdate({ _id: societyId }, society, { new: true });
 };
+
+export const newSocietyAdmin = async (societyId, admin) => {
+  const society = await Society.findById(societyId);
+  if (!society.adminContacts) society.adminContacts = [];
+
+  if (!society.adminContacts.some((m) => m === admin._id)) society.adminContacts.push(admin._id);
+
+  await Society.findByIdAndUpdate({ _id: societyId }, society, { new: true });
+};
+
+export const deleteSocietyAdmin = async (societyId, adminId) => {
+  const society = await Society.findById(societyId);
+  if (!society.adminContacts) society.adminContacts = [];
+  society.adminContacts = society.adminContacts.filter((m) => m != adminId);
+
+  await Society.findByIdAndUpdate({ _id: societyId }, society, { new: true });
+};
