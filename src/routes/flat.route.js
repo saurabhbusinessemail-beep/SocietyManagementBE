@@ -20,6 +20,8 @@ router.post('/myFlatMembers', flatController.myFlatMembers);
 
 router.patch('/updatedeleteFlatMemberLeaseEnd/:flatMemberId', flatController.updatedeleteFlatMemberLeaseEnd);
 
+router.patch('/moveInTenant/:flatMemberId', flatController.moveInTenant);
+
 router.patch('/moveOutTenant/:flatMemberId', flatController.moveOutTenant);
 
 router.patch('/moveOutOwner/:flatMemberId', flatController.moveOutOwner);

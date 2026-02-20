@@ -124,6 +124,20 @@ export const moveOutTenant = async (req, res, next) => {
   }
 };
 
+export const moveInTenant = async (req, res, next) => {
+  try {
+    const userId = res.locals.user?._id;
+    if (!userId) return res.json({ success: false, message: 'User not found!' });
+
+    const flatMemberId = req.params.flatMemberId;
+    const { endDate = new Date() } = req.body;
+    const data = await flatService.moveInTenant(flatMemberId, userId, endDate);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const moveOutOwner = async (req, res, next) => {
   try {
     const userId = res.locals.user?._id;
