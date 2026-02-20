@@ -27,7 +27,7 @@ class CacheService {
             }, ttlSeconds * 1000);
         }
 
-        console.log(`Cached data for user: ${userId}`);
+        // console.log(`Cached data for user: ${userId}`);
     }
 
     // Get complete user data from cache
@@ -36,11 +36,11 @@ class CacheService {
         const cached = this.cache.get(key);
 
         if (cached) {
-            console.log(`Cache hit for user: ${userId}`);
+            // console.log(`Cache hit for user: ${userId}`);
             return cached.data;
         }
 
-        console.log(`Cache miss for user: ${userId}`);
+        // console.log(`Cache miss for user: ${userId}`);
         return null;
     }
 
@@ -55,7 +55,7 @@ class CacheService {
         const deleted = this.cache.delete(key);
 
         if (deleted) {
-            console.log(`Cache invalidated for user: ${userId}`);
+            // console.log(`Cache invalidated for user: ${userId}`);
         }
 
         return deleted;
@@ -64,7 +64,7 @@ class CacheService {
     // Clear all cache (use carefully!)
     clear() {
         this.cache.clear();
-        console.log('All cache cleared');
+        // console.log('All cache cleared');
     }
 
     // Get cache stats

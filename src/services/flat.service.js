@@ -402,12 +402,26 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
 
   const flatId = targetMember.flatId;
   const now = new Date();
+  
+  // Update the all active tenants with lease end date
+  const data = await FlatMember.updateMany(
+    {
+      flatId: flatId,
+      isTenant: true,
+      status: 'active'
+    }, {
+    $set: {
+      leaseEnd: moveOutDate
+    }
+  });
 
-  // Update all non-owner members of the flat to residingType = 'Vacant'
+
+  // Update all active non-owner members of the flat to residingType = 'Vacant' and status as Exprired
   await FlatMember.updateMany(
     {
       flatId: flatId,
-      isOwner: false
+      isOwner: false,
+      status: 'active'
     },
     {
       $set: {
@@ -434,13 +448,6 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
     }
   );
 
-  // Update the specific tenant with lease end date
-  const data = await FlatMember.findByIdAndUpdate(flatMemberId, {
-    $set: {
-      leaseEnd: moveOutDate
-    }
-  });
-
   // Return some useful info (e.g., updated counts)
   return {
     success: true,
@@ -449,7 +456,7 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
   };
 };
 
-export const moveOutSelf = async (flatMemberId, modifiedByUserId) => {
+export const moveOutOwner = async (flatMemberId, modifiedByUserId) => {
   const targetMember = await FlatMember.findById(flatMemberId);
   if (!targetMember) {
     throw new Error('FlatMember not found');
@@ -467,6 +474,7 @@ export const moveOutSelf = async (flatMemberId, modifiedByUserId) => {
   const flatId = targetMember.flatId;
   const now = new Date();
 
+  // Update residing type to Vaccant for all flat members
   await FlatMember.updateMany(
     {
       flatId: flatId
@@ -480,6 +488,7 @@ export const moveOutSelf = async (flatMemberId, modifiedByUserId) => {
     }
   );
 
+  // expire all the current flat members except owners
   await FlatMember.updateMany(
     {
       flatId: flatId,
@@ -567,7 +576,7 @@ export const moveInTenant = async (flatId, modifiedByUserId, moveInDate) => {
   });
 
   if (ownerSelf) {
-    await moveOutSelf(ownerSelf._id, modifiedByUserId);
+    await moveOutOwner(ownerSelf._id, modifiedByUserId);
   }
 
   // 2. Check for any active tenant
@@ -582,6 +591,7 @@ export const moveInTenant = async (flatId, modifiedByUserId, moveInDate) => {
     await moveOutTenant(activeTenant._id, moveInDate, modifiedByUserId);
   }
 
+  // 3. Update residing type to Tenant
   await FlatMember.updateMany(
     { flatId: flatId },
     {

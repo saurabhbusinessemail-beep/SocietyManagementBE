@@ -27,7 +27,7 @@ export const decacheUsers = (userIdSource = 'user') => {
                 case 'all':
                     // Invalidate all cache (use with caution!)
                     cacheService.clear();
-                    console.log('All cache invalidated');
+                    // console.log('All cache invalidated');
                     return next();
                 default:
                     // Default to current authenticated user
@@ -38,11 +38,11 @@ export const decacheUsers = (userIdSource = 'user') => {
                 if (Array.isArray(userId)) {
                     // Invalidate multiple users
                     userId.forEach(id => cacheService.invalidate(id));
-                    console.log(`Cache invalidated for users: ${userId.join(', ')}`);
+                    // console.log(`Cache invalidated for users: ${userId.join(', ')}`);
                 } else {
                     // Invalidate single user
                     cacheService.invalidate(userId);
-                    console.log(`Cache invalidated for user: ${userId}`);
+                    // console.log(`Cache invalidated for user: ${userId}`);
                 }
             }
 

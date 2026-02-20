@@ -65,12 +65,12 @@ export const userAuth = async (req, res, next) => {
       res.locals.fcmToken = fcmToken;
       res.locals.fromCache = true; // Flag to indicate cache hit
 
-      console.log(`Serving from cache for user: ${userId}`);
+      // console.log(`Serving from cache for user: ${userId}`);
       return next();
     }
 
     // Cache miss - fetch fresh data
-    console.log(`Cache miss, fetching fresh data for user: ${userId}`);
+    // console.log(`Cache miss, fetching fresh data for user: ${userId}`);
 
     // Fetch societies and roles
     const { socities, roles } = await userUtils.userSocitiesWithRole(userId);

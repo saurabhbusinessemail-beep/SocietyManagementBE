@@ -22,7 +22,7 @@ router.patch('/updatedeleteFlatMemberLeaseEnd/:flatMemberId', flatController.upd
 
 router.patch('/moveOutTenant/:flatMemberId', flatController.moveOutTenant);
 
-router.patch('/moveOutSelf/:flatMemberId', flatController.moveOutSelf);
+router.patch('/moveOutOwner/:flatMemberId', flatController.moveOutOwner);
 
 router.patch('/moveInSelf/:flatMemberId', flatController.moveInSelf);
 
