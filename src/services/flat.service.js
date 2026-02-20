@@ -88,7 +88,7 @@ export const myTenants = async (userId, societyId = null, flatId = null, options
     FlatMember.find(filter)
       .skip(skip)
       .limit(limit)
-      .sort({ floor: 1, flatNumber: 1 })
+      .sort({ createdOn: -1 })
       .populate('societyId')
       .populate('userId')
       .populate({
