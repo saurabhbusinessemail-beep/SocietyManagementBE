@@ -21,7 +21,7 @@ router.get('/:_id', userAuth, userController.getUser);
 router.put('/:_id', userAuth, userController.updateUser);
 
 //route to update user name by their user id
-router.patch('/updateName', userAuth, userController.updateName);
+router.patch('/updateName', userAuth, decacheCurrentUser, userController.updateName);
 
 //route to update fcm token by their user id
 router.post('/updateFCMToken', userAuth, userController.updateFCMToken);
