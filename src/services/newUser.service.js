@@ -1,7 +1,31 @@
 import { Flat, FlatMember } from '../models';
+import { moveInTenant, getCurrentResidingType } from '../services/flat.service';
 
-export const creatFlatMember = (data) => {
-  return FlatMember.create(data);
+export const creatFlatMember = async (data) => {
+  // Only apply special logic for tenants
+  if (data.isTenant && data.leaseStart) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const leaseStart = new Date(data.leaseStart);
+    const leaseEnd = data.leaseEnd ? new Date(data.leaseEnd) : undefined;
+    leaseStart.setHours(0, 0, 0, 0);
+    if (leaseEnd) leaseEnd.setHours(0, 0, 0, 0);
+
+    const currentResidingType = await getCurrentResidingType(data.flatId);
+
+    if (today >= leaseStart && (!leaseEnd || today <= leaseEnd)) {
+      // Today is within lease → vacate existing occupants
+      await moveInTenant(data.flatId, data.createdByUserId, leaseStart);
+      // The new member's residingType stays as 'Tenant' (already in data)
+    } else {
+      // Today is outside lease → no vacating; set new member's residingType to the current flat's residing type
+      data.residingType = currentResidingType;
+      // TODO: Schedule activation for lease start (e.g., job queue)
+    }
+  }
+
+  // Create the flat member record
+  return await FlatMember.create(data);
 };
 
 export const updateFlatMember = async (flatId, flatMemberId) => {

@@ -522,7 +522,6 @@ export const moveInSelf = async (flatMemberId, modifiedByUserId, moveOutDate = n
   const activeTenants = await FlatMember.find({
     flatId: flatId,
     isTenant: true,
-    isDeleted: false,
     residingType: 'Tenant',
     status: 'active'
   });
@@ -530,7 +529,7 @@ export const moveInSelf = async (flatMemberId, modifiedByUserId, moveOutDate = n
   for (const tenant of activeTenants) {
     await moveOutTenant(tenant._id, moveOutDate, modifiedByUserId);
   }
-  
+
   await FlatMember.updateMany(
     { flatId: flatId },
     {
@@ -546,7 +545,7 @@ export const moveInSelf = async (flatMemberId, modifiedByUserId, moveOutDate = n
     { flatId: flatId, isMember: true },
     {
       $set: {
-        status: 'active',
+        status: 'active'
       }
     }
   );
@@ -557,6 +556,62 @@ export const moveInSelf = async (flatMemberId, modifiedByUserId, moveOutDate = n
     message: 'Move‑in self completed successfully',
     data
   };
+};
+
+export const moveInTenant = async (flatId, modifiedByUserId, moveInDate) => {
+  // 1. Check for an owner residing as Self
+  const ownerSelf = await FlatMember.findOne({
+    flatId,
+    isOwner: true,
+    residingType: 'Self'
+  });
+
+  if (ownerSelf) {
+    await moveOutSelf(ownerSelf._id, modifiedByUserId);
+  }
+
+  // 2. Check for any active tenant
+  const activeTenant = await FlatMember.findOne({
+    flatId,
+    isTenant: true,
+    residingType: 'Tenant',
+    status: 'active'
+  });
+
+  if (activeTenant) {
+    await moveOutTenant(activeTenant._id, moveInDate, modifiedByUserId);
+  }
+
+  await FlatMember.updateMany(
+    { flatId: flatId },
+    {
+      $set: {
+        residingType: 'Tenant',
+        modifiedOn: new Date(),
+        modifiedByUserId: modifiedByUserId
+      }
+    }
+  );
+};
+
+export const getCurrentResidingType = async (flatId) => {
+  // Priority: owner residing as Self > active tenant
+  const owner = await FlatMember.findOne({
+    flatId,
+    isOwner: true,
+    residingType: 'Self'
+  });
+  if (owner) return owner.residingType; // 'Self'
+
+  const tenant = await FlatMember.findOne({
+    flatId,
+    isTenant: true,
+    residingType: 'Tenant',
+    status: 'active'
+  });
+  if (tenant) return tenant.residingType; // 'Tenant'
+
+  return 'Vacant'; // No one residing
 };
 
 export const deleteFlatMember = async (id) => {
