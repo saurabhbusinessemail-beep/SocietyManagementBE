@@ -12,9 +12,14 @@ const GpsLocationSchema = new mongoose.Schema(
 
 const SocietySchema = new mongoose.Schema(
   {
-    societyName: { type: String, required: true },
+    societyName: { type: String, required: true, unique: true },
     gpsLocation: { type: GpsLocationSchema },
     numberOfBuildings: { type: Number },
+
+    // Approved / UnApproved Status
+    isApproved: { type: Boolean },
+    isRejected: { type: Boolean },
+    addedByAdmin: { type: Boolean },
 
     // governance / contact
     adminContacts: [{ type: mongoose.Types.ObjectId, ref: 'User', required: true }],

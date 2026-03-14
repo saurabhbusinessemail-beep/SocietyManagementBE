@@ -1,5 +1,6 @@
 import * as societyService from '../services/society.service';
 import * as userService from '../services/user.service';
+const { User } = require('../models');
 
 /**
  * Get all societies
@@ -12,6 +13,26 @@ export const getAllSocieties = async (req, res, next) => {
       page: Number(page),
       limit: Number(limit)
     });
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Get all unapproved societies
+ */
+export const getAllUnApprovedSocieties = async (req, res, next) => {
+  try {
+    const { page, limit } = req.query;
+    const { searchString } = req.body;
+
+    const data = await societyService.getAllUnApprovedSocieties({
+      page: Number(page),
+      limit: Number(limit),
+      searchString
+    });
+
     res.json(data);
   } catch (err) {
     next(err);
@@ -44,10 +65,24 @@ export const getSocietyManagers = async (req, res) => {
  */
 export const newSociety = async (req, res, next) => {
   try {
-    const data = await societyService.newSociety(req.body);
+    const defaultPhone = '0000000000';
+    const user = res.locals.user;
+    const isAdmin = user?.role === 'admin';
+    const emptyUser = await User.findOne({ phoneNumber: defaultPhone });
+    const emptyUserId = emptyUser?._id ?? '';
+
+    const extension = !isAdmin ? { isApproved: false, createdOn: new Date(), createdByUserId: emptyUserId } : { addedByAdmin: true };
+    const payload = {
+      ...req.body,
+      ...extension
+    }
+    const data = await societyService.newSociety(payload);
     res.status(201).json(data);
   } catch (err) {
-    next(err);
+    if (err.code === 11000)
+      next(new Error('Society name already exists'))
+    else
+      next(err);
   }
 };
 
@@ -57,6 +92,23 @@ export const newSociety = async (req, res, next) => {
 export const updateSociety = async (req, res, next) => {
   try {
     const data = await societyService.updateSociety(req.params.id, req.body);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * ApproveReject society
+ */
+export const approveRejectSociety = async (req, res, next) => {
+  try {
+    const payload = req.body;
+    const isApproved = payload?.['approved'] && payload['approved'] === true;
+    const data = isApproved ?
+      await societyService.approveSociety(req.params.id)
+      : await societyService.rejectSociety(req.params.id);
+
     res.json(data);
   } catch (err) {
     next(err);

@@ -1,18 +1,65 @@
 import { Society } from '../models';
 import * as SecurityService from '../services/security.service';
 
+/*
+  Add Mandatory filter:
+  Either addedByAdmin: true or isApproved: true
+*/
+function applyMandatoryFilter(filter = {}) {
+  return {
+    ...filter,
+    $or: [
+      { addedByAdmin: true },
+      { isApproved: true }
+    ]
+  };
+}
+
+
 /**
  * Get all societies
  */
 export const getAllSocieties = async (filter, options = {}) => {
   const { page = 1, limit = 20 } = options;
   const skip = (page - 1) * limit;
+  const updatedFilter = applyMandatoryFilter(filter);
   const [data, total] = await Promise.all([
-    Society.find(filter).skip(skip).limit(limit).sort({ societyName: 1 }).populate('adminContacts').populate('managerIds').populate('createdByUserId'),
+    Society.find(updatedFilter).skip(skip).limit(limit).sort({ societyName: 1 }).populate('adminContacts').populate('managerIds').populate('createdByUserId'),
+    Society.countDocuments(updatedFilter)
+  ]);
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    success: true
+  };
+};
+
+/**
+ * Get all unapproved societies
+ */
+export const getAllUnApprovedSocieties = async (options = {}) => {
+  const { page = 1, limit = 20, searchString } = options;
+  const skip = (page - 1) * limit;
+
+  let filter = { isApproved: false, isRejected: { $ne: true } };
+
+  // add search filter
+  if (searchString && searchString.trim() !== '') {
+    filter.societyName = { $regex: searchString.trim(), $options: 'i' };
+  }
+
+  const [data, total] = await Promise.all([
+    Society.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .sort({ societyName: 1 }),
+
     Society.countDocuments(filter)
   ]);
 
-  // const data = await Society.find(filter).sort({ createdAt: -1 });
   return {
     data,
     total,
@@ -35,6 +82,22 @@ export const newSociety = async (body) => {
  */
 export const updateSociety = async (_id, body) => {
   const data = await Society.findByIdAndUpdate({ _id }, body, { new: true });
+  return data;
+};
+
+/**
+ * Approve single society
+ */
+export const approveSociety = async (_id, body) => {
+  const data = await Society.findByIdAndUpdate({ _id }, { isApproved: true });
+  return data;
+};
+
+/**
+ * Reject single society
+ */
+export const rejectSociety = async (_id, body) => {
+  const data = await Society.findByIdAndUpdate({ _id }, { isApproved: false, isRejected: true });
   return data;
 };
 
@@ -76,8 +139,9 @@ export const searchSocieties = async (search, options = {}) => {
   };
 
   const skip = (page - 1) * limit;
+  const updatedFilter = applyMandatoryFilter(filter);
 
-  const [data, total] = await Promise.all([Society.find(filter).skip(skip).limit(limit).sort({ societyName: 1 }), Society.countDocuments(filter)]);
+  const [data, total] = await Promise.all([Society.find(updatedFilter).skip(skip).limit(limit).sort({ societyName: 1 }), Society.countDocuments(updatedFilter)]);
 
   return {
     data,
@@ -90,13 +154,15 @@ export const searchSocieties = async (search, options = {}) => {
 
 export const contactAdminSocieties = async (userId) => {
   return await Society.find({
-    adminContacts: { $in: userId }
+    adminContacts: { $in: userId },
+    ...applyMandatoryFilter()
   });
 };
 
 export const managerSocieties = async (userId) => {
   return await Society.find({
-    managerIds: { $in: userId }
+    managerIds: { $in: userId },
+    ...applyMandatoryFilter()
   });
 };
 

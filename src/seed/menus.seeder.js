@@ -67,6 +67,12 @@ const menus = [
     menuName: 'User',
     icon: 'account',
     relativePath: '/user'
+  },
+  {
+    menuId: 'unApprovedSocieties',
+    menuName: 'Pending Approval',
+    icon: 'approve-reject',
+    relativePath: '/society/pendingApproval'
   }
 ];
 

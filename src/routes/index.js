@@ -4,6 +4,7 @@ const router = express.Router();
 import userRoute from './user.route';
 import authRoute from './auth.routes';
 import societyRoutes from './society.route';
+import societyPublicRoutes from './society-public.route';
 import flatRoutes from './flat.route';
 import complaintRoutes from './complaint.route';
 import newUserRoutes from './newUser.routes';
@@ -18,6 +19,8 @@ const seedPermissions = require('../seed/permission.seeder');
 const seedMenus = require('../seed/menus.seeder');
 const seedFeatures = require('../seed/feature.seeder');
 const seedRoleMenu = require('../seed/roleMenus.seeder');
+import { updateSocietyRecords } from '../seed/updateSociety';
+import { getOrCreateDefaultUser } from '../seed/emptyUser.seeder';
 
 /**
  * Function contains Application routes
@@ -34,12 +37,15 @@ const routes = () => {
     await seedMenus();
     await seedFeatures();
     await seedRoleMenu();
+    await updateSocietyRecords();
+    await getOrCreateDefaultUser();
 
     res.send('Seed Completed');
   });
   router.use('/users', userRoute);
   router.use('/auth', authRoute);
   router.use('/societies', societyRoutes);
+  router.use('/societies-public', societyPublicRoutes);
   router.use('/flats', flatRoutes);
   router.use('/complaint', complaintRoutes);
   router.use('/newUser', newUserRoutes);

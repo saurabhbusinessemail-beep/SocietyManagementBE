@@ -23,6 +23,13 @@ router.get(
   societyController.getAllSocieties
 );
 
+
+router.post(
+  '/unApproved',
+  checkPermissions(['society.add']),
+  societyController.getAllUnApprovedSocieties
+);
+
 router.get('/search', societyController.searchSocieties);
 
 router.get(
@@ -45,6 +52,13 @@ router.put(
   updateRecordFields,
   decacheCurrentUser,
   societyController.updateSociety
+);
+
+router.patch(
+  '/:id',
+  checkPermissions(['society.add'], true),
+  decacheCurrentUser,
+  societyController.approveRejectSociety
 );
 
 router.delete(
