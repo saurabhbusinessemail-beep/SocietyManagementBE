@@ -66,6 +66,42 @@ export const sendGateEntryRequestNotification = async (fromUser, toUserId, gateE
   return notificationData;
 };
 
+export const sendApproveRejectSocietyNotification = async (fromUser, toUserId, society, fcmToken, isApproved) => {
+  const fromUserId = fromUser._id;
+  const title = isApproved ? 'Society Approved' : 'Society Rejected';
+  const type = 'GENERAL';
+  const message = isApproved ? `Society ${society.societyName} has been approved. You and others can now start adding themselves as Flat Owner, Tenant or Security. You are the society admin of this society.`
+  : `Society ${society.societyName} has been rejected. Please contact admin to get more info on this.`;
+
+  const payload = {
+    userId: toUserId,
+    societyId: society._id,
+    type,
+    title,
+    message,
+    data: society,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        notificationId: notificationData._id,
+        gateEntryId: gateEntry._id,
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      throw new Error('Could not send approval alert to user. A notification has been sent');
+    }
+  }
+  return notificationData;
+}
+
+
 export const resendNotification = async (type, dataId) => {
   const notifications = await Notification.find({
     type,

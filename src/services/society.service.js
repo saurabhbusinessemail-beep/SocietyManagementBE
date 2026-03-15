@@ -89,7 +89,7 @@ export const updateSociety = async (_id, body) => {
  * Approve single society
  */
 export const approveSociety = async (_id, body) => {
-  const data = await Society.findByIdAndUpdate({ _id }, { isApproved: true });
+  const data = await Society.findByIdAndUpdate({ _id }, { isApproved: true }, { new: true });
   return data;
 };
 
@@ -97,7 +97,7 @@ export const approveSociety = async (_id, body) => {
  * Reject single society
  */
 export const rejectSociety = async (_id, body) => {
-  const data = await Society.findByIdAndUpdate({ _id }, { isApproved: false, isRejected: true });
+  const data = await Society.findByIdAndUpdate({ _id }, { isApproved: false, isRejected: true }, { new: true });
   return data;
 };
 

@@ -1,5 +1,6 @@
 import * as societyService from '../services/society.service';
 import * as userService from '../services/user.service';
+import * as NotificationService from '../services/notification.service';
 const { User } = require('../models');
 
 /**
@@ -68,13 +69,12 @@ export const newSociety = async (req, res, next) => {
     const defaultPhone = '0000000000';
     const user = res.locals.user;
     const isAdmin = user?.role === 'admin';
-    const emptyUser = await User.findOne({ phoneNumber: defaultPhone });
-    const emptyUserId = emptyUser?._id ?? '';
 
-    const extension = !isAdmin ? { isApproved: false, createdOn: new Date(), createdByUserId: emptyUserId } : { addedByAdmin: true };
+    const extension = !isAdmin ? { isApproved: false } : { addedByAdmin: true };
     const payload = {
       ...req.body,
-      ...extension
+      ...extension,
+      adminContacts: [user._id]
     }
     const data = await societyService.newSociety(payload);
     res.status(201).json(data);
@@ -108,6 +108,14 @@ export const approveRejectSociety = async (req, res, next) => {
     const data = isApproved ?
       await societyService.approveSociety(req.params.id)
       : await societyService.rejectSociety(req.params.id);
+
+    const fromUser = res.locals.user;
+    const toUserId = data.createdByUserId;
+    const toUser = userService.getUser(toUserId);
+
+    if (toUser.fcmToken) {
+      NotificationService.sendApproveRejectSocietyNotification(fromUser, toUserId, data, toUser.fcmToken, isApproved);
+    }
 
     res.json(data);
   } catch (err) {

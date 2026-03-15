@@ -4,7 +4,6 @@ const router = express.Router();
 import userRoute from './user.route';
 import authRoute from './auth.routes';
 import societyRoutes from './society.route';
-import societyPublicRoutes from './society-public.route';
 import flatRoutes from './flat.route';
 import complaintRoutes from './complaint.route';
 import newUserRoutes from './newUser.routes';
@@ -45,7 +44,6 @@ const routes = () => {
   router.use('/users', userRoute);
   router.use('/auth', authRoute);
   router.use('/societies', societyRoutes);
-  router.use('/societies-public', societyPublicRoutes);
   router.use('/flats', flatRoutes);
   router.use('/complaint', complaintRoutes);
   router.use('/newUser', newUserRoutes);

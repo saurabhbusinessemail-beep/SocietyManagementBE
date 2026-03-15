@@ -29,6 +29,12 @@ router.post(
   checkPermissions(['society.add']),
   societyController.getAllUnApprovedSocieties
 );
+router.post(
+    '/sentForApproval',
+      newRecordFields,
+      decacheCurrentUser,
+    societyController.newSociety
+);
 
 router.get('/search', societyController.searchSocieties);
 
