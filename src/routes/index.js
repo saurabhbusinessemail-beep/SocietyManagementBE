@@ -6,6 +6,7 @@ import authRoute from './auth.routes';
 import societyRoutes from './society.route';
 import flatRoutes from './flat.route';
 import complaintRoutes from './complaint.route';
+import demoRoutes from './demo.route';
 import newUserRoutes from './newUser.routes';
 import gatepassRoutes from './gatepass.route';
 import gateentryRoutes from './gateentry.route';
@@ -46,6 +47,7 @@ const routes = () => {
   router.use('/societies', societyRoutes);
   router.use('/flats', flatRoutes);
   router.use('/complaint', complaintRoutes);
+  router.use('/demo', demoRoutes);
   router.use('/newUser', newUserRoutes);
   router.use('/gatepass', gatepassRoutes);
   router.use('/gateentry', gateentryRoutes);

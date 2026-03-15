@@ -73,7 +73,13 @@ const menus = [
     menuName: 'Pending Approval',
     icon: 'approve-reject',
     relativePath: '/society/pendingApproval'
-  }
+  },
+  {
+    menuId: 'demo',
+    menuName: 'Demo',
+    icon: 'demo',
+    relativePath: '/demo/list'
+  },
 ];
 
 async function seedMenus() {
