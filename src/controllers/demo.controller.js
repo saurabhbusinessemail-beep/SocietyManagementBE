@@ -209,7 +209,7 @@ export async function getAvailableSlots(req, res) {
             });
         }
 
-        const maxPerSlot = parseInt(req.query.maxPerSlot) || 3;
+        const maxPerSlot = parseInt(req.query.maxPerSlot) || 1;
         const result = await demoBookingService.getAvailableSlots(date, maxPerSlot);
 
         res.status(200).json(result);

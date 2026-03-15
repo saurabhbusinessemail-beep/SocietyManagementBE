@@ -237,7 +237,7 @@ export const getAllBookings = async (filters = {}, pagination = {}) => {
     }
 }
 
-export const getAvailableSlots = async (date, maxPerSlot = 3) => {
+export const getAvailableSlots = async (date, maxPerSlot = 1) => {
     try {
         const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
