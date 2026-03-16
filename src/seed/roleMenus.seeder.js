@@ -7,7 +7,8 @@ const roleMenus = [
     menus: [
       { menuId: 'society', sortOrder: 1 },
       { menuId: 'complaints', sortOrder: 2 },
-      { menuId: 'announcements', sortOrder: 3 }
+      { menuId: 'announcements', sortOrder: 3 },
+      { menuId: 'unApprovedSocieties', sortOrder: 4 }
     ]
   },
 
@@ -17,7 +18,8 @@ const roleMenus = [
     menus: [
       { menuId: 'society', sortOrder: 1 },
       { menuId: 'complaints', sortOrder: 2 },
-      { menuId: 'announcements', sortOrder: 3 }
+      { menuId: 'announcements', sortOrder: 3 },
+      { menuId: 'unApprovedSocieties', sortOrder: 4 }
     ]
   },
 
@@ -33,6 +35,7 @@ const roleMenus = [
       { menuId: 'members', sortOrder: 6 },
       { menuId: 'announcements', sortOrder: 7 },
       { menuId: 'vehicle', sortOrder: 8 },
+      { menuId: 'unApprovedSocieties', sortOrder: 9 }
     ]
   },
 
@@ -47,6 +50,7 @@ const roleMenus = [
       { menuId: 'members', sortOrder: 5 },
       { menuId: 'announcements', sortOrder: 6 },
       { menuId: 'vehicle', sortOrder: 7 },
+      { menuId: 'unApprovedSocieties', sortOrder: 8 }
     ]
   },
 
@@ -61,6 +65,7 @@ const roleMenus = [
       { menuId: 'members', sortOrder: 5 },
       { menuId: 'announcements', sortOrder: 6 },
       { menuId: 'vehicle', sortOrder: 7 },
+      { menuId: 'unApprovedSocieties', sortOrder: 8 }
     ]
   },
 
@@ -69,7 +74,8 @@ const roleMenus = [
     role: 'security',
     menus: [
       { menuId: 'gateentry', sortOrder: 1 },
-      { menuId: 'society', sortOrder: 2 }
+      { menuId: 'society', sortOrder: 2 },
+      { menuId: 'unApprovedSocieties', sortOrder: 3 }
     ]
   }
 ];

@@ -70,6 +70,38 @@ export const getAllUnApprovedSocieties = async (options = {}) => {
 };
 
 /**
+ * Get all unapproved societies
+ */
+export const getMySocietiesForApproval = async (userId, options = {}) => {
+  const { page = 1, limit = 20, searchString } = options;
+  const skip = (page - 1) * limit;
+
+  let filter = { createdByUserId: userId };
+
+  // add search filter
+  if (searchString && searchString.trim() !== '') {
+    filter.societyName = { $regex: searchString.trim(), $options: 'i' };
+  }
+
+  const [data, total] = await Promise.all([
+    Society.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .sort({ societyName: 1 }),
+
+    Society.countDocuments(filter)
+  ]);
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    success: true
+  };
+};
+
+/**
  * Create new society
  */
 export const newSociety = async (body) => {

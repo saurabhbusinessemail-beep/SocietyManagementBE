@@ -30,6 +30,10 @@ router.post(
   societyController.getAllUnApprovedSocieties
 );
 router.post(
+  '/mySocietiesForApproval',
+  societyController.getMySocietiesForApproval
+);
+router.post(
     '/sentForApproval',
       newRecordFields,
       decacheCurrentUser,

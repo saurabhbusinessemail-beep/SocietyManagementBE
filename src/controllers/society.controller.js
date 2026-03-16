@@ -41,6 +41,27 @@ export const getAllUnApprovedSocieties = async (req, res, next) => {
 };
 
 /**
+ * Get all societies logged in user sent for approval
+ */
+export const getMySocietiesForApproval = async (req, res, next) => {
+  try {
+    const { page, limit } = req.query;
+    const { searchString } = req.body;
+    const user = res.locals.user;
+
+    const data = await societyService.getMySocietiesForApproval(user._id, {
+      page: Number(page),
+      limit: Number(limit),
+      searchString
+    });
+
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * Get single society
  */
 export const getSociety = async (req, res, next) => {
