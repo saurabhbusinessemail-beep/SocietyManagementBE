@@ -3,6 +3,7 @@ const router = express.Router();
 
 import userRoute from './user.route';
 import authRoute from './auth.routes';
+import pricingPlanRoutes from './pricingPlans.route';
 import societyRoutes from './society.route';
 import flatRoutes from './flat.route';
 import complaintRoutes from './complaint.route';
@@ -44,6 +45,7 @@ const routes = () => {
   });
   router.use('/users', userRoute);
   router.use('/auth', authRoute);
+  router.use('/pricing-plan', pricingPlanRoutes);
   router.use('/societies', societyRoutes);
   router.use('/flats', flatRoutes);
   router.use('/complaint', complaintRoutes);

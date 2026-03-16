@@ -13,8 +13,10 @@ const Notification = require('./notification.model');
 const Otp = require('./otp.model');
 const Parking = require('./parking.model');
 const Permission = require('./permission.model');
+const PricingPlan = require('./pricingPlan.model');
 const Security = require('./security.model');
 const Society = require('./society.model');
+const SocietyPlan = require('./societyPlan.model');
 const SocietyRole = require('./societyRole.model');
 const SocietyRoleMenu = require('./societyRoleMenu.model');
 const User = require('./user.model');
@@ -36,8 +38,10 @@ module.exports = {
   Otp,
   Parking,
   Permission,
+  PricingPlan,
   Security,
   Society,
+  SocietyPlan,
   SocietyRole,
   SocietyRoleMenu,
   User,

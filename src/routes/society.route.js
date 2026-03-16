@@ -44,7 +44,6 @@ router.get('/search', societyController.searchSocieties);
 
 router.get(
   '/:id',
-  checkPermissions(['society.view'], true),
   societyController.getSociety
 );
 
