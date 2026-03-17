@@ -35,6 +35,9 @@ const SocietyPlanSchema = new mongoose.Schema({
     // Billing
     billingCycle: { type: String, enum: ['monthly', 'yearly'], default: 'yearly' },
     totalAmount: { type: Number, default: 0 },
+    discountAmount: { type: Number, default: 0 },
+    finalAmount: { type: Number, default: 0 },
+    couponCode: { type: String },
     paymentStatus: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
 
     // Metadata

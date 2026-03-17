@@ -63,3 +63,14 @@ export const changePlan = async (req, res, next) => {
         next(err);
     }
 };
+
+export const validateCoupon = async (req, res, next) => {
+    try {
+        const { couponCode, amount } = req.body;
+        const data = await PricingPlanService.validateCoupon(couponCode, amount);
+
+        res.json(data);
+    } catch (err) {
+        next(err);
+    }
+};

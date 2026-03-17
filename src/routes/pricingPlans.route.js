@@ -20,4 +20,7 @@ router.post('/calculate-change', pricingController.calculateChangePrice);
 // Change plan
 router.post('/change/:societyId', pricingController.changePlan);
 
+// Change plan
+router.post('/validate-coupon', pricingController.validateCoupon);
+
 export default router;

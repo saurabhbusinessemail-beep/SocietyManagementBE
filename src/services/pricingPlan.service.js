@@ -1,10 +1,73 @@
 import { PricingPlan, SocietyPlan, Society } from '../models';
 
-export const purchase = async (planId, societyId, loggedInUserId, billingCycle = 'yearly') => {
+const calculateCouponDiscount = (couponCode, amount) => {
+    if (!couponCode) return { discount: 0, finalAmount: amount, couponCode: null };
+
+    // Define available coupons
+    const coupons = {
+        'SKFREE': { type: 'percentage', value: 100 }, // 100% off
+        'SAVE10': { type: 'percentage', value: 10 },  // 10% off
+        'SAVE20': { type: 'percentage', value: 20 },  // 20% off
+        'FLAT500': { type: 'fixed', value: 500 }      // ₹500 off
+    };
+
+    const coupon = coupons[couponCode.toUpperCase()];
+    if (!coupon) {
+        throw new Error('Invalid coupon code');
+    }
+
+    let discount = 0;
+    if (coupon.type === 'percentage') {
+        discount = (amount * coupon.value) / 100;
+    } else if (coupon.type === 'fixed') {
+        discount = coupon.value;
+    }
+
+    // Ensure discount doesn't exceed amount
+    discount = Math.min(discount, amount);
+
+    return {
+        discount,
+        finalAmount: amount - discount,
+        couponCode: couponCode.toUpperCase()
+    };
+};
+
+export const purchase = async (planId, societyId, loggedInUserId, billingCycle = 'yearly', couponCode = null) => {
     // Get the plan
     const plan = await PricingPlan.findOne({ id: planId, isActive: true });
     if (!plan) {
         throw new Error('Plan not found');
+    }
+
+    // Get society for flat count
+    const society = await Society.findById(societyId).lean();
+    if (!society) {
+        throw new Error('Society not found');
+    }
+
+    const flatCount = society.numberOfFlats || 1;
+
+    // Calculate base amount
+    let baseAmount = 0;
+    if (plan.price !== 'Free') {
+        baseAmount = parseInt(plan.price) * flatCount * 12;
+    }
+
+    // Apply coupon if provided
+    let discount = 0;
+    let finalAmount = baseAmount;
+    let appliedCoupon = null;
+
+    if (couponCode) {
+        try {
+            const couponResult = calculateCouponDiscount(couponCode, baseAmount);
+            discount = couponResult.discount;
+            finalAmount = couponResult.finalAmount;
+            appliedCoupon = couponResult.couponCode;
+        } catch (error) {
+            throw new Error(`Coupon error: ${error.message}`);
+        }
     }
 
     // Check if society already has an active plan
@@ -28,7 +91,7 @@ export const purchase = async (planId, societyId, loggedInUserId, billingCycle =
         period: plan.period,
         featureCount: plan.featureCount,
         features: plan.features.map(f => ({
-            featureKey: f.name.toLowerCase().replace(/\s+/g, '_'), // generate key from name
+            featureKey: f.name.toLowerCase().replace(/\s+/g, '_'),
             name: f.name,
             included: f.included,
             currentUsage: 0,
@@ -36,6 +99,11 @@ export const purchase = async (planId, societyId, loggedInUserId, billingCycle =
             hasLimit: f.value && !isNaN(parseInt(f.value))
         })),
         billingCycle,
+        totalAmount: baseAmount,
+        discountAmount: discount,
+        finalAmount: finalAmount,
+        couponCode: appliedCoupon,
+        paymentStatus: finalAmount === 0 ? 'paid' : 'pending',
         purchasedBy: loggedInUserId
     });
 
@@ -103,7 +171,7 @@ export const getPlanHistory = async (societyId, page = 1, limit = 10) => {
     };
 };
 
-export const calculateChangePrice = async (societyId, newPlanId) => {
+export const calculateChangePrice = async (societyId, newPlanId, couponCode = null) => {
     // Get current active plan
     const currentPlan = await SocietyPlan.findOne({
         societyId,
@@ -153,6 +221,26 @@ export const calculateChangePrice = async (societyId, newPlanId) => {
         paymentReason = 'No payment required (same plan value)';
     }
 
+    // Apply coupon to the amount to pay
+    let discount = 0;
+    let finalAmount = amountToPay;
+    let appliedCoupon = null;
+
+    if (couponCode && amountToPay > 0) {
+        try {
+            const couponResult = calculateCouponDiscount(couponCode, amountToPay);
+            discount = couponResult.discount;
+            finalAmount = couponResult.finalAmount;
+            appliedCoupon = couponResult.couponCode;
+
+            if (discount > 0) {
+                paymentReason += ` (Coupon ${appliedCoupon} applied: -₹${discount})`;
+            }
+        } catch (error) {
+            throw new Error(`Coupon error: ${error.message}`);
+        }
+    }
+
     // Check if plan is older than one month (30 days)
     const isOlderThanOneMonth = daysUsed > 30;
 
@@ -176,21 +264,24 @@ export const calculateChangePrice = async (societyId, newPlanId) => {
         flatCount,
         calculation: {
             amountToPay,
+            discount,
+            finalAmount,
             paymentReason,
             isOlderThanOneMonth,
             daysUsed,
             totalDays,
             usedValue,
             remainingValue,
-            newPlanValue
+            newPlanValue,
+            couponCode: appliedCoupon
         }
     };
 };
 
-export const changePlan = async (societyId, newPlanId, loggedInUserId, billingCycle = 'yearly', paymentMethod, paymentDetails) => {
+export const changePlan = async (societyId, newPlanId, loggedInUserId, billingCycle = 'yearly', paymentMethod, paymentDetails, couponCode = null) => {
     try {
-        // Get price calculation
-        const calculation = await calculateChangePrice(societyId, newPlanId);
+        // Get price calculation with coupon
+        const calculation = await calculateChangePrice(societyId, newPlanId, couponCode);
 
         // Deactivate current plan
         await SocietyPlan.updateOne(
@@ -225,22 +316,34 @@ export const changePlan = async (societyId, newPlanId, loggedInUserId, billingCy
             })),
             billingCycle,
             totalAmount: calculation.calculation.amountToPay,
-            paymentStatus: calculation.calculation.amountToPay === 0 ? 'paid' : 'pending',
+            discountAmount: calculation.calculation.discount || 0,
+            finalAmount: calculation.calculation.finalAmount,
+            couponCode: calculation.calculation.couponCode,
+            paymentStatus: calculation.calculation.finalAmount === 0 ? 'paid' : 'pending',
             purchasedBy: loggedInUserId,
             notes: `Plan changed from previous plan. ${calculation.calculation.paymentReason}`
         });
 
         await societyPlan.save();
 
-        // If payment is required, you would integrate payment gateway here
-        if (calculation.calculation.amountToPay > 0) {
-            // Integrate with payment gateway
-            // Update payment status after success
-        }
-
         return societyPlan;
     } catch (error) {
         throw error;
-    } finally {
+    }
+};
+
+// New endpoint to validate coupon
+export const validateCoupon = async (couponCode, amount) => {
+    try {
+        const result = calculateCouponDiscount(couponCode, amount);
+        return {
+            valid: true,
+            ...result
+        };
+    } catch (error) {
+        return {
+            valid: false,
+            message: error.message
+        };
     }
 };
