@@ -15,6 +15,7 @@ const SocietySchema = new mongoose.Schema(
     societyName: { type: String, required: true, unique: true },
     gpsLocation: { type: GpsLocationSchema },
     numberOfBuildings: { type: Number },
+    numberOfFlats: { type: Number },
 
     // Approved / UnApproved Status
     isApproved: { type: Boolean },
