@@ -11,4 +11,13 @@ router.post('/purchase/:societyId', pricingController.purchase);
 // Get society's current active plan
 router.get('/current-plan/:societyId', pricingController.currentPlan);
 
+// Get plan history for society
+router.get('/history/:societyId', pricingController.getPlanHistory);
+
+// Calculate price for changing plan
+router.post('/calculate-change', pricingController.calculateChangePrice);
+
+// Change plan
+router.post('/change/:societyId', pricingController.changePlan);
+
 export default router;
