@@ -193,7 +193,7 @@ export const calculateChangePrice = async (societyId, newPlanId) => {
 export const changePlan = async (societyId, newPlanId, loggedInUserId, billingCycle = 'yearly', paymentMethod, paymentDetails) => {
     try {
         // Get price calculation
-        const calculation = await this.calculateChangePrice(societyId, newPlanId);
+        const calculation = await calculateChangePrice(societyId, newPlanId);
 
         // Deactivate current plan
         await SocietyPlan.updateOne(
