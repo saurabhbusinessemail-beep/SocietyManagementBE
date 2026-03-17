@@ -8,7 +8,7 @@ const calculateCouponDiscount = (couponCode, amount) => {
         'SKFREE': { type: 'percentage', value: 100 }, // 100% off
         'SAVE10': { type: 'percentage', value: 10 },  // 10% off
         'SAVE20': { type: 'percentage', value: 20 },  // 20% off
-        'FLAT500': { type: 'fixed', value: 500 }      // ₹500 off
+        'FLAT5000': { type: 'fixed', value: 5000 }      // ₹500 off
     };
 
     const coupon = coupons[couponCode.toUpperCase()];

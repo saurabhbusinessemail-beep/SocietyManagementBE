@@ -39,8 +39,8 @@ export const getPlanHistory = async (req, res, next) => {
 
 export const calculateChangePrice = async (req, res, next) => {
     try {
-        const { societyId, newPlanId } = req.body;
-        const data = await PricingPlanService.calculateChangePrice(societyId, newPlanId);
+        const { societyId, newPlanId, couponCode } = req.body;
+        const data = await PricingPlanService.calculateChangePrice(societyId, newPlanId, couponCode);
         res.json(data);
     } catch (err) {
         next(err);
