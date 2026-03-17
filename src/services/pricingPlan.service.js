@@ -4,7 +4,7 @@ export const purchase = async (planId, societyId, loggedInUserId, billingCycle =
     // Get the plan
     const plan = await PricingPlan.findOne({ id: planId, isActive: true });
     if (!plan) {
-        return res.status(404).json({ message: 'Plan not found' });
+        throw new Error('Plan not found');
     }
 
     // Check if society already has an active plan

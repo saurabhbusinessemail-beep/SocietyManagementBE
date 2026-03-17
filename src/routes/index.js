@@ -20,6 +20,7 @@ const seedPermissions = require('../seed/permission.seeder');
 const seedMenus = require('../seed/menus.seeder');
 const seedFeatures = require('../seed/feature.seeder');
 const seedRoleMenu = require('../seed/roleMenus.seeder');
+const seedPricingPlan = require('../seed/pricingPlans.seeder');
 import { updateSocietyRecords } from '../seed/updateSociety';
 import { getOrCreateDefaultUser } from '../seed/emptyUser.seeder';
 
@@ -40,6 +41,7 @@ const routes = () => {
     await seedRoleMenu();
     await updateSocietyRecords();
     await getOrCreateDefaultUser();
+    await seedPricingPlan();
 
     res.send('Seed Completed');
   });
