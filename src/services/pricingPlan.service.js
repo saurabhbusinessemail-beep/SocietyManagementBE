@@ -48,28 +48,25 @@ export const currentPlan = async (societyId) => {
         isActive: true
     }).populate('purchasedBy', 'name email').lean();
 
-    if (!societyPlan) {
-        throw new Error('No active plan found for this society');
-    }
-
     // Get full plan details
-    const planDetails = await PricingPlan.findOne({ id: societyPlan.planId }).lean();
+    const planDetails = societyPlan ? await PricingPlan.findOne({ id: societyPlan.planId }).lean()
+        : await PricingPlan.findOne({ id: 'basic' }).lean();
 
     // Calculate days used in current billing cycle
-    const daysUsed = Math.floor((Date.now() - new Date(societyPlan.startDate)) / (1000 * 60 * 60 * 24));
+    const daysUsed = societyPlan ? Math.floor((Date.now() - new Date(societyPlan.startDate)) / (1000 * 60 * 60 * 24)) : 0;
     const totalDays = 365; // Yearly plan
-    const remainingDays = totalDays - daysUsed;
-    const usedPercentage = (daysUsed / totalDays) * 100;
+    const remainingDays = societyPlan ? (totalDays - daysUsed) : 0;
+    const usedPercentage = societyPlan ? ((daysUsed / totalDays) * 100) : 0;
 
     return {
-        ...societyPlan,
+        ...(societyPlan ?? {}),
         planDetails,
         usage: {
             daysUsed,
             remainingDays,
             usedPercentage,
-            startDate: societyPlan.startDate,
-            endDate: societyPlan.endDate || new Date(Date.now() + remainingDays * 24 * 60 * 60 * 1000)
+            startDate: societyPlan ? societyPlan.startDate : new Date(),
+            endDate: societyPlan ? (societyPlan.endDate || new Date(Date.now() + remainingDays * 24 * 60 * 60 * 1000)) : new Date()
         }
     };
 };
@@ -113,9 +110,9 @@ export const calculateChangePrice = async (societyId, newPlanId) => {
         isActive: true
     }).lean();
 
-    if (!currentPlan) {
-        throw new Error('No active plan found');
-    }
+    // if (!currentPlan) {
+    //     throw new Error('No active plan found');
+    // }
 
     // Get new plan details
     const newPlan = await PricingPlan.findOne({ id: newPlanId, isActive: true }).lean();
@@ -132,11 +129,11 @@ export const calculateChangePrice = async (societyId, newPlanId) => {
     const flatCount = society.numberOfFlats || 1;
 
     // Calculate current plan value (pro-rated)
-    const currentPlanValue = parseInt(currentPlan.price) * flatCount * 12;
-    const daysUsed = Math.floor((Date.now() - new Date(currentPlan.startDate)) / (1000 * 60 * 60 * 24));
+    const currentPlanValue = currentPlan ? (parseInt(currentPlan.price) * flatCount * 12) : 0;
+    const daysUsed = currentPlan ? (Math.floor((Date.now() - new Date(currentPlan.startDate)) / (1000 * 60 * 60 * 24))) : 0;
     const totalDays = 365;
-    const usedValue = (currentPlanValue / totalDays) * daysUsed;
-    const remainingValue = currentPlanValue - usedValue;
+    const usedValue = currentPlan ? ((currentPlanValue / totalDays) * daysUsed) : 0;
+    const remainingValue = currentPlan ? (currentPlanValue - usedValue) : 0;
 
     // Calculate new plan value
     const newPlanValue = parseInt(newPlan.price) * flatCount * 12;
@@ -160,7 +157,7 @@ export const calculateChangePrice = async (societyId, newPlanId) => {
     const isOlderThanOneMonth = daysUsed > 30;
 
     return {
-        currentPlan: {
+        currentPlan: currentPlan ? {
             id: currentPlan.planId,
             name: currentPlan.planName,
             price: currentPlan.price,
@@ -169,7 +166,7 @@ export const calculateChangePrice = async (societyId, newPlanId) => {
             daysUsed,
             usedValue,
             remainingValue
-        },
+        } : undefined,
         newPlan: {
             id: newPlan.id,
             name: newPlan.name,
