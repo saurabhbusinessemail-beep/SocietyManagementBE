@@ -91,7 +91,7 @@ export const purchase = async (planId, societyId, loggedInUserId, billingCycle =
         period: plan.period,
         featureCount: plan.featureCount,
         features: plan.features.map(f => ({
-            featureKey: f.name.toLowerCase().replace(/\s+/g, '_'),
+            key: f.key,
             name: f.name,
             included: f.included,
             currentUsage: 0,
@@ -307,7 +307,7 @@ export const changePlan = async (societyId, newPlanId, loggedInUserId, billingCy
             period: newPlan.period,
             featureCount: newPlan.featureCount,
             features: newPlan.features.map(f => ({
-                featureKey: f.name.toLowerCase().replace(/\s+/g, '_'),
+                key: f.key,
                 name: f.name,
                 included: f.included,
                 currentUsage: 0,

@@ -21,20 +21,20 @@ const plansData = [
             gradientTo: '#f8fafc',
         },
         features: [
-            { name: 'Add Buildings', value: '1 Building', included: true },
-            { name: 'Number of Flats', value: '10–12 Flats', included: true },
-            { name: 'Gate Entries', included: true },
-            { name: 'Announcements', included: true },
-            { name: 'Smart Gate Pass', included: false },
-            { name: 'Visitor Management', included: false },
-            { name: 'Tenant Management', included: false },
-            { name: 'Flat Member Management', included: false },
-            { name: 'Complaints', included: false },
-            { name: 'Events', included: false },
-            { name: 'Parking / Vehicle', included: false },
-            { name: 'Communication', included: false },
-            { name: 'Maintenance', included: false },
-            { name: 'Offers & Festivals', included: false }
+            { key: 'number_of_buildings', name: 'Number of Buildings', value: '1 Building', included: true },
+            { key: 'number_of_flats', name: 'Number of Flats', value: '10 Flats', included: true },
+            { key: 'gate_entries', name: 'Gate Entries', included: true },
+            { key: 'announcements', name: 'Announcements', included: true },
+            { key: 'smart_gate_pass', name: 'Smart Gate Pass', included: false },
+            { key: 'visitor_management', name: 'Visitor Management', included: false },
+            { key: 'tenant_management', name: 'Tenant Management', included: false },
+            { key: 'flat_member_management', name: 'Flat Member Management', included: false },
+            { key: 'complaints', name: 'Complaints', included: false },
+            { key: 'events', name: 'Vehicle', included: false },
+            { key: 'parking_vehicle', name: 'Parking', included: false },
+            { key: 'communication', name: 'Communication', included: false },
+            { key: 'maintenance', name: 'Maintenance', included: false },
+            { key: 'offers_on_festivals', name: 'Offers On Festivals', included: false }
         ]
     },
     {
@@ -58,20 +58,20 @@ const plansData = [
             gradientTo: '#eff6ff'
         },
         features: [
-            { name: 'Add Buildings', value: 'Unlimited', included: true },
-            { name: 'Number of Flats', value: 'Unlimited', included: true },
-            { name: 'Gate Entries', included: true },
-            { name: 'Announcements', included: true },
-            { name: 'Smart Gate Pass', included: true },
-            { name: 'Visitor Management', included: true },
-            { name: 'Tenant Management', included: true },
-            { name: 'Flat Member Management', included: true },
-            { name: 'Complaints', included: false },
-            { name: 'Events', included: false },
-            { name: 'Parking / Vehicle', included: false },
-            { name: 'Communication', included: false },
-            { name: 'Maintenance', included: false },
-            { name: 'Offers & Festivals', included: true }
+            { key: 'number_of_buildings', name: 'Number of Buildings', value: 'Unlimited', included: true },
+            { key: 'number_of_flats', name: 'Number of Flats', value: 'Unlimited', included: true },
+            { key: 'gate_entries', name: 'Gate Entries', included: true },
+            { key: 'announcements', name: 'Announcements', included: true },
+            { key: 'smart_gate_pass', name: 'Smart Gate Pass', included: true },
+            { key: 'visitor_management', name: 'Visitor Management', included: true },
+            { key: 'tenant_management', name: 'Tenant Management', included: true },
+            { key: 'flat_member_management', name: 'Flat Member Management', included: true },
+            { key: 'complaints', name: 'Complaints', included: false },
+            { key: 'events', name: 'Vehicle', included: false },
+            { key: 'parking_vehicle', name: 'Parking', included: false },
+            { key: 'communication', name: 'Communication', included: false },
+            { key: 'maintenance', name: 'Maintenance', included: false },
+            { key: 'offers_on_festivals', name: 'Offers On Festivals', included: true }
         ]
     },
     {
@@ -98,20 +98,20 @@ const plansData = [
             gradientTo: '#fffbeb'
         },
         features: [
-            { name: 'Add Buildings', value: 'Unlimited', included: true },
-            { name: 'Number of Flats', value: 'Unlimited', included: true },
-            { name: 'Gate Entries', included: true },
-            { name: 'Announcements', included: true },
-            { name: 'Smart Gate Pass', included: true },
-            { name: 'Visitor Management', included: true },
-            { name: 'Tenant Management', included: true },
-            { name: 'Flat Member Management', included: true },
-            { name: 'Complaints', included: true },
-            { name: 'Events', included: true },
-            { name: 'Parking / Vehicle', included: true },
-            { name: 'Communication', included: false },
-            { name: 'Maintenance', included: false },
-            { name: 'Offers & Festivals', included: true }
+            { key: 'number_of_buildings', name: 'Number of Buildings', value: 'Unlimited', included: true },
+            { key: 'number_of_flats', name: 'Number of Flats', value: 'Unlimited', included: true },
+            { key: 'gate_entries', name: 'Gate Entries', included: true },
+            { key: 'announcements', name: 'Announcements', included: true },
+            { key: 'smart_gate_pass', name: 'Smart Gate Pass', included: true },
+            { key: 'visitor_management', name: 'Visitor Management', included: true },
+            { key: 'tenant_management', name: 'Tenant Management', included: true },
+            { key: 'flat_member_management', name: 'Flat Member Management', included: true },
+            { key: 'complaints', name: 'Complaints', included: true },
+            { key: 'events', name: 'Vehicle', included: true },
+            { key: 'parking_vehicle', name: 'Parking', included: true },
+            { key: 'communication', name: 'Communication', included: false },
+            { key: 'maintenance', name: 'Maintenance', included: false },
+            { key: 'offers_on_festivals', name: 'Offers On Festivals', included: true }
         ]
     },
     {
@@ -135,20 +135,20 @@ const plansData = [
             gradientTo: '#f5f3ff'
         },
         features: [
-            { name: 'Add Buildings', value: 'Unlimited', included: true },
-            { name: 'Number of Flats', value: 'Unlimited', included: true },
-            { name: 'Gate Entries', included: true },
-            { name: 'Announcements', included: true },
-            { name: 'Smart Gate Pass', included: true },
-            { name: 'Visitor Management', included: true },
-            { name: 'Tenant Management', included: true },
-            { name: 'Flat Member Management', included: true },
-            { name: 'Complaints', included: true },
-            { name: 'Events', included: true },
-            { name: 'Parking / Vehicle', included: true },
-            { name: 'Communication', included: true },
-            { name: 'Maintenance', included: false },
-            { name: 'Offers & Festivals', included: true }
+            { key: 'number_of_buildings', name: 'Number of Buildings', value: 'Unlimited', included: true },
+            { key: 'number_of_flats', name: 'Number of Flats', value: 'Unlimited', included: true },
+            { key: 'gate_entries', name: 'Gate Entries', included: true },
+            { key: 'announcements', name: 'Announcements', included: true },
+            { key: 'smart_gate_pass', name: 'Smart Gate Pass', included: true },
+            { key: 'visitor_management', name: 'Visitor Management', included: true },
+            { key: 'tenant_management', name: 'Tenant Management', included: true },
+            { key: 'flat_member_management', name: 'Flat Member Management', included: true },
+            { key: 'complaints', name: 'Complaints', included: true },
+            { key: 'events', name: 'Vehicle', included: true },
+            { key: 'parking_vehicle', name: 'Parking', included: true },
+            { key: 'communication', name: 'Communication', included: true },
+            { key: 'maintenance', name: 'Maintenance', included: false },
+            { key: 'offers_on_festivals', name: 'Offers On Festivals', included: true }
         ]
     },
     {
@@ -175,20 +175,20 @@ const plansData = [
             gradientTo: '#f0fdfa'
         },
         features: [
-            { name: 'Add Buildings', value: 'Unlimited', included: true },
-            { name: 'Number of Flats', value: 'Unlimited', included: true },
-            { name: 'Gate Entries', included: true },
-            { name: 'Announcements', included: true },
-            { name: 'Smart Gate Pass', included: true },
-            { name: 'Visitor Management', included: true },
-            { name: 'Tenant Management', included: true },
-            { name: 'Flat Member Management', included: true },
-            { name: 'Complaints', included: true },
-            { name: 'Events', included: true },
-            { name: 'Parking / Vehicle', included: true },
-            { name: 'Communication', included: true },
-            { name: 'Maintenance', included: true },
-            { name: 'Offers & Festivals', included: true }
+            { key: 'number_of_buildings', name: 'Number of Buildings', value: 'Unlimited', included: true },
+            { key: 'number_of_flats', name: 'Number of Flats', value: 'Unlimited', included: true },
+            { key: 'gate_entries', name: 'Gate Entries', included: true },
+            { key: 'announcements', name: 'Announcements', included: true },
+            { key: 'smart_gate_pass', name: 'Smart Gate Pass', included: true },
+            { key: 'visitor_management', name: 'Visitor Management', included: true },
+            { key: 'tenant_management', name: 'Tenant Management', included: true },
+            { key: 'flat_member_management', name: 'Flat Member Management', included: true },
+            { key: 'complaints', name: 'Complaints', included: true },
+            { key: 'events', name: 'Vehicle', included: true },
+            { key: 'parking_vehicle', name: 'Parking', included: true },
+            { key: 'communication', name: 'Communication', included: true },
+            { key: 'maintenance', name: 'Maintenance', included: true },
+            { key: 'offers_on_festivals', name: 'Offers On Festivals', included: true }
         ]
     }
 ];

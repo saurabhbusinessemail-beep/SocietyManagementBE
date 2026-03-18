@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const PricingFeatureSchema = new mongoose.Schema({
+    key: { type: String, required: true },
     name: { type: String, required: true },
     value: { type: String },
     included: { type: Boolean, default: false }

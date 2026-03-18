@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 // Simple feature tracking for purchased plan
 const PurchasedFeatureSchema = new mongoose.Schema({
-    featureKey: { type: String, required: true },  // reference to feature key
+    key: { type: String, required: true },  // reference to feature key
     name: { type: String, required: true },        // feature display name
     included: { type: Boolean, default: false },
     currentUsage: { type: Number, default: 0 },
