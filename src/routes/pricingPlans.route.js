@@ -3,6 +3,14 @@ import { userAuth } from '../middlewares/auth.middleware';
 import * as pricingController from '../controllers/pricingPlan.controller';
 
 const router = express.Router();
+
+
+router.get('/plans', pricingController.getAllPlans);
+router.get('/plans/:planId', pricingController.getPlanById);
+router.get('/features', pricingController.getAllFeatures);
+router.post('/validate-coupon', pricingController.validateCoupon);
+
+// AUTHENTICATION
 router.use(userAuth);
 
 // Purchase a plan for a society
@@ -19,8 +27,5 @@ router.post('/calculate-change', pricingController.calculateChangePrice);
 
 // Change plan
 router.post('/change/:societyId', pricingController.changePlan);
-
-// Change plan
-router.post('/validate-coupon', pricingController.validateCoupon);
 
 export default router;

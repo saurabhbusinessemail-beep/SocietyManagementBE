@@ -1,4 +1,4 @@
-import { PricingPlan, SocietyPlan, Society } from '../models';
+import { PricingPlan, SocietyPlan, Society, Feature } from '../models';
 
 const calculateCouponDiscount = (couponCode, amount) => {
     if (!couponCode) return { discount: 0, finalAmount: amount, couponCode: null };
@@ -32,6 +32,56 @@ const calculateCouponDiscount = (couponCode, amount) => {
         couponCode: couponCode.toUpperCase()
     };
 };
+
+export const getAllPlans = async () => {
+    try {
+        const plans = await PricingPlan.find({ isActive: true })
+            .sort({ displayOrder: 1, createdAt: 1 });
+
+        return {
+            success: true,
+            data: plans
+        };
+    } catch (error) {
+        console.error('Error fetching pricing plans:', error);
+        throw error;
+    }
+}
+
+export const getPlanById = async (planId) => {
+    try {
+        const plan = await PricingPlan.findOne({ id: planId, isActive: true });
+
+        if (!plan) {
+            return {
+                success: false,
+                message: 'Pricing plan not found'
+            };
+        }
+
+        return {
+            success: true,
+            data: plan
+        };
+    } catch (error) {
+        console.error('Error fetching pricing plan:', error);
+        throw error;
+    }
+}
+
+export const getAllFeatures = async () => {
+    try {
+        const features = await Feature.find().sort({ key: 1 });
+
+        return {
+            success: true,
+            data: features
+        };
+    } catch (error) {
+        console.error('Error fetching features:', error);
+        throw error;
+    }
+}
 
 export const purchase = async (planId, societyId, loggedInUserId, billingCycle = 'yearly', couponCode = null) => {
     // Get the plan
@@ -332,7 +382,6 @@ export const changePlan = async (societyId, newPlanId, loggedInUserId, billingCy
     }
 };
 
-// New endpoint to validate coupon
 export const validateCoupon = async (couponCode, amount) => {
     try {
         const result = calculateCouponDiscount(couponCode, amount);

@@ -1,5 +1,81 @@
 import * as PricingPlanService from '../services/pricingPlan.service';
 
+export const getAllPlans = async (req, res) => {
+    try {
+        const result = await PricingPlanService.getAllPlans();
+
+        if (!result.success) {
+            return res.status(404).json({
+                success: false,
+                message: result.message
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: result.data
+        });
+    } catch (error) {
+        console.error('Error in getAllPlans:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch pricing plans',
+            error: error.message
+        });
+    }
+};
+
+export const getPlanById = async (req, res) => {
+    try {
+        const { planId } = req.params;
+        const result = await PricingPlanService.getPlanById(planId);
+
+        if (!result.success) {
+            return res.status(404).json({
+                success: false,
+                message: result.message
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: result.data
+        });
+    } catch (error) {
+        console.error('Error in getPlanById:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch pricing plan',
+            error: error.message
+        });
+    }
+};
+
+export const getAllFeatures = async (req, res) => {
+    try {
+        const result = await PricingPlanService.getAllFeatures();
+
+        if (!result.success) {
+            return res.status(404).json({
+                success: false,
+                message: result.message
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: result.data
+        });
+    } catch (error) {
+        console.error('Error in getAllFeatures:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch features',
+            error: error.message
+        });
+    }
+};
+
 export const purchase = async (req, res, next) => {
     try {
         const { planId, billingCycle = 'yearly' } = req.body;
