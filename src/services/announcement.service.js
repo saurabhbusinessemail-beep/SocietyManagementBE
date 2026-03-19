@@ -1,10 +1,18 @@
-import { Announcement, Comments, User } from '../models';
+import { Announcement, Comments, User, SocietyPlan } from '../models';
+import { checkFeatureAccess } from './planCache.service';
+import { FEATURES } from '../config/features';
 const mongoose = require('mongoose');
 
 /**
  * Create a new announcement
  */
 export const createAnnouncement = async (data) => {
+  // Check feature access
+  const featureCheck = await checkFeatureAccess(data.societyId, FEATURES.ANNOUNCEMENTS);
+  if (!featureCheck.allowed) {
+    throw new Error(featureCheck.reason);
+  }
+
   const announcement = new Announcement({
     ...data,
     status: data.status || 'published'
@@ -41,6 +49,12 @@ export const getAnnouncementById = async (id, userId = null) => {
     return null;
   }
 
+  // Check feature access
+  const featureCheck = await checkFeatureAccess(announcement.societyId, FEATURES.ANNOUNCEMENTS);
+  if (!featureCheck.allowed) {
+    throw new Error(featureCheck.reason);
+  }
+
   // Check if user has viewed this announcement
   if (userId) {
     const hasViewed = announcement.views.some((view) => view.userId.toString() === userId.toString());
@@ -69,6 +83,12 @@ export const getAnnouncementById = async (id, userId = null) => {
  * Get announcements for a society with filters
  */
 export const getSocietyAnnouncements = async (societyId, filters = {}) => {
+  // Check feature access
+  const featureCheck = await checkFeatureAccess(societyId, FEATURES.ANNOUNCEMENTS);
+  if (!featureCheck.allowed) {
+    throw new Error(featureCheck.reason);
+  }
+
   const { page = 1, limit = 10, category, priority, search, status, pinned, sortBy = 'latest', userId = null } = filters;
 
   const skip = (page - 1) * limit;
@@ -176,6 +196,12 @@ export const updateAnnouncement = async (id, updates, userId) => {
     return null;
   }
 
+  // Check feature access
+  const featureCheck = await checkFeatureAccess(announcement.societyId, FEATURES.ANNOUNCEMENTS);
+  if (!featureCheck.allowed) {
+    throw new Error(featureCheck.reason);
+  }
+
   // Check permissions
   if (announcement.createdByUserId.toString() !== userId.toString()) {
     // Verify if user has admin privileges (you'll need to implement this check)
@@ -201,37 +227,33 @@ export const updateAnnouncement = async (id, updates, userId) => {
  * Delete announcement
  */
 export const deleteAnnouncement = async (id, userId) => {
-  // const session = await mongoose.startSession();
+  const announcement = await Announcement.findById(id);
 
-  try {
-    // session.startTransaction();
-
-    const announcement = await Announcement.findById(id); //.session(session);
-
-    if (!announcement) {
-      return null;
-    }
-
-    // Check permissions
-    if (announcement.createdByUserId.toString() !== userId.toString()) {
-      const isAdmin = true; // Replace with actual admin check
-      if (!isAdmin) {
-        throw new Error('You do not have permission to delete this announcement');
-      }
-    }
-
-    // Delete announcement
-    await Announcement.findByIdAndDelete(id); //.session(session);
-
-    // Delete associated comments
-    await Comments.deleteMany({ announcementId: id }); //.session(session);
-
-    // await session.commitTransaction();
-
-    return '';
-  } finally {
-    // session.endSession();
+  if (!announcement) {
+    return null;
   }
+
+  // Check feature access
+  const featureCheck = await checkFeatureAccess(announcement.societyId, FEATURES.ANNOUNCEMENTS);
+  if (!featureCheck.allowed) {
+    throw new Error(featureCheck.reason);
+  }
+
+  // Check permissions
+  if (announcement.createdByUserId.toString() !== userId.toString()) {
+    const isAdmin = true; // Replace with actual admin check;
+    if (!isAdmin) {
+      throw new Error('You do not have permission to delete this announcement');
+    }
+  }
+
+  // Delete announcement
+  await Announcement.findByIdAndDelete(id);
+
+  // Delete associated comments
+  await Comments.deleteMany({ announcementId: id });
+
+  return { success: true };
 };
 
 /**
@@ -242,6 +264,12 @@ export const togglePinAnnouncement = async (id, userId) => {
 
   if (!announcement) {
     return null;
+  }
+
+  // Check announcements feature
+  const announcementsCheck = await checkFeatureAccess(announcement.societyId, FEATURES.ANNOUNCEMENTS);
+  if (!announcementsCheck.allowed) {
+    throw new Error(announcementsCheck.reason);
   }
 
   // Check admin permissions
@@ -262,6 +290,12 @@ export const togglePinAnnouncement = async (id, userId) => {
  * Get announcement statistics
  */
 export const getAnnouncementStats = async (societyId) => {
+  // Check announcements feature
+  const announcementsCheck = await checkFeatureAccess(societyId, FEATURES.ANNOUNCEMENTS);
+  if (!announcementsCheck.allowed) {
+    throw new Error(announcementsCheck.reason);
+  }
+
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -366,12 +400,17 @@ export const getAnnouncementStats = async (societyId) => {
  * Search announcements
  */
 export const searchAnnouncements = async (societyId, searchTerm, options = {}) => {
+  // Check feature access
+  const featureCheck = await checkFeatureAccess(societyId, FEATURES.ANNOUNCEMENTS);
+  if (!featureCheck.allowed) {
+    throw new Error(featureCheck.reason);
+  }
+
   const { page = 1, limit = 20, fields = ['title', 'content', 'tags'] } = options;
 
   const skip = (page - 1) * limit;
   const query = { societyId, status: 'published', isPublished: true };
 
-  // Build search query
   if (searchTerm && fields.length > 0) {
     const searchConditions = fields.map((field) => ({
       [field]: { $regex: searchTerm, $options: 'i' }
@@ -416,12 +455,27 @@ export const getAnnouncementsByPriority = async (societyId, priority, options = 
  * Bulk update announcements
  */
 export const bulkUpdateAnnouncements = async (ids, updates, userId) => {
+  if (!ids || ids.length === 0) {
+    throw new Error('No announcement IDs provided');
+  }
+
+  // Get first announcement to check society
+  const firstAnnouncement = await Announcement.findById(ids[0]);
+  if (!firstAnnouncement) {
+    throw new Error('Announcement not found');
+  }
+
+  // Check announcements feature
+  const announcementsCheck = await checkFeatureAccess(firstAnnouncement.societyId, FEATURES.ANNOUNCEMENTS);
+  if (!announcementsCheck.allowed) {
+    throw new Error(announcementsCheck.reason);
+  }
+
   const session = await mongoose.startSession();
 
   try {
     session.startTransaction();
 
-    // Check permissions for all announcements
     const announcements = await Announcement.find({
       _id: { $in: ids }
     }).session(session);
@@ -430,7 +484,6 @@ export const bulkUpdateAnnouncements = async (ids, updates, userId) => {
       throw new Error('Some announcements not found');
     }
 
-    // Update all announcements
     const result = await Announcement.updateMany({ _id: { $in: ids } }, { ...updates, updatedAt: new Date() }, { session });
 
     await session.commitTransaction();
@@ -448,15 +501,19 @@ export const bulkUpdateAnnouncements = async (ids, updates, userId) => {
  * Export announcements to CSV/JSON
  */
 export const exportAnnouncements = async (societyId, format = 'json') => {
+  // Check announcements feature
+  const announcementsCheck = await checkFeatureAccess(societyId, FEATURES.ANNOUNCEMENTS);
+  if (!announcementsCheck.allowed) {
+    throw new Error(announcementsCheck.reason);
+  }
+
   const data = await Announcement.find({ societyId }).populate('createdByUserId').sort({ createdOn: -1 }).lean();
 
   if (format === 'csv') {
-    // Convert to CSV format
     const csvData = convertToCSV(data);
     return csvData;
   }
 
-  // Default to JSON
   return data;
 };
 
@@ -487,7 +544,7 @@ const convertToCSV = (announcements) => {
 };
 
 /**
- * Publish an announcement (change status from draft to published)
+ * Publish an announcement
  */
 export const publishAnnouncement = async (id, userId) => {
   const announcement = await Announcement.findById(id);
@@ -496,27 +553,28 @@ export const publishAnnouncement = async (id, userId) => {
     return null;
   }
 
-  // Check if announcement is already published
+  // Check feature access
+  const featureCheck = await checkFeatureAccess(announcement.societyId, FEATURES.ANNOUNCEMENTS);
+  if (!featureCheck.allowed) {
+    throw new Error(featureCheck.reason);
+  }
+
   if (announcement.status === 'published' && announcement.isPublished) {
     throw new Error('Announcement is already published');
   }
 
-  // Check permissions (only admin/manager or creator can publish)
   const user = await User.findById(userId);
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'manager';
 
-  if (announcement.createdBy.toString() !== userId.toString() && !isAdmin) {
+  if (announcement.createdByUserId?.toString() !== userId.toString() && !isAdmin) {
     throw new Error('You do not have permission to publish this announcement');
   }
 
-  // Update announcement status
   announcement.status = 'published';
   announcement.isPublished = true;
   announcement.publishDate = announcement.publishDate || new Date();
 
-  // If expiry date is in the past, set it to future
   if (announcement.expiryDate && announcement.expiryDate <= new Date()) {
-    // Set expiry to 7 days from now by default
     const defaultExpiry = new Date();
     defaultExpiry.setDate(defaultExpiry.getDate() + 7);
     announcement.expiryDate = defaultExpiry;
@@ -524,12 +582,12 @@ export const publishAnnouncement = async (id, userId) => {
 
   await announcement.save();
 
-  const populated = await announcement.populate('createdBy', 'name email profilePicture');
+  const populated = await announcement.populate('createdByUserId');
   return populated;
 };
 
 /**
- * Unpublish an announcement (change status from published to draft)
+ * Unpublish an announcement
  */
 export const unpublishAnnouncement = async (id, userId) => {
   const announcement = await Announcement.findById(id);
@@ -538,25 +596,28 @@ export const unpublishAnnouncement = async (id, userId) => {
     return null;
   }
 
-  // Check if announcement is already unpublished
+  // Check feature access
+  const featureCheck = await checkFeatureAccess(announcement.societyId, FEATURES.ANNOUNCEMENTS);
+  if (!featureCheck.allowed) {
+    throw new Error(featureCheck.reason);
+  }
+
   if (announcement.status === 'draft' && !announcement.isPublished) {
     throw new Error('Announcement is already unpublished');
   }
 
-  // Check permissions (only admin/manager or creator can unpublish)
   const user = await User.findById(userId);
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'manager';
 
-  if (announcement.createdByUserId.toString() !== userId.toString() && !isAdmin) {
+  if (announcement.createdByUserId?.toString() !== userId.toString() && !isAdmin) {
     throw new Error('You do not have permission to unpublish this announcement');
   }
 
-  // Update announcement status
   announcement.status = 'draft';
   announcement.isPublished = false;
   await announcement.save();
 
-  const populated = await announcement.populate('createdBy', 'name email profilePicture');
+  const populated = await announcement.populate('createdByUserId');
   return populated;
 };
 
@@ -570,15 +631,18 @@ export const trackView = async (announcementId, userId, userInfo = {}) => {
     return null;
   }
 
-  // Check if user has already viewed
+  // Check feature access
+  const featureCheck = await checkFeatureAccess(announcement.societyId, FEATURES.ANNOUNCEMENTS);
+  if (!featureCheck.allowed) {
+    throw new Error(featureCheck.reason);
+  }
+
   const existingView = announcement.views.find((view) => view.userId.toString() === userId.toString());
 
   if (existingView) {
-    // Update existing view timestamp
     existingView.viewedAt = new Date();
     existingView.viewCount = (existingView.viewCount || 1) + 1;
   } else {
-    // Add new view
     announcement.views.push({
       userId,
       ...userInfo,
@@ -588,7 +652,6 @@ export const trackView = async (announcementId, userId, userInfo = {}) => {
     announcement.viewCount += 1;
   }
 
-  // Update last viewed timestamp
   announcement.lastViewedAt = new Date();
   await announcement.save();
 

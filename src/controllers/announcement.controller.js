@@ -56,7 +56,6 @@ export const getSocietyAnnouncements = async (req, res, next) => {
       ...req.query,
       // userId: res.locals.user._id
     };
-
     const result = await announcementService.getSocietyAnnouncements(societyId, filters);
 
     res.json({
