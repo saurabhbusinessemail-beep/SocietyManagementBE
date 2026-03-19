@@ -34,10 +34,10 @@ router.post(
   societyController.getMySocietiesForApproval
 );
 router.post(
-    '/sentForApproval',
-      newRecordFields,
-      decacheCurrentUser,
-    societyController.newSociety
+  '/sentForApproval',
+  newRecordFields,
+  decacheCurrentUser,
+  societyController.newSociety
 );
 
 router.get('/search', societyController.searchSocieties);
