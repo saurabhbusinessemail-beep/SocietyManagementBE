@@ -1,3 +1,4 @@
+// controllers/gateentry.controller.js
 const gateEntryService = require('../services/gateentry.service');
 import * as FlatService from '../services/flat.service';
 import * as NotificationService from '../services/notification.service';
@@ -87,7 +88,7 @@ export const getGateEntries = async (req, res, next) => {
 
 export const getGateEntry = async (req, res, next) => {
   try {
-    const data = await gateEntryService.gettGateEntry(req.params.gateEntryId);
+    const data = await gateEntryService.getGateEntry(req.params.gateEntryId);
     res.json({ success: true, data });
   } catch (err) {
     next(err);
@@ -95,18 +96,22 @@ export const getGateEntry = async (req, res, next) => {
 };
 
 export const markGateExit = async (req, res, next) => {
-  const fromUser = res.locals.user;
-  if (!fromUser) {
-    return res.status(404).json({ message: 'User not found' });
+  try {
+    const fromUser = res.locals.user;
+    if (!fromUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const gateEntryId = req.params.gateEntryId;
+    const data = await gateEntryService.updateGateExitTime(gateEntryId, fromUser._id);
+
+    await FlatService.loopThroughGateEntryFlatMembers(data, fromUser, (toUserId, user) => {
+      return NotificationService.sendGateExitNotification(fromUser, toUserId, data, user.fcmToken);
+    });
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
   }
-
-  const gateEntryId = req.params.gateEntryId;
-
-  const data = await gateEntryService.updateGateExitTime(gateEntryId, fromUser._id);
-  await FlatService.loopThroughGateEntryFlatMembers(data, fromUser, (toUserId, user) => {
-    return NotificationService.sendGateExitNotification(fromUser, toUserId, data, user.fcmToken);
-  });
-  res.json({ success: true, data });
 };
 
 export const updateGateEntryStatus = async (req, res, next) => {
@@ -125,8 +130,8 @@ export const updateGateEntryStatus = async (req, res, next) => {
     }
 
     const data = await gateEntryService.updateGateEntryStatus(gateEntryId, newStatus, fromUser._id);
-    console.log('updating status notification for ', data);
-    await loopThroughGateEntryFlatMembers(
+
+    await FlatService.loopThroughGateEntryFlatMembers(
       data,
       fromUser,
       (toUserId, user) => {
@@ -160,5 +165,3 @@ export const resendGateEntryRequestNotification = async (req, res, next) => {
     next(err);
   }
 };
-
-

@@ -2,16 +2,35 @@ import express from 'express';
 import { userAuth } from '../middlewares/auth.middleware';
 import * as complaintController from '../controllers/complaint.controller';
 import { newRecordFields } from '../middlewares/newRecordFields';
+import { checkFeature } from '../middlewares/featureGuard.middleware';
+import { FEATURES } from '../config/features';
 
 const router = express.Router();
 router.use(userAuth);
 
-router.post('/', complaintController.getComplaints);
+// Get complaints (with societyId in body)
+router.post('/',
+    checkFeature(FEATURES.COMPLAINTS),
+    complaintController.getComplaints
+);
 
-router.post('/add', newRecordFields, complaintController.createComplaint);
+// Create complaint
+router.post('/add',
+    newRecordFields,
+    checkFeature(FEATURES.COMPLAINTS),
+    complaintController.createComplaint
+);
 
-router.post('/:complaintId/changeStatus', complaintController.changeStatus);
+// Change complaint status
+router.post('/:complaintId/changeStatus',
+    checkFeature(FEATURES.COMPLAINTS),
+    complaintController.changeStatus
+);
 
-router.delete('/:complaintId', complaintController.deleteComplaint);
+// Delete complaint
+router.delete('/:complaintId',
+    checkFeature(FEATURES.COMPLAINTS),
+    complaintController.deleteComplaint
+);
 
 export default router;

@@ -1,7 +1,6 @@
+// controllers/gatepass.controller.js
 const gatePassService = require('../services/gatepass.service');
-const gateEntryService = require('../services/gateentry.service');
 const userService = require('../services/user.service');
-const notificationService = require('../services/notification.service');
 const flatService = require('../services/flat.service');
 
 export const createGatePass = async (req, res, next) => {
@@ -37,7 +36,6 @@ export const getGatePasses = async (req, res, next) => {
 
     if (!flatId) {
       const myFlatMemberRecords = (await flatService.myFlats(user._id, societyId)).data;
-
       const flatIds = myFlatMemberRecords.map((fm) => fm.flatId._id);
       if (flatIds && flatIds.length > 0) {
         filter.flatId = { $in: flatIds };
@@ -57,7 +55,7 @@ export const getGatePasses = async (req, res, next) => {
 
 export const getGatePass = async (req, res, next) => {
   try {
-    const data = await gatePassService.gettGatePass(req.params.id);
+    const data = await gatePassService.getGatePass(req.params.id);
     res.json(data);
   } catch (err) {
     next(err);
@@ -116,7 +114,7 @@ export const validateGatePass = async (req, res, next) => {
 
     res.json({
       success: !!gatePass,
-      message: gatePass ? 'Valid OTP' : 'Invalid OTP',
+      message: gatePass ? 'Valid Gate Pass' : 'Invalid Gate Pass',
       data: gatePass
     });
   } catch (err) {

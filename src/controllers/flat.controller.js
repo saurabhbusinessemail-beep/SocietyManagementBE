@@ -32,7 +32,7 @@ export const bulkCreateFlats = async (req, res, next) => {
 
 export const getFlatsBySocietyAndBuilding = async (req, res, next) => {
   try {
-    const societyId = req.params.id;
+    const societyId = req.params.societyId;
     const buildingId = req.params.buildingId;
     const { page, limit } = req.query;
 
@@ -63,7 +63,7 @@ export const getFlatById = async (req, res, next) => {
 
 export const updateFlat = async (req, res, next) => {
   try {
-    const data = await flatService.updateFlat(req.params.id, req.body);
+    const data = await flatService.updateFlat(req.params.societyId, req.body);
     res.json(data);
   } catch (err) {
     next(err);
@@ -81,7 +81,7 @@ export const deleteFlat = async (req, res, next) => {
 
 export const myFlats = async (req, res, next) => {
   try {
-    const societyId = req.params.id;
+    const societyId = req.params.societyId;
     const data = await flatService.myFlats(res.locals.user._id, societyId);
     res.json(data);
   } catch (err) {

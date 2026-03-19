@@ -1,17 +1,45 @@
+// services/complaint.service.js
 import { Complaint, FlatMember } from '../models';
+import { checkFeatureAccess } from './planCache.service';
+import { FEATURES } from '../config/features';
 
-export const createComplaint = (data) => {
+export const createComplaint = async (data) => {
+  // Check feature access
+  const featureCheck = await checkFeatureAccess(data.societyId, FEATURES.COMPLAINTS);
+  if (!featureCheck.allowed) {
+    throw new Error(featureCheck.reason);
+  }
+
   return Complaint.create(data);
 };
 
 export const deleteComplaint = async (id) => {
+  const complaint = await Complaint.findById(id);
+  if (!complaint) {
+    throw new Error('Complaint not found');
+  }
+
+  // Check feature access
+  const featureCheck = await checkFeatureAccess(complaint.societyId, FEATURES.COMPLAINTS);
+  if (!featureCheck.allowed) {
+    throw new Error(featureCheck.reason);
+  }
+
   await Complaint.findByIdAndDelete(id);
-  return '';
+  return { success: true };
 };
 
 export const getComplaints = async (filter, options = {}) => {
   const { page = 1, limit = 1000 } = options;
   const skip = (page - 1) * limit;
+
+  // If societyId is in filter, check feature access
+  if (filter.societyId) {
+    const featureCheck = await checkFeatureAccess(filter.societyId, FEATURES.COMPLAINTS);
+    if (!featureCheck.allowed) {
+      throw new Error(featureCheck.reason);
+    }
+  }
 
   const [data, total] = await Promise.all([
     Complaint.find(filter)
@@ -40,13 +68,16 @@ export const updateStatus = async (
   userId,
   userSocities
 ) => {
-  const complaint = await Complaint.findOne(
-    { _id: complaintId },
-    { status: 1 }
-  ).lean();
+  const complaint = await Complaint.findById(complaintId);
 
   if (!complaint) {
     throw new Error('Complaint not found');
+  }
+
+  // Check feature access
+  const featureCheck = await checkFeatureAccess(complaint.societyId, FEATURES.COMPLAINTS);
+  if (!featureCheck.allowed) {
+    throw new Error(featureCheck.reason);
   }
 
   if (complaint.status === newStatus) {
@@ -64,7 +95,7 @@ export const updateStatus = async (
     ['approved', 'rejected', 'in_progress'].includes(newStatus) &&
     !(await checkIfUserIsManagerOfSocietyOfComplaint(complaintId, userSocities))
   ) {
-    throw new Error('Access denied1');
+    throw new Error('Access denied');
   }
 
   return Complaint.findByIdAndUpdate(
@@ -102,7 +133,7 @@ const checkIfComplaintIsOfUserFlat = async (complaintId, userId) => {
   const isTenant = flatMember[0].isTenant;
   const isMember = !flatMember[0].isTenant && !flatMember[0].isOwner;
 
-  if (isTenant || (isMember && complaint.modifiedByUserId !== userId))
+  if (isTenant || (isMember && complaint.createdByUserId?.toString() !== userId.toString()))
     return false;
 
   return true;
@@ -117,7 +148,7 @@ const checkIfUserIsManagerOfSocietyOfComplaint = async (
 
   const hasSocietyWithManagerRole = userSocities.some(
     (s) => {
-      return s.societyId == complaint.societyId &&
+      return s.societyId.toString() === complaint.societyId.toString() &&
         s.societyRoles.some((sr) => ['societyadmin', 'manager'].includes(sr.name))
     }
   );

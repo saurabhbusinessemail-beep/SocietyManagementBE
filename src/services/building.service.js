@@ -1,5 +1,4 @@
 import { Building } from '../models';
-import * as userService from '../services/user.service';
 
 export const createBuilding = (data) => {
   return Building.create({
@@ -32,12 +31,21 @@ export const gettBuilding = async (id) => {
 };
 
 export const updateBuilding = async (_id, body) => {
+  const building = await Building.findById(_id);
+  if (!building) {
+    throw new Error('Building not found');
+  }
+
   const data = await Building.findByIdAndUpdate({ _id }, body, { new: true });
   return data;
 };
 
 export const deleteBuilding = async (id) => {
-  await Building.findByIdAndDelete(id);
-  return '';
-};
+  const building = await Building.findById(id);
+  if (!building) {
+    throw new Error('Building not found');
+  }
 
+  await Building.findByIdAndDelete(id);
+  return { success: true };
+};

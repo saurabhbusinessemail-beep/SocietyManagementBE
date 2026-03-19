@@ -11,6 +11,8 @@ import {
 import { newRecordFields } from '../middlewares/newRecordFields';
 import { updateRecordFields } from '../middlewares/updateRecordFields';
 import { decacheCurrentUser } from '../middlewares/decache.middleware';
+import { checkFeature, checkBuildingLimit, checkFlatLimit } from '../middlewares/featureGuard.middleware';
+import { FEATURES } from '../config/features';
 
 const router = express.Router();
 
@@ -23,16 +25,17 @@ router.get(
   societyController.getAllSocieties
 );
 
-
 router.post(
   '/unApproved',
   checkPermissions(['society.add']),
   societyController.getAllUnApprovedSocieties
 );
+
 router.post(
   '/mySocietiesForApproval',
   societyController.getMySocietiesForApproval
 );
+
 router.post(
   '/sentForApproval',
   newRecordFields,
@@ -43,7 +46,7 @@ router.post(
 router.get('/search', societyController.searchSocieties);
 
 router.get(
-  '/:id',
+  '/:societyId',
   societyController.getSociety
 );
 
@@ -56,7 +59,7 @@ router.post(
 );
 
 router.put(
-  '/:id',
+  '/:societyId',
   checkPermissions(['society.update'], true),
   updateRecordFields,
   decacheCurrentUser,
@@ -64,14 +67,14 @@ router.put(
 );
 
 router.patch(
-  '/:id',
+  '/:societyId',
   checkPermissions(['society.add'], true),
   decacheCurrentUser,
   societyController.approveRejectSociety
 );
 
 router.delete(
-  '/:id',
+  '/:societyId',
   checkPermissions(['society.delete'], true),
   decacheCurrentUser,
   societyController.deleteSociety
@@ -79,128 +82,143 @@ router.delete(
 
 // Managers
 router.post(
-  '/:id/managers',
+  '/:societyId/managers',
   checkPermissions(['manager.add'], true),
   societyController.newSocietyManager
 );
 
 router.delete(
-  '/:id/managers/:managerId',
+  '/:societyId/managers/:managerId',
   checkPermissions(['manager.delete'], true),
   societyController.deleteSocietyManager
 );
 
 // Admin Contacts
 router.post(
-  '/:id/adminContacts',
+  '/:societyId/adminContacts',
   checkPermissions(['society.adminContact.add'], true),
   societyController.newSocietyAdmin
 );
 
 router.delete(
-  '/:id/adminContacts/:adminId',
+  '/:societyId/adminContacts/:adminId',
   checkPermissions(['adminContact.delete'], true),
   societyController.deleteSocietyAdmin
 );
 
 // Buildings
 router.get(
-  '/:id/buildings/:buildingId',
+  '/:societyId/buildings/:buildingId',
   checkPermissions(['building.view'], true),
   buildingController.getBuilding
 );
 
 router.get(
-  '/:id/buildings',
+  '/:societyId/buildings',
   buildingController.getBuildingsBySociety
 );
 
 router.post(
-  '/:id/buildings',
+  '/:societyId/buildings',
   checkPermissions(['building.add'], true),
   newRecordFields,
+  checkBuildingLimit,
   buildingController.createBuilding
 );
 
 router.put(
-  '/:id/buildings/:buildingId',
+  '/:societyId/buildings/:buildingId',
   checkPermissions(['building.update'], true),
   updateRecordFields,
   buildingController.updateBuilding
 );
 
 router.delete(
-  '/:id/buildings/:buildingId',
+  '/:societyId/buildings/:buildingId',
   checkPermissions(['building.delete'], true),
   buildingController.deleteBuilding
 );
 
 // Flats
 router.get(
-  '/:id/buildings/:buildingId/flats',
+  '/:societyId/buildings/:buildingId/flats',
   flatController.getFlatsBySocietyAndBuilding
 );
+
 router.get(
-  '/:id/flats',
+  '/:societyId/flats',
   flatController.getFlatsBySocietyAndBuilding
 );
 
 router.post(
-  '/:id/flats',
+  '/:societyId/flats',
   checkPermissions(['flat.add'], true),
   newRecordFields,
+  checkFlatLimit,
   flatController.createFlat
 );
+
 router.post(
-  '/:id/flats/bulk',
+  '/:societyId/flats/bulk',
   checkPermissions(['flat.add'], true),
+  checkFlatLimit,
   flatController.bulkCreateFlats
 );
 
 router.delete(
-  '/:id/flats/:flatId',
+  '/:societyId/flats/:flatId',
   checkPermissions(['flat.delete'], true),
   flatController.deleteFlat
 );
 
 // Parkings
 router.get(
-  '/:id/buildings/:buildingId/parkings',
+  '/:societyId/buildings/:buildingId/parkings',
   checkPermissions(['parking.view'], true),
+  checkFeature(FEATURES.PARKING),
   parkingController.getParkingsBySocietyAndBuilding
 );
+
 router.get(
-  '/:id/flats/:flatId/parkings',
+  '/:societyId/flats/:flatId/parkings',
+  checkFeature(FEATURES.PARKING),
   parkingController.getParkingsBySocietyAndBuilding
 );
+
 router.get(
-  '/:id/parkings',
+  '/:societyId/parkings',
   checkPermissions(['parking.view'], true),
+  checkFeature(FEATURES.PARKING),
   parkingController.getParkingsBySocietyAndBuilding
 );
 
 router.post(
-  '/:id/parkings',
+  '/:societyId/parkings',
   checkPermissions(['parking.add'], true),
   newRecordFields,
+  checkFeature(FEATURES.PARKING),
   parkingController.createParking
 );
+
 router.post(
-  '/:id/parkings/bulk',
+  '/:societyId/parkings/bulk',
   checkPermissions(['parking.add'], true),
+  checkFeature(FEATURES.PARKING),
   parkingController.bulkCreateParkings
 );
 
 router.put(
-  '/:id/parkings/:parkingId',
+  '/:societyId/parkings/:parkingId',
   checkPermissions(['parking.update'], true),
   updateRecordFields,
+  checkFeature(FEATURES.PARKING),
   parkingController.updateParking
 );
 
 router.delete(
-  '/:id/parkings/:parkingId',
+  '/:societyId/parkings/:parkingId',
   checkPermissions(['parking.delete'], true),
+  checkFeature(FEATURES.PARKING),
   parkingController.deleteParking
 );
 

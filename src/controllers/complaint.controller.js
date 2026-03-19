@@ -130,9 +130,6 @@ const getMemberComplaints = async (req, res) => {
     filter.flatId = flatId;
     if (complaintType) filter = { ...filter, complaintType };
   } else {
-    // get my complaints
-    // get public complaint of my socities
-
     const flatMembers = await FlatMember.find({
       userId: logUsr._id
     });

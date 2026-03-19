@@ -24,7 +24,7 @@ export const getAllSocieties = async (filter, options = {}) => {
   const skip = (page - 1) * limit;
   const updatedFilter = applyMandatoryFilter(filter);
   const [data, total] = await Promise.all([
-    Society.find(updatedFilter).skip(skip).limit(limit).sort({ societyName: 1 }).populate('adminContacts').populate('managerIds').populate('createdByUserId'),
+    Society.find(updatedFilter).skip(skip).limit(limit).sort({ societyName: 1 }).populate('adminContacts').populate('managerIds').populate('createdByUserId').populate('modifiedByUserId'),
     Society.countDocuments(updatedFilter)
   ]);
 
@@ -120,7 +120,7 @@ export const updateSociety = async (_id, body) => {
 /**
  * Approve single society
  */
-export const approveSociety = async (_id, body) => {
+export const approveSociety = async (_id) => {
   const data = await Society.findByIdAndUpdate({ _id }, { isApproved: true }, { new: true });
   return data;
 };
@@ -128,7 +128,7 @@ export const approveSociety = async (_id, body) => {
 /**
  * Reject single society
  */
-export const rejectSociety = async (_id, body) => {
+export const rejectSociety = async (_id) => {
   const data = await Society.findByIdAndUpdate({ _id }, { isApproved: false, isRejected: true }, { new: true });
   return data;
 };
@@ -138,7 +138,7 @@ export const rejectSociety = async (_id, body) => {
  */
 export const deleteSociety = async (id) => {
   await Society.findByIdAndDelete(id);
-  return '';
+  return { success: true };
 };
 
 /**
@@ -233,34 +233,51 @@ export const getMySocities = async (userId, withSocietyRoles = false) => {
 
 export const newSocietyManager = async (societyId, manager) => {
   const society = await Society.findById(societyId);
-  if (!society.managerIds) society.managerIds = [];
+  if (!society) throw new Error('Society not found');
 
-  if (!society.managerIds.some((m) => m === manager._id)) society.managerIds.push(manager._id);
+  if (!society.managerIds) society.managerIds = [];
+  if (!society.managerIds.some((m) => m.toString() === manager._id.toString())) {
+    society.managerIds.push(manager._id);
+  }
 
   await Society.findByIdAndUpdate({ _id: societyId }, society, { new: true });
 };
 
 export const deleteSocietyManager = async (societyId, managerId) => {
   const society = await Society.findById(societyId);
+  if (!society) throw new Error('Society not found');
+
   if (!society.managerIds) society.managerIds = [];
-  society.managerIds = society.managerIds.filter((m) => m != managerId);
+  society.managerIds = society.managerIds.filter((m) => m.toString() !== managerId);
 
   await Society.findByIdAndUpdate({ _id: societyId }, society, { new: true });
 };
 
 export const newSocietyAdmin = async (societyId, admin) => {
   const society = await Society.findById(societyId);
-  if (!society.adminContacts) society.adminContacts = [];
+  if (!society) throw new Error('Society not found');
 
-  if (!society.adminContacts.some((m) => m === admin._id)) society.adminContacts.push(admin._id);
+  if (!society.adminContacts) society.adminContacts = [];
+  if (!society.adminContacts.some((m) => m.toString() === admin._id.toString())) {
+    society.adminContacts.push(admin._id);
+  }
 
   await Society.findByIdAndUpdate({ _id: societyId }, society, { new: true });
 };
 
 export const deleteSocietyAdmin = async (societyId, adminId) => {
   const society = await Society.findById(societyId);
+  if (!society) throw new Error('Society not found');
+
   if (!society.adminContacts) society.adminContacts = [];
-  society.adminContacts = society.adminContacts.filter((m) => m != adminId);
+  society.adminContacts = society.adminContacts.filter((m) => m.toString() !== adminId);
 
   await Society.findByIdAndUpdate({ _id: societyId }, society, { new: true });
+};
+
+export const getSocietyManagers = async (societyId) => {
+  const society = await Society.findById(societyId)
+    .populate('managerIds')
+    .select('managerIds');
+  return society?.managerIds || [];
 };

@@ -1,7 +1,6 @@
 import * as societyService from '../services/society.service';
 import * as userService from '../services/user.service';
 import * as NotificationService from '../services/notification.service';
-const { User } = require('../models');
 
 /**
  * Get all societies
@@ -66,7 +65,8 @@ export const getMySocietiesForApproval = async (req, res, next) => {
  */
 export const getSociety = async (req, res, next) => {
   try {
-    const data = await societyService.getSociety(req.params.id);
+    const { societyId } = req.params;
+    const data = await societyService.getSociety(societyId);
     res.json(data);
   } catch (err) {
     next(err);
@@ -75,7 +75,8 @@ export const getSociety = async (req, res, next) => {
 
 export const getSocietyManagers = async (req, res) => {
   try {
-    const data = await societyService.getSocietyManagers(req.params.id);
+    const { societyId } = req.params;
+    const data = await societyService.getSocietyManagers(societyId);
     res.json(data);
   } catch (err) {
     next(err);
@@ -112,7 +113,8 @@ export const newSociety = async (req, res, next) => {
  */
 export const updateSociety = async (req, res, next) => {
   try {
-    const data = await societyService.updateSociety(req.params.id, req.body);
+    const { societyId } = req.params;
+    const data = await societyService.updateSociety(societyId, req.body);
     res.json(data);
   } catch (err) {
     next(err);
@@ -124,18 +126,19 @@ export const updateSociety = async (req, res, next) => {
  */
 export const approveRejectSociety = async (req, res, next) => {
   try {
+    const { societyId } = req.params;
     const payload = req.body;
     const isApproved = payload?.['approved'] && payload['approved'] === true;
     const data = isApproved ?
-      await societyService.approveSociety(req.params.id)
-      : await societyService.rejectSociety(req.params.id);
+      await societyService.approveSociety(societyId)
+      : await societyService.rejectSociety(societyId);
 
     const fromUser = res.locals.user;
     const toUserId = data.createdByUserId;
-    const toUser = userService.getUser(toUserId);
+    const toUser = await userService.getUser(toUserId);
 
-    if (toUser.fcmToken) {
-      NotificationService.sendApproveRejectSocietyNotification(fromUser, toUserId, data, toUser.fcmToken, isApproved);
+    if (toUser?.fcmToken) {
+      await NotificationService.sendApproveRejectSocietyNotification(fromUser, toUserId, data, toUser.fcmToken, isApproved);
     }
 
     res.json(data);
@@ -149,7 +152,8 @@ export const approveRejectSociety = async (req, res, next) => {
  */
 export const deleteSociety = async (req, res, next) => {
   try {
-    await societyService.deleteSociety(req.params.id);
+    const { societyId } = req.params;
+    await societyService.deleteSociety(societyId);
     res.json({ success: true });
   } catch (err) {
     next(err);
@@ -174,7 +178,7 @@ export const searchSocieties = async (req, res, next) => {
 
 export const newSocietyManager = async (req, res, next) => {
   try {
-    const societyId = req.params.id;
+    const { societyId } = req.params;
     let payload = req.body;
     if (!payload._id) {
       payload = await userService.findOrCreateUser(payload);
@@ -188,8 +192,7 @@ export const newSocietyManager = async (req, res, next) => {
 
 export const deleteSocietyManager = async (req, res, next) => {
   try {
-    const societyId = req.params.id;
-    const managerId = req.params.managerId;
+    const { societyId, managerId } = req.params;
     await societyService.deleteSocietyManager(societyId, managerId);
     res.json({ success: true });
   } catch (err) {
@@ -199,7 +202,7 @@ export const deleteSocietyManager = async (req, res, next) => {
 
 export const newSocietyAdmin = async (req, res, next) => {
   try {
-    const societyId = req.params.id;
+    const { societyId } = req.params;
     let payload = req.body;
     if (!payload._id) {
       payload = await userService.findOrCreateUser(payload);
@@ -213,8 +216,7 @@ export const newSocietyAdmin = async (req, res, next) => {
 
 export const deleteSocietyAdmin = async (req, res, next) => {
   try {
-    const societyId = req.params.id;
-    const adminId = req.params.adminId;
+    const { societyId, adminId } = req.params;
     await societyService.deleteSocietyAdmin(societyId, adminId);
     res.json({ success: true });
   } catch (err) {

@@ -1,4 +1,3 @@
-import { FlatMember } from '../models';
 const vehicleService = require('../services/vehicle.service');
 
 export const createVehicle = async (req, res, next) => {

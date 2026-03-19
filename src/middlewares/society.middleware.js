@@ -6,7 +6,7 @@ export const checkPermissions = (
     const user = res.locals.user;
     if (user.role === 'admin') return next();
 
-    const id = req.params.id;
+    const id = req.params.societyId;
 
     const socities = res.locals.socities ?? [];
     const allowedSocities = socities.filter(
