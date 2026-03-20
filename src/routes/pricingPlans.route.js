@@ -9,12 +9,11 @@ router.get('/plans', pricingController.getAllPlans);
 router.get('/plans/:planId', pricingController.getPlanById);
 router.get('/features', pricingController.getAllFeatures);
 router.post('/validate-coupon', pricingController.validateCoupon);
+router.get('/plans/:planId/durations', pricingController.getPlanDurations);
 
 // AUTHENTICATION
 router.use(userAuth);
 
-// Get available durations for a plan with calculated prices
-router.get('/plans/:planId/durations', pricingController.getPlanDurations);
 
 // Purchase a plan for a society
 router.post('/purchase/:societyId', pricingController.purchase);
