@@ -79,8 +79,7 @@ const menus = [
     menuId: 'demo',
     menuName: 'Demo',
     icon: 'demo',
-    relativePath: '/demo/list',
-    loadWithoutSociety: true
+    relativePath: '/demo/list'
   },
 ];
 
