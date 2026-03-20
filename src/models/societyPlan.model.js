@@ -42,7 +42,14 @@ const SocietyPlanSchema = new mongoose.Schema({
 
     // Metadata
     purchasedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    notes: { type: String }
+    notes: { type: String },
+
+    // Duration
+    selectedDuration: {
+    value: { type: Number, required: true },
+    unit: { type: String, enum: ['months', 'years'], required: true }
+}
+
 }, { timestamps: true });
 
 // Indexes for faster lookups

@@ -1,5 +1,11 @@
 const mongoose = require("mongoose");
 
+const DurationOptionSchema = new mongoose.Schema({
+    value: { type: Number, required: true }, // 1, 3, 6, 9, 12 for months or 1-10 for years
+    unit: { type: String, enum: ['months', 'years'], required: true },
+    discount: { type: Number, default: 0 } // Percentage discount for this duration
+}, { _id: false });
+
 const PricingFeatureSchema = new mongoose.Schema({
     key: { type: String, required: true },
     name: { type: String, required: true },
@@ -39,7 +45,14 @@ const PricingPlanSchema = new mongoose.Schema({
     isPopular: { type: Boolean, default: false },
     isBestValue: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
-    sortOrder: { type: Number, default: 0 }
+    sortOrder: { type: Number, default: 0 },
+
+    //Duration
+    durationOptions: [DurationOptionSchema],
+    allowedDurations: {
+        months: [{ type: Number }], // e.g., [1, 3, 6, 9, 12]
+        years: [{ type: Number }]    // e.g., [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model("PricingPlan", PricingPlanSchema);

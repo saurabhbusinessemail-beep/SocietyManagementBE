@@ -78,13 +78,34 @@ export const getAllFeatures = async (req, res) => {
 
 export const purchase = async (req, res, next) => {
     try {
-        const { planId, billingCycle = 'yearly' } = req.body;
+        const {
+            planId,
+            durationValue,
+            durationUnit,
+            startDate,
+            couponCode
+        } = req.body;
+
         const loggedInUserId = res.locals.user?._id;
 
-        if (!loggedInUserId)
+        if (!loggedInUserId) {
             throw new Error('User must be logged in to purchase a plan for society.');
+        }
 
-        const data = await PricingPlanService.purchase(planId, req.params.societyId, loggedInUserId, billingCycle)
+        if (!durationValue || !durationUnit) {
+            throw new Error('Duration value and unit are required');
+        }
+
+        const data = await PricingPlanService.purchase(
+            planId,
+            req.params.societyId,
+            loggedInUserId,
+            durationValue,
+            durationUnit,
+            startDate,
+            couponCode
+        );
+
         res.status(201).json(data);
     } catch (err) {
         next(err);
@@ -115,8 +136,26 @@ export const getPlanHistory = async (req, res, next) => {
 
 export const calculateChangePrice = async (req, res, next) => {
     try {
-        const { societyId, newPlanId, couponCode } = req.body;
-        const data = await PricingPlanService.calculateChangePrice(societyId, newPlanId, couponCode);
+        const {
+            societyId,
+            newPlanId,
+            durationValue,
+            durationUnit,
+            couponCode
+        } = req.body;
+
+        if (!durationValue || !durationUnit) {
+            throw new Error('Duration value and unit are required');
+        }
+
+        const data = await PricingPlanService.calculateChangePrice(
+            societyId,
+            newPlanId,
+            durationValue,
+            durationUnit,
+            couponCode
+        );
+
         res.json(data);
     } catch (err) {
         next(err);
@@ -126,14 +165,36 @@ export const calculateChangePrice = async (req, res, next) => {
 export const changePlan = async (req, res, next) => {
     try {
         const { societyId } = req.params;
-        const { newPlanId, billingCycle = 'yearly', paymentMethod, paymentDetails } = req.body;
+        const {
+            newPlanId,
+            durationValue,
+            durationUnit,
+            paymentMethod,
+            paymentDetails,
+            couponCode
+        } = req.body;
+
         const loggedInUserId = res.locals.user?._id;
 
         if (!loggedInUserId) {
             throw new Error('User must be logged in to change plan');
         }
 
-        const data = await PricingPlanService.changePlan(societyId, newPlanId, loggedInUserId, billingCycle, paymentMethod, paymentDetails);
+        if (!durationValue || !durationUnit) {
+            throw new Error('Duration value and unit are required');
+        }
+
+        const data = await PricingPlanService.changePlan(
+            societyId,
+            newPlanId,
+            loggedInUserId,
+            durationValue,
+            durationUnit,
+            paymentMethod,
+            paymentDetails,
+            couponCode
+        );
+
         res.json(data);
     } catch (err) {
         next(err);
@@ -145,6 +206,18 @@ export const validateCoupon = async (req, res, next) => {
         const { couponCode, amount } = req.body;
         const data = await PricingPlanService.validateCoupon(couponCode, amount);
 
+        res.json(data);
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const getPlanDurations = async (req, res, next) => {
+    try {
+        const { planId } = req.params;
+        const { societyId } = req.query; // Optional: pass societyId to calculate with actual flat count
+
+        const data = await PricingPlanService.getPlanDurations(planId, societyId);
         res.json(data);
     } catch (err) {
         next(err);
