@@ -18,8 +18,10 @@ export const getRoleMenu = async (roles) => {
     menuIds = menuIds.concat(roleMenu.menus.map((m) => m.menuId));
     return menuIds;
   }, []);
+
+  const menusIdsAllowedWithoutSocities = (await Menu.find({ loadWithoutSociety: true }, {menuId: 1}).lean()).map(o => o.menuId);
   // .menus.map((m) => m.menuId);
-  const uniqueMenuIds = [...(new Set(allowedMenuIds))];
+  const uniqueMenuIds = [...(new Set([...allowedMenuIds, ...menusIdsAllowedWithoutSocities]))];
 
   // Fetch menu definitions
   const menusFromDb = await Menu.find({ menuId: { $in: uniqueMenuIds } });

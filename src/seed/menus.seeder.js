@@ -6,79 +6,81 @@ const menus = [
     menuId: 'society',
     menuName: 'Societies',
     icon: 'society-icon',
-    relativePath: '/society/list'
+    relativePath: '/society/list',
   },
   {
     menuId: 'myflats',
     menuName: 'My Flats',
     icon: 'home',
-    relativePath: '/myflats'
+    relativePath: '/myflats',
   },
   {
     menuId: 'visitors',
     menuName: 'Visitors',
     icon: 'visitor',
-    relativePath: '/visitors'
+    relativePath: '/visitors',
   },
   {
     menuId: 'complaints',
     menuName: 'Complaints',
     icon: 'complaint',
-    relativePath: '/complaints'
+    relativePath: '/complaints',
   },
   {
     menuId: 'tenants',
     menuName: 'Tenant Management',
     icon: 'tenant',
-    relativePath: '/tenants'
+    relativePath: '/tenants',
   },
   {
     menuId: 'members',
     menuName: 'Members',
     icon: 'member',
-    relativePath: '/members'
+    relativePath: '/members',
   },
   {
     menuId: 'announcements',
     menuName: 'Announcements',
     icon: 'announcement',
-    relativePath: '/announcements'
+    relativePath: '/announcements',
   },
   {
     menuId: 'gateentry', // for security
     menuName: 'Gate Entry',
     icon: 'gateentry',
-    relativePath: '/gateentry/dashboard'
+    relativePath: '/gateentry/dashboard',
   },
   {
     menuId: 'gatepass',
     menuName: 'Gate Pass',
     icon: 'gatepass',
-    relativePath: '/gatepass'
+    relativePath: '/gatepass',
   },
   {
     menuId: 'vehicle',
     menuName: 'Vehicles',
     icon: 'vehicle',
-    relativePath: '/vehicles'
+    relativePath: '/vehicles',
   },
   {
     menuId: 'user',
     menuName: 'User',
     icon: 'account',
-    relativePath: '/user'
+    relativePath: '/user',
   },
   {
     menuId: 'unApprovedSocieties',
     menuName: 'Pending Approval',
     icon: 'approve-reject',
-    relativePath: '/society/pendingApproval'
+    relativePath: '/society/pendingApproval',
+    loadWithoutSociety: true
   },
   {
     menuId: 'demo',
     menuName: 'Demo',
     icon: 'demo',
-    relativePath: '/demo/list'
+    relativePath: '/demo/list',
+    loadWithoutSociety: true
   },
 ];
 
