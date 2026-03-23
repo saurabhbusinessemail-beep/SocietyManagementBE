@@ -162,9 +162,12 @@ export const purchase = async (
     if (!plan) {
         throw new Error('Plan not found');
     }
+    if (plan.id !== 'basic' && !durationValue || !durationUnit) {
+        throw new Error('Duration value and unit are required');
+    }
 
     // Validate duration option
-    const isValidDuration = plan.allowedDurations?.[durationUnit]?.includes(durationValue);
+    const isValidDuration = plan.id === 'basic' || plan.allowedDurations?.[durationUnit]?.includes(durationValue);
     if (!isValidDuration) {
         throw new Error(`Invalid duration: ${durationValue} ${durationUnit} not allowed for this plan`);
     }

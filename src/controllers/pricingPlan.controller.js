@@ -93,10 +93,6 @@ export const purchase = async (req, res, next) => {
             throw new Error('User must be logged in to purchase a plan for society.');
         }
 
-        if (!durationValue || !durationUnit) {
-            throw new Error('Duration value and unit are required');
-        }
-
         let data = await PricingPlanService.purchase(
             planId,
             req.params.societyId,
@@ -108,7 +104,6 @@ export const purchase = async (req, res, next) => {
         );
 
         if (data.finalAmount > 0) {
-            console.log('data = ', data);
             const order = await RazorPayService.createOrder({
                 orderId: data._id,
                 amount: data.finalAmount,
