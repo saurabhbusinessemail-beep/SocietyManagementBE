@@ -1,4 +1,5 @@
 import * as PricingPlanService from '../services/pricingPlan.service';
+import * as RazorPayService from '../services/razorpay.service';
 
 export const getAllPlans = async (req, res) => {
     try {
@@ -96,7 +97,7 @@ export const purchase = async (req, res, next) => {
             throw new Error('Duration value and unit are required');
         }
 
-        const data = await PricingPlanService.purchase(
+        let data = await PricingPlanService.purchase(
             planId,
             req.params.societyId,
             loggedInUserId,
@@ -105,6 +106,21 @@ export const purchase = async (req, res, next) => {
             startDate,
             couponCode
         );
+
+        if (data.finalAmount > 0) {
+            console.log('data = ', data);
+            const order = await RazorPayService.createOrder({
+                orderId: data._id,
+                amount: data.finalAmount,
+                notes: {
+                    type: 'SOCIETY_PLAN'
+                },
+            });
+
+            if (order) {
+                data = await PricingPlanService.updateRazorpayOrderId(data._id, order.id);
+            }
+        }
 
         res.status(201).json(data);
     } catch (err) {
@@ -184,7 +200,7 @@ export const changePlan = async (req, res, next) => {
             throw new Error('Duration value and unit are required');
         }
 
-        const data = await PricingPlanService.changePlan(
+        let data = await PricingPlanService.changePlan(
             societyId,
             newPlanId,
             loggedInUserId,
@@ -194,6 +210,20 @@ export const changePlan = async (req, res, next) => {
             paymentDetails,
             couponCode
         );
+
+        if (data.finalAmount > 0) {
+            const order = await RazorPayService.createOrder({
+                orderId: data._id,
+                amount: data.finalAmount,
+                notes: {
+                    type: 'SOCIETY_PLAN'
+                },
+            });
+
+            if (order) {
+                data = await PricingPlanService.updateRazorpayOrderId(data._id, order.id);
+            }
+        }
 
         res.json(data);
     } catch (err) {

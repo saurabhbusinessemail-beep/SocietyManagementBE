@@ -9,6 +9,7 @@ import flatRoutes from './flat.route';
 import complaintRoutes from './complaint.route';
 import demoRoutes from './demo.route';
 import newUserRoutes from './newUser.routes';
+import paymentRoutes from './payment.routes';
 import gatepassRoutes from './gatepass.route';
 import gateentryRoutes from './gateentry.route';
 import announcement from './announcement.route';
@@ -58,6 +59,8 @@ const routes = () => {
   router.use('/announcement', announcement);
   router.use('/comments', comments);
   router.use('/vehicle', vehicle);
+  router.use('/payments', paymentRoutes);
+  
 
   return router;
 };

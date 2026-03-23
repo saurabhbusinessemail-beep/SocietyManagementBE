@@ -39,6 +39,8 @@ const SocietyPlanSchema = new mongoose.Schema({
     finalAmount: { type: Number, default: 0 },
     couponCode: { type: String },
     paymentStatus: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
+    razorpayOrderId: { type: String },
+    razorPayTransaction: { type: String },
 
     // Metadata
     purchasedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

@@ -8,7 +8,7 @@ const calculateCouponDiscount = (couponCode, amount) => {
         'SKFREE': { type: 'percentage', value: 100 }, // 100% off
         'SAVE10': { type: 'percentage', value: 10 },  // 10% off
         'SAVE20': { type: 'percentage', value: 20 },  // 20% off
-        'FLAT5000': { type: 'fixed', value: 5000 }      // ₹500 off
+        'FLAT5000': { type: 'fixed', value: 5000 }      // ₹5000 off
     };
 
     const coupon = coupons[couponCode.toUpperCase()];
@@ -21,6 +21,8 @@ const calculateCouponDiscount = (couponCode, amount) => {
         discount = (amount * coupon.value) / 100;
     } else if (coupon.type === 'fixed') {
         discount = coupon.value;
+    } else if (coupon.type === 'direct') {
+        discount = amount - coupon.value;
     }
 
     // Ensure discount doesn't exceed amount
@@ -227,6 +229,34 @@ export const purchase = async (
     });
 
     return await societyPlan.save();
+};
+
+export const updateRazorpayOrderId = async (societyPlanId, razorpayOrderId) => {
+    const updatedPlan = await SocietyPlan.findByIdAndUpdate(
+        societyPlanId,
+        { razorpayOrderId },
+        { new: true }
+    );
+
+    if (!updatedPlan) {
+        throw new Error(`SocietyPlan with id ${societyPlanId} not found`);
+    }
+
+    return updatedPlan;
+};
+
+export const updatePaymentStatus = async (societyPlanId, status, razorPayTransaction) => {
+    const updatedPlan = await SocietyPlan.findByIdAndUpdate(
+        societyPlanId,
+        { paymentStatus: status, razorPayTransaction: JSON.stringify(razorPayTransaction) },
+        { new: true }
+    );
+
+    if (!updatedPlan) {
+        throw new Error(`SocietyPlan with id ${societyPlanId} not found`);
+    }
+
+    return updatedPlan;
 };
 
 export const currentPlan = async (societyId) => {
@@ -475,6 +505,7 @@ export const changePlan = async (
             newDurationUnit,
             couponCode
         );
+        console.log('calculation = ', calculation);
 
         // Deactivate current plan
         await SocietyPlan.updateOne(
