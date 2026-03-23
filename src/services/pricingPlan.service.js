@@ -84,6 +84,20 @@ const calculatePlanAmount = (plan, flatCount, durationValue, durationUnit) => {
     return baseAmount;
 };
 
+// Helper function to disable one plan and activate another plan
+const changeActivePlan = async (societyId, reason = undefined) => {
+    await SocietyPlan.updateOne(
+        { societyId, isActive: true },
+        {
+            $set: {
+                isActive: false,
+                endDate: new Date(),
+                notes: reason
+            }
+        }
+    );
+}
+
 export const getAllPlans = async () => {
     try {
         const plans = await PricingPlan.find({ isActive: true })
@@ -187,15 +201,8 @@ export const purchase = async (
     }
 
     // Check if society already has an active plan
-    const existingPlan = await SocietyPlan.findOne({
-        societyId: societyId,
-        isActive: true
-    });
-
-    if (existingPlan) {
-        // Deactivate old plan
-        existingPlan.isActive = false;
-        await existingPlan.save();
+    if (finalAmount === 0) {
+        await changeActivePlan(societyId)
     }
 
     // Create society plan with duration details
@@ -225,7 +232,8 @@ export const purchase = async (
         finalAmount: finalAmount,
         couponCode: appliedCoupon,
         paymentStatus: finalAmount === 0 ? 'paid' : 'pending',
-        purchasedBy: loggedInUserId
+        purchasedBy: loggedInUserId,
+        isActive: finalAmount === 0 ? true : false
     });
 
     return await societyPlan.save();
@@ -246,14 +254,22 @@ export const updateRazorpayOrderId = async (societyPlanId, razorpayOrderId) => {
 };
 
 export const updatePaymentStatus = async (societyPlanId, status, razorPayTransaction) => {
+    const societyPlan = await SocietyPlan.findById(societyPlanId);
+    if (status === 'paid') {
+        changeActivePlan(societyPlan.societyId)
+    }
     const updatedPlan = await SocietyPlan.findByIdAndUpdate(
         societyPlanId,
-        { paymentStatus: status, razorPayTransaction: JSON.stringify(razorPayTransaction) },
+        {
+            paymentStatus: status,
+            razorPayTransaction: JSON.stringify(razorPayTransaction),
+            isActive: true
+        },
         { new: true }
     );
 
     if (!updatedPlan) {
-        throw new Error(`SocietyPlan with id ${societyPlanId} not found`);
+        return undefined;
     }
 
     return updatedPlan;
@@ -505,19 +521,11 @@ export const changePlan = async (
             newDurationUnit,
             couponCode
         );
-        console.log('calculation = ', calculation);
 
         // Deactivate current plan
-        await SocietyPlan.updateOne(
-            { societyId, isActive: true },
-            {
-                $set: {
-                    isActive: false,
-                    endDate: new Date(),
-                    notes: `Plan changed to ${calculation.newPlan.name} on ${new Date().toISOString()}`
-                }
-            }
-        );
+        if (calculation.calculation.finalAmount === 0) {
+            await changeActivePlan(societyId, `Plan changed to ${calculation.newPlan.name} on ${new Date().toISOString()}`)
+        }
 
         // Get new plan details
         const newPlan = await PricingPlan.findOne({ id: newPlanId, isActive: true }).lean();
@@ -554,7 +562,8 @@ export const changePlan = async (
             couponCode: calculation.calculation.couponCode,
             paymentStatus: calculation.calculation.finalAmount === 0 ? 'paid' : 'pending',
             purchasedBy: loggedInUserId,
-            notes: `Plan changed from previous plan. ${calculation.calculation.paymentReason}`
+            notes: `Plan changed from previous plan. ${calculation.calculation.paymentReason}`,
+            isActive: calculation.calculation.finalAmount === 0 ? true : false
         });
 
         await societyPlan.save();
