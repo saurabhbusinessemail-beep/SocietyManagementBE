@@ -260,7 +260,7 @@ export const updateRazorpayOrderId = async (societyPlanId, razorpayOrderId) => {
 export const updatePaymentStatus = async (societyPlanId, status, razorPayTransaction) => {
     const societyPlan = await SocietyPlan.findById(societyPlanId);
     if (status === 'paid') {
-        changeActivePlan(societyPlan.societyId)
+        await changeActivePlan(societyPlan.societyId)
     }
     const updatedPlan = await SocietyPlan.findByIdAndUpdate(
         societyPlanId,
