@@ -30,7 +30,6 @@ export const createOrder = async (params) => {
             },
             payment_capture: 1       // auto-capture payment
         };
-        console.log('options = ', options)
 
         const order = await razorpay.orders.create(options);
         return order;  // contains order.id (Razorpay order ID), amount, etc.

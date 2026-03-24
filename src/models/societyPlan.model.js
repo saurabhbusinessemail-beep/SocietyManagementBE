@@ -48,9 +48,9 @@ const SocietyPlanSchema = new mongoose.Schema({
 
     // Duration
     selectedDuration: {
-    value: { type: Number, required: true },
-    unit: { type: String, enum: ['months', 'years'], required: true }
-}
+        value: { type: Number },
+        unit: { type: String, enum: ['months', 'years'] }
+    }
 
 }, { timestamps: true });
 

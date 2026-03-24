@@ -8,7 +8,17 @@ export const getActivePlan = async (societyId, forceRefresh = false) => {
 
     if (!forceRefresh) {
         const cached = planCache.get(cacheKey);
-        if (cached) return cached;
+        if (cached) {
+            const nowDate = new Date();
+            const startDate = new Date(cached.startDate);
+            const endDate = cached.endDate ? new Date(cached.endDate) : null;
+            const isStarted = startDate <= nowDate;
+            const isNotExpired = !endDate || endDate >= nowDate;
+
+            if (isStarted && isNotExpired) {
+                return cached;
+            }
+        }
     }
 
     const now = new Date();

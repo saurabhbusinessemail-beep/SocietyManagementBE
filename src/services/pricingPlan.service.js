@@ -1,4 +1,5 @@
 import { PricingPlan, SocietyPlan, Society, Feature } from '../models';
+import { invalidatePlanCache } from './planCache.service'
 
 const calculateCouponDiscount = (couponCode, amount) => {
     if (!couponCode) return { discount: 0, finalAmount: amount, couponCode: null };
@@ -205,7 +206,7 @@ export const purchase = async (
 
     // Check if society already has an active plan
     if (finalAmount === 0) {
-        await changeActivePlan(societyId)
+        await changeActivePlan(societyId);
     }
 
     // Create society plan with duration details
@@ -274,6 +275,7 @@ export const updatePaymentStatus = async (societyPlanId, status, razorPayTransac
     if (!updatedPlan) {
         return undefined;
     }
+    invalidatePlanCache(societyPlan.societyId);
 
     return updatedPlan;
 };
@@ -316,10 +318,10 @@ export const currentPlan = async (societyId) => {
     const isExpired = now > endDate;
 
     // Calculate total months for the plan
-    const totalMonths = getTotalMonths(
+    const totalMonths = societyPlan.selectedDuration ? getTotalMonths(
         societyPlan.selectedDuration.value,
         societyPlan.selectedDuration.unit
-    );
+    ) : 0;
 
     return {
         ...societyPlan,
@@ -359,7 +361,7 @@ export const getPlanHistory = async (societyId, page = 1, limit = 10) => {
         ...plan,
         planDetails: planMap[plan.planId],
         durationInDays: calculateDaysBetweenDates(plan.startDate, plan.endDate),
-        totalMonths: getTotalMonths(plan.selectedDuration.value, plan.selectedDuration.unit)
+        totalMonths: plan.selectedDuration ? getTotalMonths(plan.selectedDuration.value, plan.selectedDuration.unit) : 0
     }));
 
     return {
@@ -571,6 +573,7 @@ export const changePlan = async (
 
         await societyPlan.save();
 
+        invalidatePlanCache(societyId);
         return societyPlan;
     } catch (error) {
         throw error;

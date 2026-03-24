@@ -84,11 +84,11 @@ export const webhookController = async (req, res) => {
     switch (event) {
         case 'payment.captured':
             // Payment successful – update your DB, send email, etc.
-            console.log('Payment captured:', payload.payment.entity);
+            console.log('Payment captured:', payload.payment.entity.notes.orderId);
             updatePaymentStatus(payload.payment.entity.notes.orderId, 'paid', payload.payment.entity)
             break;
         case 'payment.failed':
-            console.log('Payment failed:', payload.payment.entity);
+            console.log('Payment failed:', payload.payment.entity.notes.orderId);
             updatePaymentStatus(payload.payment.entity.notes.orderId, 'failed', payload.payment.entity)
             break;
         case 'refund.created':
