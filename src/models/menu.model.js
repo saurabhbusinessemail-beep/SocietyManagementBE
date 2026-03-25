@@ -5,6 +5,7 @@ const MenuSchema = new mongoose.Schema({
   menuName: { type: String, required: true },
   icon: { type: String },
   relativePath: { type: String },
+  mandatorFeatureAccess: { type: String },
   loadWithoutSociety: { type: Boolean }
 }, { timestamps: true });
 

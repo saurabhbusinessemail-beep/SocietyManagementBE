@@ -1,5 +1,6 @@
 // scripts/seedMenus.js
 const { Menu } = require('../models');
+import { FEATURES } from '../config/features';
 
 const menus = [
   {
@@ -18,48 +19,56 @@ const menus = [
     menuId: 'visitors',
     menuName: 'Visitors',
     icon: 'visitor',
+    mandatorFeatureAccess: FEATURES.VISITOR_MANAGEMENT,
     relativePath: '/visitors',
   },
   {
     menuId: 'complaints',
     menuName: 'Complaints',
     icon: 'complaint',
+    mandatorFeatureAccess: FEATURES.COMPLAINTS,
     relativePath: '/complaints',
   },
   {
     menuId: 'tenants',
     menuName: 'Tenant Management',
     icon: 'tenant',
+    mandatorFeatureAccess: FEATURES.TENANT_MANAGEMENT,
     relativePath: '/tenants',
   },
   {
     menuId: 'members',
     menuName: 'Members',
     icon: 'member',
+    mandatorFeatureAccess: FEATURES.FLAT_MEMBER_MANAGEMENT,
     relativePath: '/members',
   },
   {
     menuId: 'announcements',
     menuName: 'Announcements',
     icon: 'announcement',
+    mandatorFeatureAccess: FEATURES.ANNOUNCEMENTS,
     relativePath: '/announcements',
   },
   {
     menuId: 'gateentry', // for security
     menuName: 'Gate Entry',
     icon: 'gateentry',
+    mandatorFeatureAccess: FEATURES.GATE_ENTRIES,
     relativePath: '/gateentry/dashboard',
   },
   {
     menuId: 'gatepass',
     menuName: 'Gate Pass',
     icon: 'gatepass',
+    mandatorFeatureAccess: FEATURES.SMART_GATE_PASS,
     relativePath: '/gatepass',
   },
   {
     menuId: 'vehicle',
     menuName: 'Vehicles',
     icon: 'vehicle',
+    mandatorFeatureAccess: FEATURES.VEHICLE,
     relativePath: '/vehicles',
   },
   {
