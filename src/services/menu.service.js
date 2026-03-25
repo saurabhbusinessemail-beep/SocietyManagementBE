@@ -43,7 +43,8 @@ export const getRoleMenu = async (roles) => {
       menuName: menuDef.menuName,
       icon: menuDef.icon,
       relativePath: menuDef.relativePath,
-      sortOrder: rmMenu?.sortOrder
+      sortOrder: rmMenu?.sortOrder,
+      mandatorFeatureAccess: menuDef.mandatorFeatureAccess
     });
   }
 

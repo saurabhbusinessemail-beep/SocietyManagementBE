@@ -73,8 +73,8 @@ const roleMenus = [
   {
     role: 'security',
     menus: [
-      { menuId: 'gateentry', sortOrder: 1 },
-      { menuId: 'society', sortOrder: 2 },
+      { menuId: 'society', sortOrder: 1 },
+      { menuId: 'gateentry', sortOrder: 2 },
       { menuId: 'unApprovedSocieties', sortOrder: 3 }
     ]
   }

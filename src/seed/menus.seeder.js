@@ -13,6 +13,7 @@ const menus = [
     menuId: 'myflats',
     menuName: 'My Flats',
     icon: 'home',
+    mandatorFeatureAccess: FEATURES.NUMBER_OF_FLATS,
     relativePath: '/myflats',
   },
   {
