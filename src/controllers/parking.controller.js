@@ -43,7 +43,7 @@ export const updateParking = async (req, res, next) => {
 export const getParkingsBySocietyAndBuilding = async (req, res, next) => {
   try {
     const { page, limit } = req.query;
-    const societyId = req.params.id;
+    const societyId = req.params.societyId;
     const buildingId = req.params.buildingId;
     const flatId = req.params.flatId;
     let filter = {

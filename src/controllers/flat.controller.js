@@ -52,6 +52,24 @@ export const getFlatsBySocietyAndBuilding = async (req, res, next) => {
   }
 };
 
+export const getFlatsCountBySocietyAndBuilding = async (req, res, next) => {
+  try {
+    const societyId = req.params.societyId;
+    const buildingId = req.params.buildingId;
+
+    let filter = {
+      ...(res.locals.filter ?? {}),
+      societyId
+    };
+    if (buildingId) filter['buildingId'] = buildingId;
+
+    const data = await flatService.getFlatsCountBySocietyAndBuilding(filter);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getFlatById = async (req, res, next) => {
   try {
     const data = await flatService.getFlatById(req.params.flatId);

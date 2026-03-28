@@ -118,6 +118,11 @@ router.get(
   buildingController.getBuildingsBySociety
 );
 
+router.get(
+  '/:societyId/buildingsCount',
+  buildingController.getBuildingsCountBySociety
+);
+
 router.post(
   '/:societyId/buildings',
   checkPermissions(['building.add'], true),
@@ -140,6 +145,17 @@ router.delete(
 );
 
 // Flats
+router.get(
+  '/:societyId/buildings/:buildingId/flatsCount',
+  flatController.getFlatsCountBySocietyAndBuilding
+);
+
+router.get(
+  '/:societyId/flatsCount',
+  flatController.getFlatsCountBySocietyAndBuilding
+);
+
+
 router.get(
   '/:societyId/buildings/:buildingId/flats',
   flatController.getFlatsBySocietyAndBuilding

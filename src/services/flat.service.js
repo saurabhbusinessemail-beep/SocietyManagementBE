@@ -33,6 +33,15 @@ export const getFlatsBySocietyAndBuilding = async (filter, options = {}) => {
   };
 };
 
+export const getFlatsCountBySocietyAndBuilding = async (filter) => {
+  const count = await Flat.countDocuments(filter);
+
+  return {
+    data: count,
+    success: true
+  };
+};
+
 // Flat Members
 export const myFlats = async (userId, societyId = null, options = {}) => {
   const { page = 1, limit = 1000 } = options;

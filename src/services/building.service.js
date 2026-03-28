@@ -25,6 +25,15 @@ export const getBuildingsBySociety = async (filter, options = {}) => {
   };
 };
 
+export const getBuildingsCountBySociety = async (filter) => {
+  const count = await Building.countDocuments(filter);
+
+  return {
+    data: count,
+    success: true
+  };
+};
+
 export const gettBuilding = async (id) => {
   const data = await Building.findById(id).populate('managerId').populate('societyId').populate('createdByUserId').populate('modifiedByUserId');
   return data;

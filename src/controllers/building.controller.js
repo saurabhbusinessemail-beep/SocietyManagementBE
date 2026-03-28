@@ -48,6 +48,17 @@ export const getBuildingsBySociety = async (req, res, next) => {
   }
 };
 
+export const getBuildingsCountBySociety = async (req, res, next) => {
+  try {
+    const { societyId } = req.params;
+    const filter = { ...(res.locals.filter ?? {}), societyId };
+    const data = await buildingService.getBuildingsCountBySociety(filter);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getBuilding = async (req, res, next) => {
   try {
     const data = await buildingService.gettBuilding(req.params.buildingId);
