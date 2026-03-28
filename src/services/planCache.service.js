@@ -22,7 +22,7 @@ export const getActivePlan = async (societyId, forceRefresh = false) => {
     }
 
     const now = new Date();
-    let plan = await SocietyPlan.findOne({
+    const query = {
         societyId,
         isActive: true,
         startDate: { $lte: now },
@@ -31,7 +31,17 @@ export const getActivePlan = async (societyId, forceRefresh = false) => {
             { endDate: null },
             { endDate: { $gte: now } }
         ]
-    }).lean();
+    };
+    let plan = await SocietyPlan.findOne(query).lean();
+
+    // if no plan found then check for basic plan is active
+    if (!plan) {
+        const query1 = {
+            societyId,
+            isActive: true
+        }
+        plan = await SocietyPlan.findOne(query1).lean();
+    }
 
     if (!plan) {
         plan = (await createDummySocietyPlan(societyId)).toObject()
@@ -140,12 +150,12 @@ export const createDummySocietyPlan = async (societyId) => {
             discountAmount: 0,
             finalAmount: 0,
             paymentStatus: 'paid',
-            notes: 'Dummy Basic plan created for testing'
+            notes: 'Basic plan auto created'
         });
 
         await societyPlan.save();
 
-        console.log(`✅ Dummy Basic plan created for society: ${society.societyName}`);
+        console.log(`✅ Basic plan auto created for society: ${society.societyName}`);
         return societyPlan;
 
     } catch (error) {

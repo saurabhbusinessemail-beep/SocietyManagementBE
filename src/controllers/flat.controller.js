@@ -1,4 +1,5 @@
 const flatService = require('../services/flat.service');
+import { flatLimitExceeded } from '../middlewares/featureGuard.middleware';
 
 export const createFlat = async (req, res, next) => {
   try {
@@ -11,6 +12,7 @@ export const createFlat = async (req, res, next) => {
 
 export const bulkCreateFlats = async (req, res, next) => {
   try {
+    const societyId = req.params.societyId;
     const user = res.locals.user;
     if (!user || !user._id) {
       return res.status(403).json({
@@ -18,9 +20,17 @@ export const bulkCreateFlats = async (req, res, next) => {
       });
     }
 
+    
     let flats = req.body;
+
+    const limitError = await flatLimitExceeded(societyId, flats.length);
+    if (limitError) {
+      return res.status(403).json(limitError);
+    }
+
     flats.forEach((flat) => {
-      flat.createdOn = new Date();
+      societyId,
+        flat.createdOn = new Date();
       flat.createdByUserId = user._id;
     });
     const data = await flatService.bulkCreateFlats(flats);

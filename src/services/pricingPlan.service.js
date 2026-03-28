@@ -1,5 +1,5 @@
 import { PricingPlan, SocietyPlan, Society, Feature } from '../models';
-import { invalidatePlanCache } from './planCache.service'
+import { invalidatePlanCache, createDummySocietyPlan } from './planCache.service'
 
 const calculateCouponDiscount = (couponCode, amount) => {
     if (!couponCode) return { discount: 0, finalAmount: amount, couponCode: null };
@@ -208,6 +208,7 @@ export const purchase = async (
     if (finalAmount === 0) {
         await changeActivePlan(societyId);
     }
+    invalidatePlanCache(societyId);
 
     // Create society plan with duration details
     const societyPlan = new SocietyPlan({
@@ -289,16 +290,7 @@ export const currentPlan = async (societyId) => {
     if (!societyPlan) {
         // Return default basic plan info
         const basicPlan = await PricingPlan.findOne({ id: 'basic' }).lean();
-        return {
-            planDetails: basicPlan,
-            usage: {
-                daysUsed: 0,
-                remainingDays: 0,
-                usedPercentage: 0,
-                startDate: new Date(),
-                endDate: new Date()
-            }
-        };
+        return createDummySocietyPlan(societyId);
     }
 
     // Get full plan details

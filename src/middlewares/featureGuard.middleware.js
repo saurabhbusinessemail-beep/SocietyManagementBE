@@ -72,24 +72,9 @@ export const checkFlatLimit = async (req, res, next) => {
         if (!societyId) {
             return next();
         }
-
-        const plan = await getActivePlan(societyId);
-
-        if (!plan || plan.planId === 'basic') {
-            const flatCount = await Flat.countDocuments({ societyId });
-            const feature = plan?.featureMap?.number_of_flats;
-            const limit = feature?.limit || 10;
-
-            if (flatCount >= limit) {
-                return res.status(403).json({
-                    success: false,
-                    code: 'FLAT_LIMIT_EXCEEDED',
-                    message: `Your plan allows only ${limit} flats. Please upgrade to add more.`,
-                    plan: plan?.planName || 'No active plan',
-                    limit,
-                    current: flatCount
-                });
-            }
+        const limitError = await flatLimitExceeded(societyId);
+        if (limitError) {
+            return res.status(403).json(limitError);
         }
 
         next();
@@ -97,6 +82,27 @@ export const checkFlatLimit = async (req, res, next) => {
         next(error);
     }
 };
+
+export const flatLimitExceeded = async (societyId, incominCount = 1) => {
+    const plan = await getActivePlan(societyId);
+
+    if (!plan || plan.planId === 'basic') {
+        const flatCount = await Flat.countDocuments({ societyId });
+        const feature = plan?.featureMap?.number_of_flats;
+        const limit = feature?.limit || 10;
+
+        if ((flatCount + incominCount) > limit) {
+            return {
+                success: false,
+                code: 'FLAT_LIMIT_EXCEEDED',
+                message: `Your plan allows only ${limit} flats. Please upgrade to add more.`,
+                plan: plan?.planName || 'No active plan',
+                limit,
+                current: flatCount
+            };
+        }
+    }
+}
 
 export const checkFeatureCombo = (conditions) => {
     return async (req, res, next) => {
