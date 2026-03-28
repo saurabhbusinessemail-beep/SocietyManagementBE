@@ -401,7 +401,7 @@ export const calculateChangePrice = async (societyId, newPlanId, newDurationValu
     if (currentPlan) {
         // Calculate current plan value using its duration
         currentPlanValue = calculatePlanAmount(
-            { price: currentPlan.price },
+            currentPlan,
             flatCount,
             currentPlan.selectedDuration.value,
             currentPlan.selectedDuration.unit
