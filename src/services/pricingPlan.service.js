@@ -1,5 +1,5 @@
 import { PricingPlan, SocietyPlan, Society, Feature } from '../models';
-import { invalidatePlanCache, createDummySocietyPlan } from './planCache.service'
+import { invalidatePlanCache, createDummySocietyPlan } from './planCache.service';
 
 const calculateCouponDiscount = (couponCode, amount) => {
     if (!couponCode) return { discount: 0, finalAmount: amount, couponCode: null };
@@ -40,7 +40,7 @@ const calculateCouponDiscount = (couponCode, amount) => {
 const calculateDaysBetweenDates = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    return Math.round((end - start) / (1000 * 60 * 60 * 24));
 };
 
 // Helper function to calculate end date from start date and duration
@@ -261,7 +261,7 @@ export const updateRazorpayOrderId = async (societyPlanId, razorpayOrderId) => {
 export const updatePaymentStatus = async (societyPlanId, status, razorPayTransaction) => {
     const societyPlan = await SocietyPlan.findById(societyPlanId);
     if (status === 'paid') {
-        await changeActivePlan(societyPlan.societyId)
+        await changeActivePlan(societyPlan.societyId);
     }
     const updatedPlan = await SocietyPlan.findByIdAndUpdate(
         societyPlanId,
@@ -399,14 +399,6 @@ export const calculateChangePrice = async (societyId, newPlanId, newDurationValu
     let usedValue = 0;
 
     if (currentPlan) {
-        // Calculate current plan value using its duration
-        currentPlanValue = calculatePlanAmount(
-            currentPlan,
-            flatCount,
-            currentPlan.selectedDuration.value,
-            currentPlan.selectedDuration.unit
-        );
-
         const now = new Date();
         const startDate = new Date(currentPlan.startDate);
         const endDate = new Date(currentPlan.endDate);
@@ -414,8 +406,11 @@ export const calculateChangePrice = async (societyId, newPlanId, newDurationValu
         totalDays = calculateDaysBetweenDates(startDate, endDate);
         daysUsed = now > endDate ? totalDays : Math.max(0, calculateDaysBetweenDates(startDate, now));
 
-        usedValue = (currentPlanValue / totalDays) * daysUsed;
-        remainingValue = Math.max(0, currentPlanValue - usedValue);
+        // Use the actual amount paid (finalAmount) for prorating
+        const amountPaid = currentPlan.finalAmount; // This is after any coupon/discount
+        usedValue = (amountPaid / totalDays) * daysUsed;
+        remainingValue = Math.max(0, amountPaid - usedValue);
+        currentPlanValue = amountPaid; // For reference
     }
 
     // Calculate new plan value
