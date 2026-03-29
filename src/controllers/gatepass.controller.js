@@ -35,7 +35,7 @@ export const getGatePasses = async (req, res, next) => {
     if (flatId) filter.flatId = flatId;
 
     if (!flatId) {
-      const myFlatMemberRecords = (await flatService.myFlats(user._id, societyId)).data;
+      const myFlatMemberRecords = (await flatService.myFlatIds(user._id, societyId));
       const flatIds = myFlatMemberRecords.map((fm) => fm.flatId._id);
       if (flatIds && flatIds.length > 0) {
         filter.flatId = { $in: flatIds };

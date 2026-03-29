@@ -47,7 +47,7 @@ export const myFlats = async (userId, societyId = null, options = {}) => {
   const { page = 1, limit = 1000 } = options;
   const skip = (page - 1) * limit;
 
-  let filter = { userId: { $in: userId } };
+  let filter = { userId: userId };
   if (societyId) {
     filter = { ...filter, societyId };
   }
@@ -70,14 +70,48 @@ export const myFlats = async (userId, societyId = null, options = {}) => {
     FlatMember.countDocuments(filter)
   ]);
 
+  const updatedData = await Promise.all(data.map(async (flat) => {
+    // Convert Mongoose document to plain object
+    const flatObj = flat.toObject();
+    let updatedMember = { ...flatObj };
+
+    if (updatedMember.residingType === 'Tenant') {
+      const tenant = await getFlatTenent(updatedMember.flatId._id);
+      updatedMember.tenant = tenant;
+    }
+    if (!updatedMember.isOwner) {
+      const owner = await getFlatOwner(updatedMember.flatId._id);
+      updatedMember.owner = owner;
+    }
+
+    return updatedMember;
+  }));
+
   return {
-    data,
+    data: updatedData,
     total,
     page,
     limit,
     success: true
   };
 };
+
+const getFlatOwner = async (flatId) => {
+  return FlatMember.findOne({ flatId, isOwner: true, status: 'active' }).populate('userId');
+}
+
+const getFlatTenent = async (flatId) => {
+  return FlatMember.findOne({ flatId, isTenant: true, status: 'active' }).populate('userId');
+}
+
+export const myFlatIds = async (userId, societyId = null) => {
+  let filter = { userId: { $in: userId } };
+  if (societyId) {
+    filter = { ...filter, societyId };
+  }
+
+  return await FlatMember.find(filter);
+}
 
 export const myTenants = async (userId, societyId = null, flatId = null, options = {}) => {
   const { page = 1, limit = 1000 } = options;
