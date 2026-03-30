@@ -135,6 +135,7 @@ export const createDummySocietyPlan = async (societyId) => {
         // Create the SocietyPlan
         const societyPlan = new SocietyPlan({
             societyId: society._id,
+            flatsCount: 10,
             planId: basicPlan.id,
             planName: basicPlan.name,
             price: basicPlan.price,

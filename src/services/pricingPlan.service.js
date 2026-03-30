@@ -213,6 +213,7 @@ export const purchase = async (
     // Create society plan with duration details
     const societyPlan = new SocietyPlan({
         societyId: societyId,
+        flatsCount: flatCount,
         planId: plan.id,
         planName: plan.name,
         price: plan.price, // Keep original price string for reference
@@ -514,6 +515,9 @@ export const changePlan = async (
             couponCode
         );
 
+        const society = await Society.findById({ societyId });
+        const flatCount = society.numberOfFlats || 1;
+
         // Deactivate current plan
         if (calculation.calculation.finalAmount === 0) {
             await changeActivePlan(societyId, `Plan changed to ${calculation.newPlan.name} on ${new Date().toISOString()}`)
@@ -529,6 +533,7 @@ export const changePlan = async (
         // Create new plan
         const societyPlan = new SocietyPlan({
             societyId,
+            flatsCount: flatCount,
             planId: newPlan.id,
             planName: newPlan.name,
             price: newPlan.price,

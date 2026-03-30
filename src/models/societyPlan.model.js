@@ -13,6 +13,7 @@ const PurchasedFeatureSchema = new mongoose.Schema({
 const SocietyPlanSchema = new mongoose.Schema({
     // Society reference
     societyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Society', required: true },
+    flatsCount: { type: Number, required: true },
 
     // Plan reference
     planId: { type: String, ref: 'PricingPlan', required: true },

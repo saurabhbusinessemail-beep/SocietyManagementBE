@@ -86,22 +86,23 @@ export const checkFlatLimit = async (req, res, next) => {
 export const flatLimitExceeded = async (societyId, incominCount = 1) => {
     const plan = await getActivePlan(societyId);
 
-    if (!plan || plan.planId === 'basic') {
-        const flatCount = await Flat.countDocuments({ societyId });
-        const feature = plan?.featureMap?.number_of_flats;
-        const limit = feature?.limit || 10;
+    // if (!plan || plan.planId === 'basic') {
+    const flatCount = await Flat.countDocuments({ societyId });
+    const feature = plan?.featureMap?.number_of_flats;
+    const limit = plan.flatsCount ?? (feature?.limit || 10);
 
-        if ((flatCount + incominCount) > limit) {
-            return {
-                success: false,
-                code: 'FLAT_LIMIT_EXCEEDED',
-                message: `Your plan allows only ${limit} flats. Please upgrade to add more.`,
-                plan: plan?.planName || 'No active plan',
-                limit,
-                current: flatCount
-            };
-        }
+    console.log({ flatCount, incominCount, limit })
+    if ((flatCount + incominCount) > limit) {
+        return {
+            success: false,
+            code: 'FLAT_LIMIT_EXCEEDED',
+            message: `Your plan allows only ${limit} flats. Please upgrade your plan to add more.`,
+            plan: plan?.planName || 'No active plan',
+            limit,
+            current: flatCount
+        };
     }
+    // }
 }
 
 export const checkFeatureCombo = (conditions) => {
