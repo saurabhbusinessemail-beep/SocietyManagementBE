@@ -1,4 +1,4 @@
-import { Society } from '../models';
+import { Society, Flat } from '../models';
 import * as SecurityService from '../services/security.service';
 
 /*
@@ -113,6 +113,10 @@ export const newSociety = async (body) => {
  * Update single society
  */
 export const updateSociety = async (_id, body) => {
+  const existingFlatCount = await Flat.countDocuments({ societyId: _id });
+  if (existingFlatCount > body.numberOfFlats) {
+    throw new Error(`You have already added ${existingFlatCount} flats for this society. You cannot decrease the flat count without removing some flats.`)
+  }
   const data = await Society.findByIdAndUpdate({ _id }, body, { new: true });
   return data;
 };
