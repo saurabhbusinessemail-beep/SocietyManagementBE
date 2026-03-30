@@ -515,7 +515,7 @@ export const changePlan = async (
             couponCode
         );
 
-        const society = await Society.findById({ societyId });
+        const society = await Society.findById(societyId);
         const flatCount = society.numberOfFlats || 1;
 
         // Deactivate current plan
