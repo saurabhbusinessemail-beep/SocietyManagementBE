@@ -79,6 +79,7 @@ export const getAllFeatures = async (req, res) => {
 
 export const purchase = async (req, res, next) => {
     try {
+        const { societyId } = req.params;
         const {
             planId,
             durationValue,
@@ -86,6 +87,13 @@ export const purchase = async (req, res, next) => {
             startDate,
             couponCode
         } = req.body;
+
+        if (await PricingPlanService.checkIfTrailPlanIsAlreadyPurchased(societyId, planId)) {
+            return res.status(403).json({
+                success: false,
+                message: 'You cannot use the trial plan more than once. If you still wish an extended trail; please contact administrator.'
+            })
+        }
 
         const loggedInUserId = res.locals.user?._id;
 
@@ -95,7 +103,7 @@ export const purchase = async (req, res, next) => {
 
         let data = await PricingPlanService.purchase(
             planId,
-            req.params.societyId,
+            societyId,
             loggedInUserId,
             durationValue,
             durationUnit,
@@ -184,6 +192,14 @@ export const changePlan = async (req, res, next) => {
             paymentDetails,
             couponCode
         } = req.body;
+
+
+        if (await PricingPlanService.checkIfTrailPlanIsAlreadyPurchased(societyId, newPlanId)) {
+            return res.status(403).json({
+                success: false,
+                message: 'You cannot use the trial plan more than once. If you still wish an extended trail; please contact administrator.'
+            })
+        }
 
         const loggedInUserId = res.locals.user?._id;
 

@@ -665,3 +665,11 @@ export const getPlanDurations = async (planId, societyId = null) => {
         throw error;
     }
 };
+
+export const checkIfTrailPlanIsAlreadyPurchased = async (societyId, planId) => {
+    if (planId !== 'starter-trial') return false;
+
+    const existingPlan = await SocietyPlan.findOne({ societyId, planId });
+    if (existingPlan) return true;
+    else return false;
+}
