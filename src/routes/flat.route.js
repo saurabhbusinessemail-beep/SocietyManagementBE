@@ -10,7 +10,7 @@ router.get('/myFlats', flatController.myFlats);
 
 router.get('/get/:flatId', flatController.getFlatById);
 
-router.get('/:id/myFlats', flatController.myFlats);
+router.get('/:societyId/myFlats', flatController.myFlats);
 
 router.get('/myFlats/:flatMemberId', isFlatMember, flatController.flatMember);
 
