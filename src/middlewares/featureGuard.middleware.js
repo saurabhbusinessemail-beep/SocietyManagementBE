@@ -91,7 +91,6 @@ export const flatLimitExceeded = async (societyId, incominCount = 1) => {
     const feature = plan?.featureMap?.number_of_flats;
     const limit = plan.flatsCount ?? (feature?.limit || 10);
 
-    console.log({ flatCount, incominCount, limit })
     if ((flatCount + incominCount) > limit) {
         return {
             success: false,
