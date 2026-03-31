@@ -37,8 +37,12 @@ export const requestOtp = async (req, res) => {
 
     // Send Notification
     if (fcmToken) await NotificationService.sendOTPNotification(user, user, otp, fcmToken);
-    const smsSent = await SMSService.sendOTPMessage(otp, `+91${phoneNumber}`);
-    if (smsSent) console.log('SMS Sent');
+    try {
+      const smsSent = await SMSService.sendOTPMessage(otp, `+91${phoneNumber}`);
+      if (smsSent) console.log('SMS Sent');
+    } catch (err) {
+      console.log('Error while sending sms: ', err)
+    }
 
     return res.json({
       success: true,
