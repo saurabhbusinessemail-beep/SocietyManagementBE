@@ -1,40 +1,6 @@
 import { PricingPlan, SocietyPlan, Society, Feature } from '../models';
 import { invalidatePlanCache, createDummySocietyPlan } from './planCache.service';
-
-const calculateCouponDiscount = (couponCode, amount) => {
-    if (!couponCode) return { discount: 0, finalAmount: amount, couponCode: null };
-
-    // Define available coupons
-    const coupons = {
-        'SKFREE': { type: 'percentage', value: 100 }, // 100% off
-        'SAVE10': { type: 'percentage', value: 10 },  // 10% off
-        'SAVE20': { type: 'percentage', value: 20 },  // 20% off
-        'FLAT5000': { type: 'fixed', value: 5000 }      // ₹5000 off
-    };
-
-    const coupon = coupons[couponCode.toUpperCase()];
-    if (!coupon) {
-        throw new Error('Invalid coupon code');
-    }
-
-    let discount = 0;
-    if (coupon.type === 'percentage') {
-        discount = (amount * coupon.value) / 100;
-    } else if (coupon.type === 'fixed') {
-        discount = coupon.value;
-    } else if (coupon.type === 'direct') {
-        discount = amount - coupon.value;
-    }
-
-    // Ensure discount doesn't exceed amount
-    discount = Math.min(discount, amount);
-
-    return {
-        discount,
-        finalAmount: amount - discount,
-        couponCode: couponCode.toUpperCase()
-    };
-};
+const couponService = require('../services/coupon.service');
 
 // Helper function to calculate days between dates
 const calculateDaysBetweenDates = (startDate, endDate) => {
@@ -195,7 +161,7 @@ export const purchase = async (
 
     if (couponCode) {
         try {
-            const couponResult = calculateCouponDiscount(couponCode, baseAmount);
+            const couponResult = await couponService.calculateDiscount(couponCode, baseAmount, planId);
             discount = couponResult.discount;
             finalAmount = couponResult.finalAmount;
             appliedCoupon = couponResult.couponCode;
@@ -439,7 +405,7 @@ export const calculateChangePrice = async (societyId, newPlanId, newDurationValu
 
     if (couponCode && amountToPay > 0) {
         try {
-            const couponResult = calculateCouponDiscount(couponCode, amountToPay);
+            const couponResult = await couponService.calculateDiscount(couponCode, amountToPay, newPlanId);
             discount = couponResult.discount;
             finalAmount = couponResult.finalAmount;
             appliedCoupon = couponResult.couponCode;
@@ -572,9 +538,9 @@ export const changePlan = async (
     }
 };
 
-export const validateCoupon = async (couponCode, amount) => {
+export const validateCoupon = async (couponCode, amount, planId = null) => {
     try {
-        const result = calculateCouponDiscount(couponCode, amount);
+        const result = await couponService.calculateDiscount(couponCode, amount, planId);
         return {
             valid: true,
             ...result

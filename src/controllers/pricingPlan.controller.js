@@ -244,8 +244,8 @@ export const changePlan = async (req, res, next) => {
 
 export const validateCoupon = async (req, res, next) => {
     try {
-        const { couponCode, amount } = req.body;
-        const data = await PricingPlanService.validateCoupon(couponCode, amount);
+        const { couponCode, amount, planId = null } = req.body;
+        const data = await PricingPlanService.validateCoupon(couponCode, amount, planId);
 
         res.json(data);
     } catch (err) {

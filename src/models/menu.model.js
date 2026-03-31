@@ -6,6 +6,7 @@ const MenuSchema = new mongoose.Schema({
   icon: { type: String },
   relativePath: { type: String },
   mandatorFeatureAccess: { type: String },
+  onlyForSuperAdmin: { type: Boolean },
   loadWithoutSociety: { type: Boolean }
 }, { timestamps: true });
 

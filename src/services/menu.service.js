@@ -54,6 +54,9 @@ export const getRoleMenu = async (roles) => {
   return finalMenus;
 };
 
-export const getAllMenu = async () => {
-  return await Menu.find();
+export const getAllMenu = async (isSuperAdmin) => {
+  const menus = await Menu.find();
+  if (isSuperAdmin) return menus;
+
+  return menus.filter(m => !m.onlyForSuperAdmin);
 };

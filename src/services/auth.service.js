@@ -9,7 +9,8 @@ export const getUserToken = async (user) => {
         name: user.name,
         phoneNumber: user.phoneNumber,
         status: user.status,
-        role: user.role
+        role: user.role,
+        isSuperAdmin: user.isSuperAdmin,
     };
 
     // Generate JWT with basic info only

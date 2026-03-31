@@ -2,6 +2,7 @@ const Announcement = require('./announcement.model');
 const Building = require('./building.model');
 const Comments = require('./comments.model');
 const Complaint = require('./complaint.model');
+const Coupon = require('./coupon.model');
 const DemoBooking = require('./demo.model');
 const Feature = require('./feature.model');
 const Flat = require('./flat.model');
@@ -27,6 +28,7 @@ module.exports = {
   Building,
   Comments,
   Complaint,
+  Coupon,
   DemoBooking,
   Feature,
   Flat,

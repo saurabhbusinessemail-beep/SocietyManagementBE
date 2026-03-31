@@ -78,7 +78,7 @@ export const userAuth = async (req, res, next) => {
     // Get menus based on role
     const allMenus = decoded.user.role === 'user'
       ? await MenuService.getRoleMenu(roles)
-      : await MenuService.getAllMenu();
+      : await MenuService.getAllMenu(decoded.user.isSuperAdmin);
 
     // Store in locals
     res.locals.user = decoded.user;

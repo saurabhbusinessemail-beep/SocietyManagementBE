@@ -10,7 +10,8 @@ const UserSchema = new mongoose.Schema({
 
   // multiple roles or role mappings stored as strings or small sub-docs
   role: { type: String, enum: ['admin', 'user'], default: 'user' }, // e.g. 'admin','manager'
-  
+  isSuperAdmin: { type: Boolean },
+
   fcmToken: { type: String },
 
   // optional meta

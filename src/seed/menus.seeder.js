@@ -76,7 +76,15 @@ const menus = [
     menuId: 'user',
     menuName: 'User',
     icon: 'account',
+    onlyForSuperAdmin: true,
     relativePath: '/user',
+  },
+  {
+    menuId: 'coupon',
+    menuName: 'Coupons',
+    icon: 'coupon',
+    onlyForSuperAdmin: true,
+    relativePath: '/coupons',
   },
   {
     menuId: 'unApprovedSocieties',

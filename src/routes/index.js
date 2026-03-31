@@ -7,6 +7,7 @@ import pricingPlanRoutes from './pricingPlans.route';
 import societyRoutes from './society.route';
 import flatRoutes from './flat.route';
 import complaintRoutes from './complaint.route';
+import couponRoutes from './coupon.routes';
 import demoRoutes from './demo.route';
 import miscRoutes from './misc.route';
 import newUserRoutes from './newUser.routes';
@@ -53,6 +54,7 @@ const routes = () => {
   router.use('/societies', societyRoutes);
   router.use('/flats', flatRoutes);
   router.use('/complaint', complaintRoutes);
+  router.use('/coupons', couponRoutes);
   router.use('/demo', demoRoutes);
   router.use('/misc', miscRoutes);
   router.use('/newUser', newUserRoutes);
