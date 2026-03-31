@@ -1,8 +1,7 @@
 import * as UserService from '../services/user.service';
 import * as AuthService from '../services/auth.service';
-import * as MenuService from '../services/menu.service';
+import * as SMSService from '../services/sms.service';
 import * as NotificationService from '../services/notification.service';
-import * as userUtils from '../utils/user.util';
 
 const { User, Otp } = require('../models');
 
@@ -38,6 +37,8 @@ export const requestOtp = async (req, res) => {
 
     // Send Notification
     if (fcmToken) await NotificationService.sendOTPNotification(user, user, otp, fcmToken);
+    const smsSent = await SMSService.sendOTPMessage(otp, `+91${phoneNumber}`);
+    if (smsSent) console.log('SMS Sent');
 
     return res.json({
       success: true,

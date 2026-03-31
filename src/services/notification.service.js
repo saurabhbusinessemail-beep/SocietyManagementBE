@@ -1,12 +1,13 @@
 import { Notification, User } from '../models';
+import * as messageConfig from '../config/message.config';
 const admin = require('../firebase/firebase');
 const mongoose = require('mongoose');
 
 export const sendOTPNotification = async (fromUser, toUserId, otp, fcmToken) => {
   const fromUserId = fromUser._id;
-  const title = 'OTP Verification';
-  const type = 'OTP';
-  const message = `Your one-time verification code is: ${otp}. If you did not request this code, please ignore this message or contact our support team immediately.`;
+  const title = messageConfig.OTP.title;
+  const type = messageConfig.OTP.type;
+  const message = messageConfig.OTP.message(otp);
 
   const payload = {
     userId: toUserId,
@@ -33,10 +34,10 @@ export const sendOTPNotification = async (fromUser, toUserId, otp, fcmToken) => 
 
 export const sendGateEntryRequestNotification = async (fromUser, toUserId, gateEntry, fcmToken) => {
   const fromUserId = fromUser._id;
-  const title = 'Gate Entry Request';
+  const title = messageConfig.GATE_ENTRY_REQUEST.title;
   const isRequested = gateEntry.status === 'requested';
-  const type = isRequested ? 'GATE_PASS' : 'GENERAL';
-  const message = isRequested ? `${gateEntry.visitorName} is requesting for gate entry` + (gateEntry.purpose ? ` for ${gateEntry.purpose}` : '.') : `${gateEntry.visitorName} has entered premises`;
+  const type = isRequested ? messageConfig.GATE_ENTRY_REQUEST.type : messageConfig.GATE_ENTERED.type;
+  const message = isRequested ? messageConfig.GATE_ENTRY_REQUEST.message(gateEntry) : messageConfig.GATE_ENTERED.message(gateEntry);
 
   const payload = {
     userId: toUserId,
@@ -66,41 +67,6 @@ export const sendGateEntryRequestNotification = async (fromUser, toUserId, gateE
   return notificationData;
 };
 
-export const sendApproveRejectSocietyNotification = async (fromUser, toUserId, society, fcmToken, isApproved) => {
-  const fromUserId = fromUser._id;
-  const title = isApproved ? 'Society Approved' : 'Society Rejected';
-  const type = 'GENERAL';
-  const message = isApproved ? `Society ${society.societyName} has been approved. You and others can now start adding themselves as Flat Owner, Tenant or Security. You are the society admin of this society.`
-  : `Society ${society.societyName} has been rejected. Please contact admin to get more info on this.`;
-
-  const payload = {
-    userId: toUserId,
-    societyId: society._id,
-    type,
-    title,
-    message,
-    data: society,
-    triggeredByUserId: fromUserId,
-    createdByUserId: fromUserId,
-    createdOn: new Date()
-  };
-
-  const notificationData = await Notification.create(payload);
-  if (fcmToken) {
-    try {
-      await sendNotificationToUser(fcmToken, title, message, {
-        notificationId: notificationData._id,
-        gateEntryId: gateEntry._id,
-        type
-      });
-    } catch (err) {
-      await Notification.findByIdAndDelete(notificationData._id);
-      throw new Error('Could not send approval alert to user. A notification has been sent');
-    }
-  }
-  return notificationData;
-}
-
 
 export const resendNotification = async (type, dataId) => {
   const notifications = await Notification.find({
@@ -123,9 +89,9 @@ export const resendNotification = async (type, dataId) => {
 
 export const sendGateEntryResponseNotification = async (fromUser, toUserId, gateEntry, fcmToken) => {
   const fromUserId = fromUser._id;
-  const title = 'Gate Entry Response';
-  const type = 'GATE_PASS_RESPONSE';
-  const message = `Flat member has ${gateEntry.status} gate entry request for ${gateEntry.visitorName}`;
+  const title = messageConfig.GATE_ENTRY_RESPONSE.title;
+  const type = messageConfig.GATE_ENTRY_RESPONSE.type;
+  const message = messageConfig.GATE_ENTRY_RESPONSE.message(gateEntry);
 
   const payload = {
     userId: toUserId,
@@ -157,9 +123,9 @@ export const sendGateEntryResponseNotification = async (fromUser, toUserId, gate
 
 export const sendGateExitNotification = async (fromUser, toUserId, gateEntry, fcmToken) => {
   const fromUserId = fromUser._id;
-  const title = 'Gate Exit';
-  const type = 'GATE_EXIT';
-  const message = `${gateEntry.visitorName} has exited the premises.`;
+  const title = messageConfig.GATE_EXITED.title;
+  const type = messageConfig.GATE_EXITED.type;
+  const message = messageConfig.GATE_EXITED.message(gateEntry);
 
   const payload = {
     userId: toUserId,
@@ -188,6 +154,41 @@ export const sendGateExitNotification = async (fromUser, toUserId, gateEntry, fc
   }
   return notificationData;
 };
+
+export const sendApproveRejectSocietyNotification = async (fromUser, toUserId, society, fcmToken, isApproved) => {
+  const fromUserId = fromUser._id;
+  const title = isApproved ? messageConfig.SOCIETY_APPROVED.title : messageConfig.SOCIETY_REJECTED.title;
+  const type = messageConfig.SOCIETY_APPROVED.type;
+  const message = isApproved ? messageConfig.SOCIETY_APPROVED.message(society)
+    : messageConfig.SOCIETY_REJECTED.message(society);
+
+  const payload = {
+    userId: toUserId,
+    societyId: society._id,
+    type,
+    title,
+    message,
+    data: society,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        notificationId: notificationData._id,
+        gateEntryId: gateEntry._id,
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      throw new Error('Could not send approval alert to user. A notification has been sent');
+    }
+  }
+  return notificationData;
+}
 
 /* FIREBASE Notification */
 const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {
