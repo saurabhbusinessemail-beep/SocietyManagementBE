@@ -98,7 +98,7 @@ export const searchUsers = async (search, options = {}) => {
     };
   }
 
-  const regex = new RegExp(search.trim(), 'i'); // case-insensitive
+  const regex = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').trim(), 'i'); // case-insensitive
 
   const filter = {
     $or: [
