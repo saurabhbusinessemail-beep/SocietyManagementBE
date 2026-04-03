@@ -10,6 +10,7 @@ router.get('/plans/:planId', pricingController.getPlanById);
 router.get('/features', pricingController.getAllFeatures);
 router.post('/validate-coupon', pricingController.validateCoupon);
 router.get('/plans/:planId/durations', pricingController.getPlanDurations);
+router.get('/exchange/:currency', pricingController.getExchangeRates);
 
 // AUTHENTICATION
 router.use(userAuth);

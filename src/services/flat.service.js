@@ -446,17 +446,14 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
   const flatId = targetMember.flatId;
   const now = new Date();
 
-  // Update the all active tenants with lease end date
-  const data = await FlatMember.updateMany(
+  // Update the tenant's with lease end date
+  const data = await FlatMember.findByIdAndUpdate(
+    flatMemberId,
     {
-      flatId: flatId,
-      isTenant: true,
-      status: 'active'
-    }, {
-    $set: {
-      leaseEnd: moveOutDate
-    }
-  });
+      $set: {
+        leaseEnd: moveOutDate
+      }
+    });
 
 
   // Update all active non-owner members of the flat to residingType = 'Vacant' and status as Exprired
@@ -638,6 +635,13 @@ export const moveInTenant = async (flatMemberId, modifiedByUserId, moveInDate) =
   const flatId = targetMember.flatId;
   const now = new Date();
 
+  // Date
+  const today = new Date();
+  const startDate = (targetMember.leaseStart ? new Date(targetMember.leaseStart) : today);
+  startDate.setHours(0, 0, 0, 0);
+  const isUpComingTenant = today < startDate;
+  const updatedStartDate = isUpComingTenant ? today : startDate;
+  
   // 1. Check for an owner residing as Self
   const ownerSelf = await FlatMember.findOne({
     flatId,
@@ -654,7 +658,7 @@ export const moveInTenant = async (flatMemberId, modifiedByUserId, moveInDate) =
     flatId,
     isTenant: true,
     status: 'active',
-    id: { $ne: flatMemberId }
+    _id: { $ne: flatMemberId }
   });
 
   if (activeTenant) {
@@ -668,17 +672,18 @@ export const moveInTenant = async (flatMemberId, modifiedByUserId, moveInDate) =
       $set: {
         residingType: 'Tenant',
         modifiedOn: now,
-        modifiedByUserId: modifiedByUserId
+        modifiedByUserId: modifiedByUserId,
+        leaseStart: updatedStartDate
       }
     }
   );
 
   // await update current flat member as active
-  await FlatMember.findByIdAndUpdate(flatMemberId, {
+  const updatedMember = await FlatMember.findByIdAndUpdate(flatMemberId, {
     $set: {
       status: 'active'
     }
-  })
+  }, { new: true });
 };
 
 export const getCurrentResidingType = async (flatId) => {

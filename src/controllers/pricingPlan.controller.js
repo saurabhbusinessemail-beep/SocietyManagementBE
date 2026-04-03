@@ -1,5 +1,6 @@
 import * as PricingPlanService from '../services/pricingPlan.service';
 import * as RazorPayService from '../services/razorpay.service';
+import * as ConversionRateService from '../services/conversionrate.service';
 
 export const getAllPlans = async (req, res) => {
     try {
@@ -262,5 +263,17 @@ export const getPlanDurations = async (req, res, next) => {
         res.json(data);
     } catch (err) {
         next(err);
+    }
+};
+
+export const getExchangeRates = async (req, res) => {
+    const currency = req.params.currency.toUpperCase();
+    try {
+        let data = await ConversionRateService.getExchangeRates(currency);
+        
+        res.json(data);
+    } catch (error) {
+        console.error(`Error processing /exchange/${currency}:`, error.message);
+        res.status(500).json({ error: 'Failed to fetch exchange rate data' });
     }
 };
