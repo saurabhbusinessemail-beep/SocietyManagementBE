@@ -426,7 +426,7 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
 
   // 1. Find the target flat member (the tenant moving out)
   const targetMember = await FlatMember.findById(flatMemberId);
-  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId });
+  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId });
   if (!modifiedByMember) {
     throw new Error('You are not a flat member.');
   }
@@ -498,7 +498,7 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
 
 export const moveOutOwner = async (flatMemberId, modifiedByUserId) => {
   const targetMember = await FlatMember.findById(flatMemberId);
-  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId });
+  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId });
   if (!modifiedByMember) {
     throw new Error('You are not a flat member.');
   }
@@ -559,7 +559,7 @@ export const moveInSelf = async (flatMemberId, modifiedByUserId, moveOutDate = n
   }
 
   const targetMember = await FlatMember.findById(flatMemberId);
-  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId });
+  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId });
   if (!modifiedByMember) {
     throw new Error('You are not a flat member.');
   }
@@ -618,7 +618,8 @@ export const moveInSelf = async (flatMemberId, modifiedByUserId, moveOutDate = n
 export const moveInTenant = async (flatMemberId, modifiedByUserId, moveInDate) => {
 
   const targetMember = await FlatMember.findById(flatMemberId);
-  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId });
+  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId });
+  
   if (!modifiedByMember) {
     throw new Error('You are not a flat member.');
   }
