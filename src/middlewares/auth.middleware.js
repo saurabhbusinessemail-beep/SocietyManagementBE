@@ -1,5 +1,6 @@
 import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
+import { waitFor } from '../utils/other.util';
 import * as userUtils from '../utils/user.util';
 import * as MenuService from '../services/menu.service';
 import cacheService from '../services/cache.service';
@@ -16,6 +17,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'skSecret';
  */
 export const userAuth = async (req, res, next) => {
   try {
+    await waitFor(0);
     const authHeader = req.headers.authorization;
     const fcmToken = req.headers.fcmToken;
 
