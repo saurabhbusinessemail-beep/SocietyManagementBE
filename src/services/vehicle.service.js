@@ -141,3 +141,10 @@ export const updateVehicle = async (id, updateData) => {
   const updated = await Vehicle.findByIdAndUpdate(id, updateData, { new: true });
   return updated;
 };
+
+export const vehicleExists = async (flatId, vehicleNumber) => {
+  const existingVehicles = await Vehicle.find({ flatId, vehicleNumber });
+  if (existingVehicles.length === 0) return false;
+
+  return true;
+}
