@@ -42,3 +42,18 @@ export const getParkingsBySocietyAndBuilding = async (filter, options = {}) => {
     success: true
   };
 };
+
+export const parkingExists = async (societyId, buildingId = undefined, parkingNumber) => {
+  if (!societyId || !parkingNumber) {
+    throw new Error('Society Id and parkingNumber are required');
+  }
+
+  const query = { societyId, parkingNumber };
+  if (buildingId) {
+    query.buildingId = buildingId;
+  }
+
+
+  const exists = await Parking.findOne(query).select('_id').lean();
+  return !!exists;
+}

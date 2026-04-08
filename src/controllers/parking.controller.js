@@ -2,6 +2,11 @@ const parkingService = require('../services/parking.service');
 
 export const createParking = async (req, res, next) => {
   try {
+    const { societyId, buildingId, parkingNumber } = req.body;
+    if (await parkingService.parkingExists(societyId, buildingId, parkingNumber)) {
+      return res.status(409).json({ success: false, message: 'Same parking number already exists.' });
+    }
+
     const data = await parkingService.createParking(req.body);
     res.json(data);
   } catch (err) {
@@ -19,6 +24,20 @@ export const bulkCreateParkings = async (req, res, next) => {
     }
 
     let parkings = req.body;
+
+    // Check if any parking number already exists for given society and building
+    const existingParking = false;
+    for (let i = 0; i < parkings.length; i++) {
+      const p = parkings[i];
+      if (await parkingService.parkingExists(p.societyId, p.buildingId, p.parkingNumber)) {
+        existingParking = p;
+        break;
+      }
+    }
+    if (existingParking) {
+      return res.status(409).json({ success: false, message: `Parking number ${existingParking.parkingNumber} already exists. No Parking created` })
+    }
+
     parkings.forEach((parking) => {
       parking.createdOn = new Date();
       parking.createdByUserId = user._id;
