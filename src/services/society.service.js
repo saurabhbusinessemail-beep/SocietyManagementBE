@@ -285,3 +285,13 @@ export const getSocietyManagers = async (societyId) => {
     .select('managerIds');
   return society?.managerIds || [];
 };
+
+export const isSocietyAdminOrManager = async (userId, societyId) => {
+  const society = await Society.findById(societyId).select('adminContacts managerIds');
+  if (!society) return false;
+
+  const userIdStr = userId.toString();
+  const isAdmin = society.adminContacts.some(id => id.toString() === userIdStr);
+  const isManager = society.managerIds.some(id => id.toString() === userIdStr);
+  return isAdmin || isManager;
+};

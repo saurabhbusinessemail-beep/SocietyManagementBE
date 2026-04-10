@@ -96,13 +96,38 @@ export const myFlats = async (userId, societyId = null, options = {}) => {
   };
 };
 
-const getFlatOwner = async (flatId) => {
+export const getFlatOwner = async (flatId) => {
   return FlatMember.findOne({ flatId, isOwner: true, status: 'active' }).populate('userId');
 }
 
-const getFlatTenent = async (flatId) => {
+export const getFlatTenent = async (flatId) => {
   return FlatMember.findOne({ flatId, isTenant: true, status: 'active' }).populate('userId');
 }
+
+export const canAddDirectly = async (requester, memberData) => {
+  const { flatId, isOwner, isTenant, isMember, isTenantMember } = memberData;
+
+  // Adding an owner always requires society admin approval → cannot add directly
+  if (isOwner) return false;
+
+  const flatOwner = await getFlatOwner(flatId);
+  const flatTenant = await getFlatTenant(flatId);
+
+  const isRequesterOwner = flatOwner && flatOwner.userId._id.toString() === requester._id.toString();
+  const isRequesterTenant = flatTenant && flatTenant.userId._id.toString() === requester._id.toString();
+
+  // Adding a tenant → only owner can add directly
+  if (isTenant) return isRequesterOwner;
+
+  // Adding a member → only owner can add directly
+  if (isMember) return isRequesterOwner;
+
+  // Adding a tenant member → owner or tenant can add directly
+  if (isTenantMember) return isRequesterOwner || isRequesterTenant;
+
+  return false;
+};
+
 
 export const myFlatIds = async (userId, societyId = null) => {
   let filter = { userId: { $in: userId } };
@@ -619,7 +644,7 @@ export const moveInTenant = async (flatMemberId, modifiedByUserId, moveInDate) =
 
   const targetMember = await FlatMember.findById(flatMemberId);
   const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId });
-  
+
   if (!modifiedByMember) {
     throw new Error('You are not a flat member.');
   }
@@ -642,7 +667,7 @@ export const moveInTenant = async (flatMemberId, modifiedByUserId, moveInDate) =
   startDate.setHours(0, 0, 0, 0);
   const isUpComingTenant = today < startDate;
   const updatedStartDate = isUpComingTenant ? today : startDate;
-  
+
   // 1. Check for an owner residing as Self
   const ownerSelf = await FlatMember.findOne({
     flatId,

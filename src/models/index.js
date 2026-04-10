@@ -1,4 +1,5 @@
 const Announcement = require('./announcement.model');
+const ApprovalRequest = require('./approvalRequest.model');
 const Building = require('./building.model');
 const Comments = require('./comments.model');
 const Complaint = require('./complaint.model');
@@ -25,6 +26,7 @@ const Vehicle = require('./vehicle.model');
 
 module.exports = {
   Announcement,
+  ApprovalRequest,
   Building,
   Comments,
   Complaint,

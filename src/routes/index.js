@@ -17,6 +17,7 @@ import gateentryRoutes from './gateentry.route';
 import announcement from './announcement.route';
 import comments from './comment.route';
 import vehicle from './vehicle.route';
+import approval from './approvalRequest.route'
 
 const seedRoles = require('../seed/role.seeder');
 const seedPermissions = require('../seed/permission.seeder');
@@ -70,6 +71,7 @@ const routes = () => {
   router.use('/comments', comments);
   router.use('/vehicle', vehicle);
   router.use('/payments', paymentRoutes);
+  router.use('/approvals', approval);
 
 
   return router;
