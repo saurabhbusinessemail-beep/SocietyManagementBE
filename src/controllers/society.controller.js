@@ -25,9 +25,9 @@ export const getAllSocieties = async (req, res, next) => {
 export const getAllUnApprovedSocieties = async (req, res, next) => {
   try {
     const { page, limit } = req.query;
-    const { searchString } = req.body;
+    const { searchString, status } = req.body;
 
-    const data = await societyService.getAllUnApprovedSocieties({
+    const data = await societyService.getAllUnApprovedSocieties(status, {
       page: Number(page),
       limit: Number(limit),
       searchString
@@ -45,10 +45,10 @@ export const getAllUnApprovedSocieties = async (req, res, next) => {
 export const getMySocietiesForApproval = async (req, res, next) => {
   try {
     const { page, limit } = req.query;
-    const { searchString } = req.body;
+    const { searchString, status } = req.body;
     const user = res.locals.user;
 
-    const data = await societyService.getMySocietiesForApproval(user._id, {
+    const data = await societyService.getMySocietiesForApproval(user._id, status, {
       page: Number(page),
       limit: Number(limit),
       searchString

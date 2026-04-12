@@ -40,11 +40,16 @@ export const getAllSocieties = async (filter, options = {}) => {
 /**
  * Get all unapproved societies
  */
-export const getAllUnApprovedSocieties = async (options = {}) => {
+export const getAllUnApprovedSocieties = async (status, options = {}) => {
   const { page = 1, limit = 20, searchString } = options;
   const skip = (page - 1) * limit;
 
-  let filter = { isApproved: false, isRejected: { $ne: true } };
+  let filter = {};
+  switch (status) {
+    case 'pending': filter = { isApproved: false, isRejected: { $ne: true } }; break;
+    case 'approved': filter = { isApproved: true }; break;
+    case 'rejected': filter = { isApproved: false, isRejected: true }; break;
+  }
 
   // add search filter
   if (searchString && searchString.trim() !== '') {
@@ -72,11 +77,16 @@ export const getAllUnApprovedSocieties = async (options = {}) => {
 /**
  * Get all unapproved societies
  */
-export const getMySocietiesForApproval = async (userId, options = {}) => {
+export const getMySocietiesForApproval = async (userId, status, options = {}) => {
   const { page = 1, limit = 20, searchString } = options;
   const skip = (page - 1) * limit;
 
-  let filter = { createdByUserId: userId };
+  let filter = {};
+  switch (status) {
+    case 'pending': filter = { createdByUserId: userId, isApproved: false, isRejected: { $ne: true } }; break;
+    case 'approved': filter = { createdByUserId: userId, isApproved: true }; break;
+    case 'rejected': filter = { createdByUserId: userId, isApproved: false, isRejected: true }; break;
+  }
 
   // add search filter
   if (searchString && searchString.trim() !== '') {
