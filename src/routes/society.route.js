@@ -93,6 +93,18 @@ router.delete(
   societyController.deleteSocietyManager
 );
 
+// Securities
+router.get(
+  '/:societyId/securities',
+  societyController.getSocietySecurities
+);
+
+router.delete(
+  '/:societyId/securities/:securityId',
+  checkPermissions(['society.update'], true),
+  societyController.deleteSocietySecurity
+);
+
 // Admin Contacts
 router.post(
   '/:societyId/adminContacts',

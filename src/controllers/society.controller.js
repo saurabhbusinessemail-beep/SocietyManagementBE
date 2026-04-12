@@ -1,6 +1,7 @@
 import * as societyService from '../services/society.service';
 import * as userService from '../services/user.service';
 import * as NotificationService from '../services/notification.service';
+import * as securityService from '../services/security.service';
 
 /**
  * Get all societies
@@ -8,6 +9,7 @@ import * as NotificationService from '../services/notification.service';
 export const getAllSocieties = async (req, res, next) => {
   try {
     const filter = res.locals.filter ?? {};
+    // console.log('getAllSocieties filter = ', filter);
     const { page, limit } = req.query;
     const data = await societyService.getAllSocieties(filter, {
       page: Number(page),
@@ -73,7 +75,7 @@ export const getSociety = async (req, res, next) => {
   }
 };
 
-export const getSocietyManagers = async (req, res) => {
+export const getSocietyManagers = async (req, res, next) => {
   try {
     const { societyId } = req.params;
     const data = await societyService.getSocietyManagers(societyId);
@@ -82,6 +84,30 @@ export const getSocietyManagers = async (req, res) => {
     next(err);
   }
 };
+
+export const getSocietySecurities = async (req, res, next) => {
+  try {
+    const { societyId } = req.params;
+    const { page, limit } = req.query;
+    const data = await securityService.getSocietySecurities(societyId, {
+      page: Number(page),
+      limit: Number(limit)
+    });
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteSocietySecurity = async (req, res, next) => {
+  try {
+    const { societyId, securityId } = req.params;
+    const data = await securityService.deleteSocietySecurity(securityId);
+    res.json({ success: true, message: 'Security removed successfully' });
+  } catch (err) {
+    next(err);
+  }
+}
 
 /**
  * Create society

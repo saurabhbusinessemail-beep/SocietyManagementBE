@@ -24,7 +24,7 @@ export const newFlatMember = async (req, res, next) => {
     /* Check If loggedin user candirectly add this new member or need an approval for that */
 
     // Decision: can add directly or need approval?
-    const direct = await canAddDirectly(user, flatMember);
+    const direct = user.isAdmin || await canAddDirectly(user, flatMember);
     let result;
     if (direct) {
       // Directly create flat member
@@ -62,16 +62,20 @@ export const newSecurity = async (req, res, next) => {
     const user = res.locals.user;
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    let payload = req.body;
+    let payload = { ...(req.body ?? {}) };
     // Ensure userId is set (the security guard's user ID, not the requester)
     if (!payload.userId) {
-      // If not provided, you might want to create a new user or throw error
-      return res.status(400).json({ message: 'userId for security guard is required' });
+      const newUser = {
+        phoneNumber: payload.contact,
+        name: payload.name
+      };
+      const newUserDoc = await UserService.findOrCreateUser(newUser);
+      payload.userId = newUserDoc._id;
     }
     payload.societyId = req.body.societyId; // must be provided
 
     // Decision: can add directly? Only society admin/manager can add security directly.
-    const direct = await isSocietyAdminOrManager(user._id, payload.societyId);
+    const direct = user.isAdmin || await isSocietyAdminOrManager(user._id, payload.societyId);
     let result;
     if (direct) {
       // Directly create security record
