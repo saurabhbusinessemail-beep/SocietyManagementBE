@@ -76,7 +76,7 @@ export const myFlats = async (userId, societyId = null, options = {}) => {
     let updatedMember = { ...flatObj };
 
     if (updatedMember.residingType === 'Tenant') {
-      const tenant = await getFlatTenent(updatedMember.flatId._id);
+      const tenant = await getFlatTenant(updatedMember.flatId._id);
       updatedMember.tenant = tenant;
     }
     if (!updatedMember.isOwner) {
@@ -100,7 +100,7 @@ export const getFlatOwner = async (flatId) => {
   return FlatMember.findOne({ flatId, isOwner: true, status: 'active' }).populate('userId');
 }
 
-export const getFlatTenent = async (flatId) => {
+export const getFlatTenant = async (flatId) => {
   return FlatMember.findOne({ flatId, isTenant: true, status: 'active' }).populate('userId');
 }
 

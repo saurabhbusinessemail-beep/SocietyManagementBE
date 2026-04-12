@@ -181,7 +181,7 @@ async function approveApprovalRequest(requestId, approverUser) {
 
     let actualRecord;
     if (request.requestType === 'FlatMember') {
-        actualRecord = await creatFlatMember(request.data);
+        actualRecord = await creatFlatMember(request.data, approverUser._id);
     } else if (request.requestType === 'Security') {
         actualRecord = await Security.create(request.data);
     } else {

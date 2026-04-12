@@ -28,7 +28,7 @@ export const newFlatMember = async (req, res, next) => {
     let result;
     if (direct) {
       // Directly create flat member
-      const newMember = await newUserService.creatFlatMember(flatMember);
+      const newMember = await newUserService.creatFlatMember(flatMember, user._id);
       result = { approved: true, createdRecord: newMember };
     } else {
       // Create pending approval request
