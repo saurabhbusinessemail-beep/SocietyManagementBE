@@ -8,7 +8,7 @@ const { User, Otp } = require('../models');
 // STEP 1: Generate OTP
 export const requestOtp = async (req, res) => {
   try {
-    const { phoneNumber, fcmToken } = req.body;
+    let { phoneNumber, fcmToken } = req.body;
 
     if (!phoneNumber) {
       return res.status(400).json({ message: 'Phone number is required' });
@@ -24,7 +24,8 @@ export const requestOtp = async (req, res) => {
       };
       await UserService.newUser(newUser);
     } else {
-      await UserService.updateFCMToken(user._id, fcmToken);
+      if (fcmToken) await UserService.updateFCMToken(user._id, fcmToken);
+      fcmToken = user.fcmToken;
     }
 
     // Generate random 6 digit OTP

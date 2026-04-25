@@ -190,6 +190,74 @@ export const sendApproveRejectSocietyNotification = async (fromUser, toUserId, s
   return notificationData;
 }
 
+export const sendApprovalRequestNotification = async (fromUser, toUser, requestType, approvalRequest, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = messageConfig.APPROVAL_REQUEST.title;
+  const type = messageConfig.APPROVAL_REQUEST.type;
+  const message = messageConfig.APPROVAL_REQUEST.message(approvalRequest);
+
+  const payload = {
+    userId: toUser._id,
+    societyId: approvalRequest.societyId,
+    type,
+    title,
+    message,
+    data: approvalRequest,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        notificationId: notificationData._id,
+        approvalRequestId: approvalRequest._id,
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      console.log('Could not send approval alert to user. A notification has been sent');
+    }
+  }
+  return notificationData;
+};
+
+export const sendApprovalResponseNotification = async (fromUser, toUser, requestType, status, approvalRequest, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = messageConfig.APPROVAL_RESPONSE.title;
+  const type = messageConfig.APPROVAL_RESPONSE.type;
+  const message = messageConfig.APPROVAL_RESPONSE.message(approvalRequest, status);
+
+  const payload = {
+    userId: toUser._id,
+    societyId: approvalRequest.societyId,
+    type,
+    title,
+    message,
+    data: approvalRequest,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        notificationId: notificationData._id,
+        approvalRequestId: approvalRequest._id,
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      console.log('Could not send approval response alert to user. A notification has been sent');
+    }
+  }
+  return notificationData;
+};
+
 /* FIREBASE Notification */
 const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {
   try {

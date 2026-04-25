@@ -4,6 +4,8 @@ import * as approvalService from '../services/approval.service';
 import * as newUserService from '../services/newUser.service';
 import { canAddDirectly } from '../services/flat.service';
 import { isSocietyAdminOrManager } from '../services/society.service';
+import * as NotificationService from '../services/notification.service';
+import * as SMSService from '../services/sms.service';
 
 export const newFlatMember = async (req, res, next) => {
   try {
@@ -45,6 +47,21 @@ export const newFlatMember = async (req, res, next) => {
         data: result.createdRecord
       });
     } else {
+      // Notify approvers
+      try {
+        const approvers = await approvalService.getApproversForRequest('FlatMember', flatMember);
+        for (const approver of approvers) {
+          if (approver.fcmToken) {
+            await NotificationService.sendApprovalRequestNotification(user, approver, 'FlatMember', result.approvalRequest, approver.fcmToken);
+          }
+          if (process.env.SEND_MESSAGES === 'true' && approver.phoneNumber) {
+            await SMSService.sendApprovalRequestMessage('FlatMember', approver.phoneNumber);
+          }
+        }
+      } catch (err) {
+        console.error('Error sending approval notification/sms: ', err);
+      }
+
       res.status(201).json({
         success: true,
         message: 'Flat member addition request submitted for approval',
@@ -96,6 +113,21 @@ export const newSecurity = async (req, res, next) => {
         security: result.createdRecord
       });
     } else {
+      // Notify approvers
+      try {
+        const approvers = await approvalService.getApproversForRequest('Security', payload);
+        for (const approver of approvers) {
+          if (approver.fcmToken) {
+            await NotificationService.sendApprovalRequestNotification(user, approver, 'Security', result.approvalRequest, approver.fcmToken);
+          }
+          if (process.env.SEND_MESSAGES === 'true' && approver.phoneNumber) {
+            await SMSService.sendApprovalRequestMessage('Security', approver.phoneNumber);
+          }
+        }
+      } catch (err) {
+        console.error('Error sending approval notification/sms: ', err);
+      }
+
       res.status(201).json({
         success: true,
         message: 'Security addition request submitted for approval',

@@ -39,3 +39,53 @@ export const SOCIETY_REJECTED = {
     title: 'Society Rejected',
     message: (society) => `Society ${society.societyName} has been rejected. Please contact admin to get more info on this.`
 }
+
+export const APPROVAL_REQUEST = {
+    type: 'APPROVAL_REQUEST',
+    title: 'New Approval Request',
+    message: (approvalRequest) => {
+        let message = '';
+        switch (approvalRequest.requestType) {
+            case 'FlatMember':
+                message = 'You have a new approval request from a ';
+                if (approvalRequest.data.isOwner)
+                    message += 'Flat Owner ' + approvalRequest.data.name;
+                if (approvalRequest.data.isTenant)
+                    message += 'Tenant ' + approvalRequest.data.name;
+                if (approvalRequest.data.isMember)
+                    message += 'Flat Member ' + approvalRequest.data.name;
+                if (approvalRequest.data.isTenantMember)
+                    message += 'Tenant Member ' + approvalRequest.data.name;
+                break;
+            case 'Security':
+                message = 'You have a new approval request from a Security Guard';
+                break;
+        }
+        return message;
+    }
+}
+
+export const APPROVAL_RESPONSE = {
+    type: 'APPROVAL_RESPONSE',
+    title: 'Approval Response',
+    message: (approvalRequest, status) => {
+        let message = '';
+        switch (approvalRequest.requestType) {
+            case 'FlatMember':
+                message = 'Your request to become a ';
+                if (approvalRequest.data.isOwner)
+                    message += 'Flat Owner ';
+                if (approvalRequest.data.isTenant)
+                    message += 'Tenant ';
+                if (approvalRequest.data.isMember)
+                    message += 'Flat Member ';
+                if (approvalRequest.data.isTenantMember)
+                    message += 'Tenant Member ';
+                break;
+            case 'Security':
+                message = 'Your request to become a Security Guard ';
+                break;
+        }
+        return message + ' has been ' + status + '.';
+    }
+}

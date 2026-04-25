@@ -1,4 +1,7 @@
 import * as approvalService from '../services/approval.service';
+import * as NotificationService from '../services/notification.service';
+import * as SMSService from '../services/sms.service';
+const { User } = require('../models');
 
 export const getMyRequests = async (req, res, next) => {
     try {
@@ -98,6 +101,23 @@ export const approveRequest = async (req, res, next) => {
         const { id } = req.params;
         if (!user) return res.status(401).json({ message: 'Unauthorized' });
         const result = await approvalService.approveApprovalRequest(id, user);
+
+        // Notify requester
+        try {
+            const approvalRequest = result.approvalRequest;
+            const requester = await User.findById(approvalRequest.requestedBy);
+            if (requester) {
+                if (requester.fcmToken) {
+                    await NotificationService.sendApprovalResponseNotification(user, requester, approvalRequest.requestType, 'approved', approvalRequest, requester.fcmToken);
+                }
+                if (process.env.SEND_MESSAGES === 'true' && requester.phoneNumber) {
+                    await SMSService.sendApprovalResponseMessage(approvalRequest.requestType, 'approved', requester.phoneNumber);
+                }
+            }
+        } catch (err) {
+            console.error('Error sending approval response notification/sms: ', err);
+        }
+
         res.json({ success: true, message: 'Request approved', createdRecord: result.createdRecord });
     } catch (err) { next(err); }
 };
@@ -109,6 +129,22 @@ export const rejectRequest = async (req, res, next) => {
         const { reason } = req.body;
         if (!user) return res.status(401).json({ message: 'Unauthorized' });
         const request = await approvalService.rejectApprovalRequest(id, user, reason);
+
+        // Notify requester
+        try {
+            const requester = await User.findById(request.requestedBy);
+            if (requester) {
+                if (requester.fcmToken) {
+                    await NotificationService.sendApprovalResponseNotification(user, requester, request.requestType, 'rejected', request, requester.fcmToken);
+                }
+                if (process.env.SEND_MESSAGES === 'true' && requester.phoneNumber) {
+                    await SMSService.sendApprovalResponseMessage(request.requestType, 'rejected', requester.phoneNumber);
+                }
+            }
+        } catch (err) {
+            console.error('Error sending approval response notification/sms: ', err);
+        }
+
         res.json({ success: true, message: 'Request rejected', request });
     } catch (err) { next(err); }
 };

@@ -1,6 +1,6 @@
 const { isSocietyAdminOrManager } = require('./society.service');
 const mongoose = require('mongoose');
-import { ApprovalRequest, FlatMember, Security } from '../models';
+import { ApprovalRequest, FlatMember, Security, Society } from '../models';
 const { creatFlatMember } = require('./newUser.service');
 
 function buildRequesterPipeline(filters) {
@@ -140,6 +140,45 @@ async function canApprove(approver, requestType, requestData) {
         return await isSocietyAdminOrManager(approver._id, requestData.societyId);
     }
     return false;
+}
+
+// Helper: get all users who can approve a request
+async function getApproversForRequest(requestType, requestData) {
+    const approvers = [];
+    if (requestType === 'FlatMember') {
+        const { flatId, isOwner, isTenant, isMember, isTenantMember, societyId } = requestData;
+
+        if (isOwner) {
+            const society = await Society.findById(societyId).populate('adminContacts managerIds');
+            if (society) {
+                if (society.adminContacts) approvers.push(...society.adminContacts);
+                if (society.managerIds) approvers.push(...society.managerIds);
+            }
+        } else if (isTenant || isMember) {
+            const flatOwner = await FlatMember.findOne({ flatId, isOwner: true, status: 'active' }).populate('userId');
+            if (flatOwner && flatOwner.userId) approvers.push(flatOwner.userId);
+        } else if (isTenantMember) {
+            const flatOwner = await FlatMember.findOne({ flatId, isOwner: true, status: 'active' }).populate('userId');
+            if (flatOwner && flatOwner.userId) approvers.push(flatOwner.userId);
+            const flatTenant = await FlatMember.findOne({ flatId, isTenant: true, status: 'active' }).populate('userId');
+            if (flatTenant && flatTenant.userId) approvers.push(flatTenant.userId);
+        }
+    }
+    else if (requestType === 'Security') {
+        const society = await Society.findById(requestData.societyId).populate('adminContacts managerIds');
+        if (society) {
+            if (society.adminContacts) approvers.push(...society.adminContacts);
+            if (society.managerIds) approvers.push(...society.managerIds);
+        }
+    }
+
+    const uniqueApproversMap = new Map();
+    approvers.forEach(user => {
+        if (user && user._id) {
+            uniqueApproversMap.set(user._id.toString(), user);
+        }
+    });
+    return Array.from(uniqueApproversMap.values());
 }
 
 // Helper: check society admin (implement based on your role system)
@@ -325,5 +364,6 @@ module.exports = {
     getPendingRequestsForApprover,
     getAllRelevantRequests,
     canApprove,
+    getApproversForRequest,
     isSocietyAdmin
 };
