@@ -214,6 +214,7 @@ export const sendApprovalRequestNotification = async (fromUser, toUser, requestT
       await sendNotificationToUser(fcmToken, title, message, {
         notificationId: notificationData._id,
         approvalRequestId: approvalRequest._id,
+        requestType,
         type
       });
     } catch (err) {
@@ -248,6 +249,7 @@ export const sendApprovalResponseNotification = async (fromUser, toUser, request
       await sendNotificationToUser(fcmToken, title, message, {
         notificationId: notificationData._id,
         approvalRequestId: approvalRequest._id,
+        requestType,
         type
       });
     } catch (err) {
