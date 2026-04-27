@@ -23,9 +23,17 @@ export const getFlatsBySocietyAndBuilding = async (filter, options = {}) => {
   const skip = (page - 1) * limit;
 
   const [data, total] = await Promise.all([Flat.find(filter).skip(skip).limit(limit).sort({ floor: 1, flatNumber: 1 }).populate('buildingId').populate('societyId').populate('createdByUserId'), Flat.countDocuments(filter)]);
+  const updatedData = await Promise.all(data.map(async (flat) => {
+    const flatObj = flat.toObject();
+    const owner = await getFlatOwner(flat._id);
+    if (owner) {
+      flatObj.flatOwnerMemberId = owner._id;
+    }
+    return flatObj;
+  }));
 
   return {
-    data,
+    data: updatedData,
     total,
     page,
     limit,
@@ -333,7 +341,7 @@ export const myFlatMembers = async (userId, societyId = null, flatId = null, use
 };
 
 export const flatMember = async (flatMemberId) => {
-  return await FlatMember.findById(flatMemberId)
+  const fm = await FlatMember.findById(flatMemberId)
     .populate('societyId')
     .populate('userId')
     .populate('createdByUserId')
@@ -344,6 +352,21 @@ export const flatMember = async (flatMemberId) => {
         model: 'Building'
       }
     });
+
+  if (!fm) return null;
+
+  const fmObj = fm.toObject();
+
+  if (fmObj.residingType === 'Tenant') {
+    const tenant = await getFlatTenant(fmObj.flatId._id);
+    fmObj.tenant = tenant;
+  }
+  if (!fmObj.isOwner) {
+    const owner = await getFlatOwner(fmObj.flatId._id);
+    fmObj.owner = owner;
+  }
+
+  return fmObj;
 };
 
 export const memberFlats = async (userId, withSocietyRoles = false) => {
