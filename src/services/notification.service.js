@@ -26,7 +26,7 @@ export const sendOTPNotification = async (fromUser, toUserId, otp, fcmToken) => 
       await sendNotificationToUser(fcmToken, title, message, { otp, type });
     } catch (err) {
       await Notification.findByIdAndDelete(notificationData._id);
-      throw new Error('Could not send approval alert to user. A notification has been sent');
+      console.error('Could not send approval alert to user. A notification has been sent');
     }
   }
   return notificationData;
@@ -61,7 +61,7 @@ export const sendGateEntryRequestNotification = async (fromUser, toUserId, gateE
       });
     } catch (err) {
       await Notification.findByIdAndDelete(notificationData._id);
-      throw new Error('Could not send approval alert to user. A notification has been sent');
+      console.error('Could not send approval alert to user. A notification has been sent');
     }
   }
   return notificationData;
@@ -115,7 +115,7 @@ export const sendGateEntryResponseNotification = async (fromUser, toUserId, gate
       });
     } catch (err) {
       await Notification.findByIdAndDelete(notificationData._id);
-      throw new Error('Could not send approval alert to user. A notification has been sent');
+      console.error('Could not send approval alert to user. A notification has been sent');
     }
   }
   return notificationData;
@@ -149,7 +149,7 @@ export const sendGateExitNotification = async (fromUser, toUserId, gateEntry, fc
       });
     } catch (err) {
       await Notification.findByIdAndDelete(notificationData._id);
-      throw new Error('Could not send approval alert to user. A notification has been sent');
+      console.error('Could not send approval alert to user. A notification has been sent');
     }
   }
   return notificationData;
@@ -184,7 +184,7 @@ export const sendApproveRejectSocietyNotification = async (fromUser, toUserId, s
       });
     } catch (err) {
       await Notification.findByIdAndDelete(notificationData._id);
-      throw new Error('Could not send approval alert to user. A notification has been sent');
+      console.error('Could not send approval alert to user. A notification has been sent');
     }
   }
   return notificationData;
@@ -219,7 +219,7 @@ export const sendApprovalRequestNotification = async (fromUser, toUser, requestT
       });
     } catch (err) {
       await Notification.findByIdAndDelete(notificationData._id);
-      console.log('Could not send approval alert to user. A notification has been sent');
+      console.error('Could not send approval alert to user. A notification has been sent');
     }
   }
   return notificationData;
