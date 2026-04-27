@@ -3,6 +3,7 @@ import * as userService from '../services/user.service';
 import * as NotificationService from '../services/notification.service';
 import * as securityService from '../services/security.service';
 import cacheService from '../services/cache.service';
+import * as SMSService from '../services/sms.service';
 
 /**
  * Get all societies
@@ -170,6 +171,9 @@ export const approveRejectSociety = async (req, res, next) => {
 
     if (toUser?.fcmToken) {
       await NotificationService.sendApproveRejectSocietyNotification(fromUser, toUserId, data, toUser.fcmToken, isApproved);
+    }
+    if (process.env.SEND_MESSAGES === 'true' && toUser?.phoneNumber) {
+      await SMSService.sendApproveRejectSocietyMessage(data, isApproved, toUser.phoneNumber);
     }
 
     res.json(data);

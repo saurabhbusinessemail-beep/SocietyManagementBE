@@ -60,7 +60,7 @@ export const newFlatMember = async (req, res, next) => {
             await NotificationService.sendApprovalRequestNotification(user, approver, 'FlatMember', result.approvalRequest, approver.fcmToken);
           }
           if (process.env.SEND_MESSAGES === 'true' && approver.phoneNumber) {
-            await SMSService.sendApprovalRequestMessage('FlatMember', approver.phoneNumber);
+            await SMSService.sendApprovalRequestMessage(approvalRequest, approver.phoneNumber);
           }
         }
       } catch (err) {
@@ -129,7 +129,7 @@ export const newSecurity = async (req, res, next) => {
             await NotificationService.sendApprovalRequestNotification(user, approver, 'Security', result.approvalRequest, approver.fcmToken);
           }
           if (process.env.SEND_MESSAGES === 'true' && approver.phoneNumber) {
-            await SMSService.sendApprovalRequestMessage('Security', approver.phoneNumber);
+            await SMSService.sendApprovalRequestMessage(result.approvalRequest, approver.phoneNumber);
           }
         }
       } catch (err) {

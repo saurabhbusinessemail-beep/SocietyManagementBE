@@ -116,7 +116,7 @@ export const approveRequest = async (req, res, next) => {
                     await NotificationService.sendApprovalResponseNotification(user, requester, approvalRequest.requestType, 'approved', approvalRequest, requester.fcmToken);
                 }
                 if (process.env.SEND_MESSAGES === 'true' && requester.phoneNumber) {
-                    await SMSService.sendApprovalResponseMessage(approvalRequest.requestType, 'approved', requester.phoneNumber);
+                    await SMSService.sendApprovalResponseMessage(approvalRequest, 'approved', requester.phoneNumber);
                 }
             }
         } catch (err) {
@@ -143,7 +143,7 @@ export const rejectRequest = async (req, res, next) => {
                     await NotificationService.sendApprovalResponseNotification(user, requester, request.requestType, 'rejected', request, requester.fcmToken);
                 }
                 if (process.env.SEND_MESSAGES === 'true' && requester.phoneNumber) {
-                    await SMSService.sendApprovalResponseMessage(request.requestType, 'rejected', requester.phoneNumber);
+                    await SMSService.sendApprovalResponseMessage(request, 'rejected', requester.phoneNumber);
                 }
             }
         } catch (err) {
