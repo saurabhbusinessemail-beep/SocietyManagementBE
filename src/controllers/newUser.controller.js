@@ -37,6 +37,23 @@ export const newFlatMember = async (req, res, next) => {
         cacheService.invalidate(flatMember.userId.toString());
       }
       result = { approved: true, createdRecord: newMember };
+
+      // Send SMS and Notification for direct addition
+      try {
+        const addedUser = await UserService.getUser(flatMember.userId);
+        if (addedUser) {
+          const mockApprovalRequest = { requestType: 'FlatMember', data: flatMember };
+          if (addedUser.fcmToken) {
+            await NotificationService.sendApprovalResponseNotification(user, addedUser, 'FlatMember', 'approved', mockApprovalRequest, addedUser.fcmToken);
+          }
+          if (process.env.SEND_MESSAGES === 'true' && addedUser.phoneNumber) {
+            await SMSService.sendApprovalResponseMessage(mockApprovalRequest, 'approved', addedUser.phoneNumber);
+          }
+        }
+      } catch (err) {
+        console.error('Error sending direct addition notification/sms: ', err);
+      }
+
     } else {
       // Create pending approval request
       const approvalRequest = await approvalService.createApprovalRequest('FlatMember', flatMember, user);
@@ -106,6 +123,23 @@ export const newSecurity = async (req, res, next) => {
         cacheService.invalidate(payload.userId.toString());
       }
       result = { approved: true, createdRecord: security };
+
+      // Send SMS and Notification for direct addition
+      try {
+        const addedUser = await UserService.getUser(payload.userId);
+        if (addedUser) {
+          const mockApprovalRequest = { requestType: 'Security', data: payload };
+          if (addedUser.fcmToken) {
+            await NotificationService.sendApprovalResponseNotification(user, addedUser, 'Security', 'approved', mockApprovalRequest, addedUser.fcmToken);
+          }
+          if (process.env.SEND_MESSAGES === 'true' && addedUser.phoneNumber) {
+            await SMSService.sendApprovalResponseMessage(mockApprovalRequest, 'approved', addedUser.phoneNumber);
+          }
+        }
+      } catch (err) {
+        console.error('Error sending direct addition notification/sms: ', err);
+      }
+
     } else {
       // Create pending approval request
       const approvalRequest = await approvalService.createApprovalRequest('Security', payload, user);
