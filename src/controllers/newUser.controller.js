@@ -2,7 +2,7 @@ import * as AuthService from '../services/auth.service';
 import * as UserService from '../services/user.service';
 import * as approvalService from '../services/approval.service';
 import * as newUserService from '../services/newUser.service';
-import { canAddDirectly } from '../services/flat.service';
+import { canAddDirectly, getFlatOwner } from '../services/flat.service';
 import { isSocietyAdminOrManager } from '../services/society.service';
 import * as NotificationService from '../services/notification.service';
 import * as SMSService from '../services/sms.service';
@@ -15,6 +15,17 @@ export const newFlatMember = async (req, res, next) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     let flatMember = req.body;
+
+    if (flatMember.isOwner) {
+      const existingOwner = await getFlatOwner(flatMember.flatId);
+      if (existingOwner) {
+        return res.status(400).json({
+          success: false,
+          message: 'This flat already has an owner.'
+        });
+      }
+    }
+
     // If flat member is not a registered user then add user
     if (!flatMember.userId) {
       const newUser = {
