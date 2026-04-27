@@ -29,13 +29,13 @@ export const GATE_EXITED = {
 }
 
 export const SOCIETY_APPROVED = {
-    type: 'GENERAL',
+    type: 'SOCIETY_APPROVED',
     title: 'Society Approved',
     message: (society) => `Society ${society.societyName} has been approved. You and others can now start adding themselves as Flat Owner, Tenant or Security. You are the society admin of this society.`
 }
 
 export const SOCIETY_REJECTED = {
-    type: 'GENERAL',
+    type: 'SOCIETY_REJECTED',
     title: 'Society Rejected',
     message: (society) => `Society ${society.societyName} has been rejected. Please contact admin to get more info on this.`
 }
