@@ -2,6 +2,7 @@ import * as societyService from '../services/society.service';
 import * as userService from '../services/user.service';
 import * as NotificationService from '../services/notification.service';
 import * as securityService from '../services/security.service';
+import cacheService from '../services/cache.service';
 
 /**
  * Get all societies
@@ -158,6 +159,10 @@ export const approveRejectSociety = async (req, res, next) => {
     const data = isApproved ?
       await societyService.approveSociety(societyId)
       : await societyService.rejectSociety(societyId);
+
+    if (isApproved && data && data.createdByUserId) {
+      cacheService.invalidate(data.createdByUserId.toString());
+    }
 
     const fromUser = res.locals.user;
     const toUserId = data.createdByUserId;

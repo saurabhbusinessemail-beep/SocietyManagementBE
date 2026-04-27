@@ -6,6 +6,8 @@ import { canAddDirectly } from '../services/flat.service';
 import { isSocietyAdminOrManager } from '../services/society.service';
 import * as NotificationService from '../services/notification.service';
 import * as SMSService from '../services/sms.service';
+import cacheService from '../services/cache.service';
+import * as securityService from '../services/security.service';
 
 export const newFlatMember = async (req, res, next) => {
   try {
@@ -31,6 +33,9 @@ export const newFlatMember = async (req, res, next) => {
     if (direct) {
       // Directly create flat member
       const newMember = await newUserService.creatFlatMember(flatMember, user._id);
+      if (flatMember.userId) {
+        cacheService.invalidate(flatMember.userId.toString());
+      }
       result = { approved: true, createdRecord: newMember };
     } else {
       // Create pending approval request
@@ -97,6 +102,9 @@ export const newSecurity = async (req, res, next) => {
     if (direct) {
       // Directly create security record
       const security = await securityService.addSecurity(payload);
+      if (payload.userId) {
+        cacheService.invalidate(payload.userId.toString());
+      }
       result = { approved: true, createdRecord: security };
     } else {
       // Create pending approval request

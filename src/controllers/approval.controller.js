@@ -1,6 +1,7 @@
 import * as approvalService from '../services/approval.service';
 import * as NotificationService from '../services/notification.service';
 import * as SMSService from '../services/sms.service';
+import cacheService from '../services/cache.service';
 const { User } = require('../models');
 
 export const getMyRequests = async (req, res, next) => {
@@ -101,6 +102,10 @@ export const approveRequest = async (req, res, next) => {
         const { id } = req.params;
         if (!user) return res.status(401).json({ message: 'Unauthorized' });
         const result = await approvalService.approveApprovalRequest(id, user);
+
+        if (result.createdRecord && result.createdRecord.userId) {
+            cacheService.invalidate(result.createdRecord.userId.toString());
+        }
 
         // Notify requester
         try {
