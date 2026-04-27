@@ -22,15 +22,36 @@ export const getFlatsBySocietyAndBuilding = async (filter, options = {}) => {
   const { page = 1, limit = 1000 } = options;
   const skip = (page - 1) * limit;
 
-  const [data, total] = await Promise.all([Flat.find(filter).skip(skip).limit(limit).sort({ floor: 1, flatNumber: 1 }).populate('buildingId').populate('societyId').populate('createdByUserId'), Flat.countDocuments(filter)]);
-  const updatedData = await Promise.all(data.map(async (flat) => {
+  const [data, total] = await Promise.all([
+    Flat.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .sort({ floor: 1, flatNumber: 1 })
+      .populate('buildingId')
+      .populate('societyId')
+      .populate('createdByUserId'),
+    Flat.countDocuments(filter)
+  ]);
+
+  const flatIds = data.map(flat => flat._id);
+  const owners = await FlatMember.find({
+    flatId: { $in: flatIds },
+    isOwner: true,
+    status: 'active'
+  });
+
+  const ownerMap = owners.reduce((acc, owner) => {
+    acc[owner.flatId.toString()] = owner._id;
+    return acc;
+  }, {});
+
+  const updatedData = data.map(flat => {
     const flatObj = flat.toObject();
-    const owner = await getFlatOwner(flat._id);
-    if (owner) {
-      flatObj.flatOwnerMemberId = owner._id;
+    if (ownerMap[flat._id.toString()]) {
+      flatObj.flatOwnerMemberId = ownerMap[flat._id.toString()];
     }
     return flatObj;
-  }));
+  });
 
   return {
     data: updatedData,
@@ -78,22 +99,33 @@ export const myFlats = async (userId, societyId = null, options = {}) => {
     FlatMember.countDocuments(filter)
   ]);
 
-  const updatedData = await Promise.all(data.map(async (flat) => {
-    // Convert Mongoose document to plain object
-    const flatObj = flat.toObject();
-    let updatedMember = { ...flatObj };
+  const flatIds = data.map(member => member.flatId?._id).filter(id => id);
 
-    if (updatedMember.residingType === 'Tenant') {
-      const tenant = await getFlatTenant(updatedMember.flatId._id);
-      updatedMember.tenant = tenant;
-    }
-    if (!updatedMember.isOwner) {
-      const owner = await getFlatOwner(updatedMember.flatId._id);
-      updatedMember.owner = owner;
-    }
+  const [tenants, owners] = await Promise.all([
+    FlatMember.find({ flatId: { $in: flatIds }, isTenant: true, status: 'active' }).populate('userId'),
+    FlatMember.find({ flatId: { $in: flatIds }, isOwner: true, status: 'active' }).populate('userId')
+  ]);
 
-    return updatedMember;
-  }));
+  const tenantMap = tenants.reduce((acc, tenant) => {
+    acc[tenant.flatId.toString()] = tenant;
+    return acc;
+  }, {});
+
+  const ownerMap = owners.reduce((acc, owner) => {
+    acc[owner.flatId.toString()] = owner;
+    return acc;
+  }, {});
+
+  const updatedData = data.map(member => {
+    const memberObj = member.toObject();
+    if (memberObj.residingType === 'Tenant') {
+      memberObj.tenant = tenantMap[memberObj.flatId._id.toString()];
+    }
+    if (!memberObj.isOwner) {
+      memberObj.owner = ownerMap[memberObj.flatId._id.toString()];
+    }
+    return memberObj;
+  });
 
   return {
     data: updatedData,
