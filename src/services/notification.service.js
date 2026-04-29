@@ -260,6 +260,106 @@ export const sendApprovalResponseNotification = async (fromUser, toUser, request
   return notificationData;
 };
 
+export const sendMaintenancePaymentNotification = async (fromUser, toUserId, payment, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = messageConfig.MAINTENANCE_PAYMENT_REQUEST.title;
+  const type = messageConfig.MAINTENANCE_PAYMENT_REQUEST.type;
+  const message = messageConfig.MAINTENANCE_PAYMENT_REQUEST.message(payment);
+
+  const payload = {
+    userId: toUserId,
+    societyId: payment.societyId,
+    type,
+    title,
+    message,
+    data: payment,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        notificationId: notificationData._id,
+        maintenancePaymentId: payment._id,
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      console.error('Could not send maintenance payment notification');
+    }
+  }
+  return notificationData;
+};
+
+export const sendMaintenanceApprovalNotification = async (fromUser, toUserId, payment, status, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = messageConfig.MAINTENANCE_PAYMENT_RESPONSE.title;
+  const type = messageConfig.MAINTENANCE_PAYMENT_RESPONSE.type;
+  const message = messageConfig.MAINTENANCE_PAYMENT_RESPONSE.message(payment, status);
+
+  const payload = {
+    userId: toUserId,
+    societyId: payment.societyId,
+    type,
+    title,
+    message,
+    data: payment,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        notificationId: notificationData._id,
+        maintenancePaymentId: payment._id,
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      console.error('Could not send maintenance approval notification');
+    }
+  }
+  return notificationData;
+};
+
+export const sendMaintenanceReminderNotification = async (fromUser, toUserId, data, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = messageConfig.MAINTENANCE_REMINDER.title;
+  const type = messageConfig.MAINTENANCE_REMINDER.type;
+  const message = messageConfig.MAINTENANCE_REMINDER.message(data);
+
+  const payload = {
+    userId: toUserId,
+    societyId: data.societyId,
+    type,
+    title,
+    message,
+    data: data,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      console.error('Could not send maintenance reminder notification');
+    }
+  }
+  return notificationData;
+};
+
 /* FIREBASE Notification */
 const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {
   try {

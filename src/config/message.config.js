@@ -89,3 +89,21 @@ export const APPROVAL_RESPONSE = {
         return message + ' has been ' + status + '.';
     }
 }
+
+export const MAINTENANCE_PAYMENT_REQUEST = {
+    type: 'MAINTENANCE_PAYMENT',
+    title: 'Maintenance Payment Recorded',
+    message: (payment) => `A maintenance payment of ₹${payment.amount} has been recorded for ${payment.month}/${payment.year} and is awaiting your approval.`
+}
+
+export const MAINTENANCE_PAYMENT_RESPONSE = {
+    type: 'MAINTENANCE_PAYMENT_RESPONSE',
+    title: 'Maintenance Payment Update',
+    message: (payment, status) => `Your maintenance payment of ₹${payment.amount} for ${payment.month}/${payment.year} has been ${status}.`
+}
+
+export const MAINTENANCE_REMINDER = {
+    type: 'MAINTENANCE_REMINDER',
+    title: 'Maintenance Payment Reminder',
+    message: (data) => `Reminder: Maintenance payment for ${data.month}/${data.year} is pending for your flat ${data.flatNumber}. Please pay at the earliest.`
+}
