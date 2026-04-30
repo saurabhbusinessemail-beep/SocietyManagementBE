@@ -110,8 +110,12 @@ export const getAllPayments = async (societyId, filters = {}) => {
  */
 export const getMonthlyReport = async (societyId, month, year) => {
   // Get all flats in the society
-  const flats = await Flat.find({ societyId }).lean();
+  const flats = await Flat.find({ societyId }).populate('buildingId', 'buildingNumber').lean();
   const flatIds = flats.map(f => f._id);
+
+  // Get society info
+  const { Society } = require('../models');
+  const society = await Society.findById(societyId).select('societyName').lean();
 
   // Get all active flat members (owners or tenants who are currently active)
   const flatMembers = await FlatMember.find({
@@ -119,7 +123,7 @@ export const getMonthlyReport = async (societyId, month, year) => {
     flatId: { $in: flatIds },
     status: 'active',
     $or: [{ isOwner: true }, { isTenant: true }]
-  }).lean();
+  }).populate('userId', 'name phoneNumber profilePicture').lean();
 
   // Get payments for this month/year
   const payments = await MaintenancePayment.find({
@@ -160,15 +164,23 @@ export const getMonthlyReport = async (societyId, month, year) => {
     const payment = paymentMap[flatId];
     const members = flatMembers.filter(m => m.flatId.toString() === flatId);
     const primaryMember = members.find(m => m.isTenant) || members.find(m => m.isOwner);
+    const owner = members.find(m => m.isOwner);
 
     return {
       flatId: flat._id,
       flatNumber: flat.flatNumber,
       floor: flat.floor,
-      memberName: primaryMember?.name || '—',
+      buildingNumber: flat.buildingId?.buildingNumber || null,
+      societyName: society?.societyName || '',
+      memberName: primaryMember?.userId?.name || primaryMember?.name || '—',
       memberContact: primaryMember?.contact || '—',
       memberType: primaryMember?.isTenant ? 'Tenant' : primaryMember?.isOwner ? 'Owner' : '—',
       flatMemberId: primaryMember?._id,
+      owner: owner ? {
+        name: owner.userId?.name || owner.name,
+        contact: owner.contact,
+        user: owner.userId
+      } : null,
       payment: payment || null,
       status: payment
         ? payment.status
@@ -481,5 +493,30 @@ export const getMergedLogs = async (societyId, flatId, filters = {}) => {
   // Sort descending
   logs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  return logs;
+  // Get flat and society details for context
+  const flat = await Flat.findById(flatId).populate('buildingId', 'buildingNumber').lean();
+  const { Society, FlatMember } = require('../models');
+  const society = await Society.findById(societyId || flat.societyId).select('societyName').lean();
+  
+  // Get owner details
+  const owner = await FlatMember.findOne({
+    flatId,
+    status: 'active',
+    isOwner: true
+  }).populate('userId', 'name phoneNumber profilePicture').lean();
+
+  return {
+    logs,
+    flat: {
+      flatNumber: flat?.flatNumber,
+      floor: flat?.floor,
+      buildingNumber: flat?.buildingId?.buildingNumber,
+      societyName: society?.societyName,
+      owner: owner ? {
+        name: owner.userId?.name || owner.name,
+        contact: owner.contact,
+        user: owner.userId
+      } : null
+    }
+  };
 };
