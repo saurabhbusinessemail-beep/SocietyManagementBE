@@ -7,6 +7,7 @@ const FlatSchema = new mongoose.Schema({
   flatType: { type: String, enum: ['1BHK', '2BHK', '3BHK', '4BHK', '5BHK', '6BHK'] },
   floor: { type: Number },
 
+  residingType: { type: String, enum: ['Self', 'Tenant', 'Vacant'], default: 'Vacant' },
   meta: { type: mongoose.Schema.Types.Mixed },
 
   ...require('./default-fields.model')

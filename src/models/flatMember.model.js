@@ -8,7 +8,6 @@ const FlatMemberSchema = new mongoose.Schema({
   name: { type: String, required: true },
   contact: { type: String, required: true },
   // status: owner / rented / vacant
-  residingType: { type: String, enum: ['Self', 'Tenant', 'Vacant'], default: 'Self' },
 
   isOwner: { type: Boolean, default: false },
   isTenant: { type: Boolean, default: false },

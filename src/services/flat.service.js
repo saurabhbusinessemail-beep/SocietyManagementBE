@@ -118,7 +118,11 @@ export const myFlats = async (userId, societyId = null, options = {}) => {
 
   const updatedData = data.map(member => {
     const memberObj = member.toObject();
-    if (memberObj.residingType === 'Tenant') {
+    // Use residingType from flatId
+    const residingType = memberObj.flatId?.residingType || 'Vacant';
+    memberObj.residingType = residingType;
+
+    if (residingType === 'Tenant') {
       memberObj.tenant = tenantMap[memberObj.flatId._id.toString()];
     }
     if (!memberObj.isOwner) {
@@ -388,6 +392,8 @@ export const flatMember = async (flatMemberId) => {
   if (!fm) return null;
 
   const fmObj = fm.toObject();
+  // Use residingType from flatId
+  fmObj.residingType = fmObj.flatId?.residingType || 'Vacant';
 
   if (fmObj.residingType === 'Tenant') {
     const tenant = await getFlatTenant(fmObj.flatId._id);
@@ -519,7 +525,8 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
   if (targetMember.isDeleted) {
     throw new Error('FlatMember is already deleted');
   }
-  if (targetMember.residingType !== 'Tenant' && !targetMember.isTenant) {
+  const currentResidingType = await getCurrentResidingType(targetMember.flatId);
+  if (currentResidingType !== 'Tenant') {
     throw new Error('The specified FlatMember is not a tenant');
   }
 
@@ -536,7 +543,16 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
     });
 
 
-  // Update all active non-owner members of the flat to residingType = 'Vacant' and status as Exprired
+  // Update the Flat's residingType
+  await Flat.findByIdAndUpdate(flatId, {
+    $set: {
+      residingType: 'Vacant',
+      modifiedOn: now,
+      modifiedByUserId: modifiedByUserId
+    }
+  });
+
+  // Update all active non-owner members of the flat to status as Exprired
   await FlatMember.updateMany(
     {
       flatId: flatId,
@@ -545,25 +561,9 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
     },
     {
       $set: {
-        residingType: 'Vacant',
         modifiedOn: now,
         modifiedByUserId: modifiedByUserId,
         status: 'expired'
-      }
-    }
-  );
-
-  // Update Owner flat members with proper residing type values
-  await FlatMember.updateMany(
-    {
-      flatId: flatId,
-      isOwner: true
-    },
-    {
-      $set: {
-        residingType: 'Vacant',
-        modifiedOn: now,
-        modifiedByUserId: modifiedByUserId
       }
     }
   );
@@ -591,26 +591,22 @@ export const moveOutOwner = async (flatMemberId, modifiedByUserId) => {
   if (targetMember.isDeleted) {
     throw new Error('FlatMember is already deleted');
   }
-  if (targetMember.residingType !== 'Self' && !targetMember.isOwner) {
+  const currentResidingType = await getCurrentResidingType(targetMember.flatId);
+  if (currentResidingType !== 'Self') {
     throw new Error('The specified FlatMember is not residing currently');
   }
 
   const flatId = targetMember.flatId;
   const now = new Date();
 
-  // Update residing type to Vaccant for all flat members
-  await FlatMember.updateMany(
-    {
-      flatId: flatId
-    },
-    {
-      $set: {
-        residingType: 'Vacant',
-        modifiedOn: now,
-        modifiedByUserId: modifiedByUserId
-      }
+  // Update residing type to Vacant for the Flat
+  await Flat.findByIdAndUpdate(flatId, {
+    $set: {
+      residingType: 'Vacant',
+      modifiedOn: now,
+      modifiedByUserId: modifiedByUserId
     }
-  );
+  });
 
   // expire all the current flat members except owners
   await FlatMember.updateMany(
@@ -656,27 +652,26 @@ export const moveInSelf = async (flatMemberId, modifiedByUserId, moveOutDate = n
   const flatId = targetMember.flatId;
   const now = new Date();
 
-  const activeTenants = await FlatMember.find({
-    flatId: flatId,
-    isTenant: true,
-    residingType: 'Tenant',
-    status: 'active'
-  });
+  const currentResidingType = await getCurrentResidingType(flatId);
+  if (currentResidingType === 'Tenant') {
+    const activeTenants = await FlatMember.find({
+      flatId: flatId,
+      isTenant: true,
+      status: 'active'
+    });
 
-  for (const tenant of activeTenants) {
-    await moveOutTenant(tenant._id, moveOutDate, modifiedByUserId);
+    for (const tenant of activeTenants) {
+      await moveOutTenant(tenant._id, moveOutDate, modifiedByUserId);
+    }
   }
 
-  await FlatMember.updateMany(
-    { flatId: flatId },
-    {
-      $set: {
-        residingType: 'Self',
-        modifiedOn: now,
-        modifiedByUserId: modifiedByUserId
-      }
+  await Flat.findByIdAndUpdate(flatId, {
+    $set: {
+      residingType: 'Self',
+      modifiedOn: now,
+      modifiedByUserId: modifiedByUserId
     }
-  );
+  });
 
   await FlatMember.updateMany(
     { flatId: flatId, isMember: true },
@@ -723,35 +718,51 @@ export const moveInTenant = async (flatMemberId, modifiedByUserId, moveInDate) =
   const isUpComingTenant = today < startDate;
   const updatedStartDate = isUpComingTenant ? today : startDate;
 
-  // 1. Check for an owner residing as Self
-  const ownerSelf = await FlatMember.findOne({
-    flatId,
-    isOwner: true,
-    residingType: 'Self'
-  });
+  const currentResidingType = await getCurrentResidingType(flatId);
+  if (currentResidingType === 'Self') {
+    // 1. Check for an owner residing as Self
+    const ownerSelf = await FlatMember.findOne({
+      flatId,
+      isOwner: true,
+      status: 'active'
+    });
 
-  if (ownerSelf) {
-    await moveOutOwner(ownerSelf._id, modifiedByUserId);
+    if (ownerSelf) {
+      await moveOutOwner(ownerSelf._id, modifiedByUserId);
+    }
   }
 
-  // 2. Check for any active tenant
-  const activeTenant = await FlatMember.findOne({
-    flatId,
-    isTenant: true,
-    status: 'active',
-    _id: { $ne: flatMemberId }
-  });
+  if (currentResidingType === 'Tenant') {
+    // 2. Check for any active tenant
+    const activeTenant = await FlatMember.findOne({
+      flatId,
+      isTenant: true,
+      status: 'active',
+      _id: { $ne: flatMemberId }
+    });
 
-  if (activeTenant) {
-    await moveOutTenant(activeTenant._id, moveInDate, modifiedByUserId);
+    if (activeTenant) {
+      await moveOutTenant(activeTenant._id, moveInDate, modifiedByUserId);
+    }
   }
 
-  // 3. Update residing type to Tenant
+  // 3. Update residing type to Tenant on Flat
+  await Flat.findByIdAndUpdate(flatId, {
+    $set: {
+      residingType: 'Tenant',
+      modifiedOn: now,
+      modifiedByUserId: modifiedByUserId
+    }
+  });
+
+  // Update leaseStart for members if needed (though it was being set on all members before, 
+  // maybe we should only set it on the specific tenant member or keep it if it's shared logic.
+  // The previous code set leaseStart on ALL members of the flat, which seems wrong but I'll stick to logic).
+  // Actually, leaseStart should probably be on the FlatMember.
   await FlatMember.updateMany(
     { flatId: flatId },
     {
       $set: {
-        residingType: 'Tenant',
         modifiedOn: now,
         modifiedByUserId: modifiedByUserId,
         leaseStart: updatedStartDate
@@ -768,23 +779,8 @@ export const moveInTenant = async (flatMemberId, modifiedByUserId, moveInDate) =
 };
 
 export const getCurrentResidingType = async (flatId) => {
-  // Priority: owner residing as Self > active tenant
-  const owner = await FlatMember.findOne({
-    flatId,
-    isOwner: true,
-    residingType: 'Self'
-  });
-  if (owner) return owner.residingType; // 'Self'
-
-  const tenant = await FlatMember.findOne({
-    flatId,
-    isTenant: true,
-    residingType: 'Tenant',
-    status: 'active'
-  });
-  if (tenant) return tenant.residingType; // 'Tenant'
-
-  return 'Vacant'; // No one residing
+  const flat = await Flat.findById(flatId);
+  return flat?.residingType || 'Vacant';
 };
 
 export const deleteFlatMember = async (id) => {
