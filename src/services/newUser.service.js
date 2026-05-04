@@ -1,5 +1,5 @@
 import { Flat, FlatMember } from '../models';
-import { moveInTenant, getCurrentResidingType } from '../services/flat.service';
+import { moveInTenant } from '../services/flat.service';
 
 export const creatFlatMember = async (data, loggedInUserId) => {
 

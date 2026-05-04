@@ -8,6 +8,7 @@ const FlatSchema = new mongoose.Schema({
   floor: { type: Number },
 
   residingType: { type: String, enum: ['Self', 'Tenant', 'Vacant'], default: 'Vacant' },
+  isMultiTenantAllowed: { type: Boolean, default: false },
   meta: { type: mongoose.Schema.Types.Mixed },
 
   ...require('./default-fields.model')

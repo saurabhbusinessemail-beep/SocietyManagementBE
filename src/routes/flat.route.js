@@ -28,6 +28,8 @@ router.patch('/moveOutOwner/:flatMemberId', flatController.moveOutOwner);
 
 router.patch('/moveInSelf/:flatMemberId', flatController.moveInSelf);
 
+router.patch('/update/:flatId', flatController.updateFlat);
+
 router.delete('/deleteFlatMember/:flatMemberId', flatController.deleteFlatMember);
 
 export default router;

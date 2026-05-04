@@ -20,7 +20,7 @@ export const bulkCreateFlats = async (req, res, next) => {
       });
     }
 
-    
+
     let flats = req.body;
 
     const limitError = await flatLimitExceeded(societyId, flats.length);
@@ -91,8 +91,9 @@ export const getFlatById = async (req, res, next) => {
 
 export const updateFlat = async (req, res, next) => {
   try {
-    const data = await flatService.updateFlat(req.params.societyId, req.body);
-    res.json(data);
+    const loggedInUser = res.locals.user;
+    const data = await flatService.updateFlat(req.params.flatId, req.body, loggedInUser._id);
+    res.json({ success: true, data });
   } catch (err) {
     next(err);
   }
