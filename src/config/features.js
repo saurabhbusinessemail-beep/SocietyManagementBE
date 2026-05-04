@@ -12,5 +12,6 @@ export const FEATURES = {
     PARKING: 'parking',
     COMMUNICATION: 'communication',
     MAINTENANCE: 'maintenance',
+    RENT: 'rent',
     OFFERS_ON_FESTIVALS: 'offers_on_festivals'
 };
