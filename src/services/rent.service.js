@@ -183,10 +183,10 @@ export const getRentSummary = async (flatId, month, year) => {
   });
 
   let paidCount = 0;
-  let pendingCount = 0;
+  let pendingApprovalCount = 0;
   Object.values(tenantStatusMap).forEach(status => {
     if (status === 'approved') paidCount++;
-    else if (status === 'pending_approval') pendingCount++;
+    else if (status === 'pending_approval') pendingApprovalCount++;
   });
 
   const totalCollected = payments
@@ -194,13 +194,17 @@ export const getRentSummary = async (flatId, month, year) => {
     .reduce((sum, p) => sum + (p.amount || 0), 0);
     
   const totalRentExpected = tenants.reduce((sum, t) => sum + (t.rentAmount || 0), 0);
+  const pendingAmount = Math.max(0, totalRentExpected - totalCollected);
+  const notPaidCount = totalTenants - paidCount - pendingApprovalCount;
 
   return {
     totalTenants,
     paidCount,
-    pendingCount,
+    pendingApprovalCount,
+    notPaidCount,
     totalCollected,
-    totalRentExpected
+    totalRentExpected,
+    pendingAmount
   };
 };
 
@@ -262,19 +266,24 @@ export const getMonthlyReport = async (flatId, month, year) => {
   });
 
   const paidCount = reportEntries.filter(e => e.status === 'approved').length;
-  const pendingCount = reportEntries.filter(e => e.status === 'pending_approval').length;
+  const pendingApprovalCount = reportEntries.filter(e => e.status === 'pending_approval').length;
   const totalCollected = payments
     .filter(p => p.status === 'approved')
     .reduce((sum, p) => sum + (p.amount || 0), 0);
   const totalRentExpected = tenants.reduce((sum, t) => sum + (t.rentAmount || 0), 0);
+  
+  const pendingAmount = Math.max(0, totalRentExpected - totalCollected);
+  const notPaidCount = tenants.length - paidCount - pendingApprovalCount;
 
   return {
     summary: {
       totalTenants: tenants.length,
       paidCount,
-      pendingCount,
+      pendingApprovalCount,
+      notPaidCount,
       totalCollected,
-      totalRentExpected
+      totalRentExpected,
+      pendingAmount
     },
     entries: reportEntries
   };
