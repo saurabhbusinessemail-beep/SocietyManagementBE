@@ -107,3 +107,21 @@ export const MAINTENANCE_REMINDER = {
     title: 'Maintenance Payment Reminder',
     message: (data) => `Reminder: Maintenance payment for ${data.month}/${data.year} is pending for your flat ${data.flatNumber}. Please pay at the earliest.`
 }
+
+export const RENT_PAYMENT_REQUEST = {
+    type: 'RENT_PAYMENT',
+    title: 'Rent Payment Recorded',
+    message: (payment) => `A rent payment of ₹${payment.amount} has been recorded for ${payment.month}/${payment.year} and is awaiting your approval.`
+}
+
+export const RENT_PAYMENT_RESPONSE = {
+    type: 'RENT_PAYMENT_RESPONSE',
+    title: 'Rent Payment Update',
+    message: (payment, status) => `Your rent payment of ₹${payment.amount} for ${payment.month}/${payment.year} has been ${status}.`
+}
+
+export const RENT_REMINDER = {
+    type: 'RENT_REMINDER',
+    title: 'Rent Payment Reminder',
+    message: (data) => `Reminder: Rent payment for ${data.month}/${data.year} is pending for your flat ${data.flatNumber}. Please pay at the earliest.`
+}

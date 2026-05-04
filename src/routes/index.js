@@ -19,6 +19,7 @@ import comments from './comment.route';
 import vehicle from './vehicle.route';
 import approval from './approvalRequest.route'
 import maintenance from './maintenance.route'
+import rent from './rent.route'
 
 const seedRoles = require('../seed/role.seeder');
 const seedPermissions = require('../seed/permission.seeder');
@@ -74,6 +75,7 @@ const routes = () => {
   router.use('/payments', paymentRoutes);
   router.use('/approvals', approval);
   router.use('/maintenance', maintenance);
+  router.use('/rent', rent);
 
 
   return router;

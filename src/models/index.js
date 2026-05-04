@@ -12,6 +12,8 @@ const GateEntry = require('./gateEntry.model');
 const GatePass = require('./gatePass.model');
 const MaintenancePayment = require('./maintenancePayment.model');
 const MaintenanceReminder = require('./maintenanceReminder.model');
+const RentPayment = require('./rentPayment.model');
+const RentReminder = require('./rentReminder.model');
 const Menu = require('./menu.model');
 const Notification = require('./notification.model');
 const Otp = require('./otp.model');
@@ -41,6 +43,8 @@ module.exports = {
   GatePass,
   MaintenancePayment,
   MaintenanceReminder,
+  RentPayment,
+  RentReminder,
   Menu,
   Notification,
   Otp,

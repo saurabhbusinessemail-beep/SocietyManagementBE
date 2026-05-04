@@ -360,6 +360,106 @@ export const sendMaintenanceReminderNotification = async (fromUser, toUserId, da
   return notificationData;
 };
 
+export const sendRentPaymentNotification = async (fromUser, toUserId, payment, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = messageConfig.RENT_PAYMENT_REQUEST.title;
+  const type = messageConfig.RENT_PAYMENT_REQUEST.type;
+  const message = messageConfig.RENT_PAYMENT_REQUEST.message(payment);
+
+  const payload = {
+    userId: toUserId,
+    societyId: payment.societyId,
+    type,
+    title,
+    message,
+    data: payment,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        notificationId: notificationData._id,
+        rentPaymentId: payment._id,
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      console.error('Could not send rent payment notification');
+    }
+  }
+  return notificationData;
+};
+
+export const sendRentApprovalNotification = async (fromUser, toUserId, payment, status, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = messageConfig.RENT_PAYMENT_RESPONSE.title;
+  const type = messageConfig.RENT_PAYMENT_RESPONSE.type;
+  const message = messageConfig.RENT_PAYMENT_RESPONSE.message(payment, status);
+
+  const payload = {
+    userId: toUserId,
+    societyId: payment.societyId,
+    type,
+    title,
+    message,
+    data: payment,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        notificationId: notificationData._id,
+        rentPaymentId: payment._id,
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      console.error('Could not send rent approval notification');
+    }
+  }
+  return notificationData;
+};
+
+export const sendRentReminderNotification = async (fromUser, toUserId, data, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = messageConfig.RENT_REMINDER.title;
+  const type = messageConfig.RENT_REMINDER.type;
+  const message = messageConfig.RENT_REMINDER.message(data);
+
+  const payload = {
+    userId: toUserId,
+    societyId: data.societyId,
+    type,
+    title,
+    message,
+    data: data,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      console.error('Could not send rent reminder notification');
+    }
+  }
+  return notificationData;
+};
+
 /* FIREBASE Notification */
 const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {
   try {

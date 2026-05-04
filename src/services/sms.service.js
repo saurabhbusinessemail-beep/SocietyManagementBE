@@ -91,3 +91,42 @@ export const sendMaintenanceReminderSMS = async (data, phoneNumber) => {
         console.log(`Failed to send Maintenance Reminder SMS: ${error.message}`);
     }
 }
+
+export const sendRentPaymentSMS = async (payment, phoneNumber) => {
+    const title = messageConfig.RENT_PAYMENT_REQUEST.title;
+    const message = messageConfig.RENT_PAYMENT_REQUEST.message(payment);
+    const fullMessage = `${title}\n${message}`;
+    const smsGateway = getSMSGateway();
+    try {
+        const result = await smsGateway.sendMessage(phoneNumber, fullMessage);
+        return result;
+    } catch (error) {
+        console.log(`Failed to send Rent Payment SMS: ${error.message}`);
+    }
+}
+
+export const sendRentApprovalSMS = async (payment, status, phoneNumber) => {
+    const title = messageConfig.RENT_PAYMENT_RESPONSE.title;
+    const message = messageConfig.RENT_PAYMENT_RESPONSE.message(payment, status);
+    const fullMessage = `${title}\n${message}`;
+    const smsGateway = getSMSGateway();
+    try {
+        const result = await smsGateway.sendMessage(phoneNumber, fullMessage);
+        return result;
+    } catch (error) {
+        console.log(`Failed to send Rent Approval SMS: ${error.message}`);
+    }
+}
+
+export const sendRentReminderSMS = async (data, phoneNumber) => {
+    const title = messageConfig.RENT_REMINDER.title;
+    const message = messageConfig.RENT_REMINDER.message(data);
+    const fullMessage = `${title}\n${message}`;
+    const smsGateway = getSMSGateway();
+    try {
+        const result = await smsGateway.sendMessage(phoneNumber, fullMessage);
+        return result;
+    } catch (error) {
+        console.log(`Failed to send Rent Reminder SMS: ${error.message}`);
+    }
+}
