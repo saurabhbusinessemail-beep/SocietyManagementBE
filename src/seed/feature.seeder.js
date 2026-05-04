@@ -12,8 +12,9 @@ const features = [
   { key: 'complaints', name: 'Complaints' },
   { key: 'vehicle', name: 'Vehicle' },
   { key: 'parking', name: 'Parking' },
-  { key: 'communication', name: 'Communication' },
   { key: 'maintenance', name: 'Maintenance' },
+  { key: 'rent', name: 'Rent' },
+  { key: 'communication', name: 'Communication' },
   { key: 'offers_on_festivals', name: 'Offers On Festivals' }
 ];
 

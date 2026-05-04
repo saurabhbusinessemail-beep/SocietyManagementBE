@@ -32,8 +32,9 @@ const plansData = [
             { key: 'complaints', name: 'Complaints', included: false },
             { key: 'vehicle', name: 'Vehicle', included: false },
             { key: 'parking', name: 'Parking', included: false },
-            { key: 'communication', name: 'Communication', included: false },
             { key: 'maintenance', name: 'Maintenance', included: false },
+            { key: 'rent', name: 'Rent', included: false },
+            { key: 'communication', name: 'Communication', included: false },
             { key: 'offers_on_festivals', name: 'Offers On Festivals', included: false }
         ],
         // No duration options for free plan
@@ -174,8 +175,9 @@ const plansData = [
             { key: 'complaints', name: 'Complaints', included: true },
             { key: 'vehicle', name: 'Vehicle', included: true },
             { key: 'parking', name: 'Parking', included: true },
-            { key: 'communication', name: 'Communication', included: false },
             { key: 'maintenance', name: 'Maintenance', included: false },
+            { key: 'rent', name: 'Rent', included: false },
+            { key: 'communication', name: 'Communication', included: false },
             { key: 'offers_on_festivals', name: 'Offers On Festivals', included: true }
         ],
         allowedDurations: {
@@ -223,8 +225,9 @@ const plansData = [
             { key: 'complaints', name: 'Complaints', included: true },
             { key: 'vehicle', name: 'Vehicle', included: true },
             { key: 'parking', name: 'Parking', included: true },
-            { key: 'communication', name: 'Communication', included: true },
-            { key: 'maintenance', name: 'Maintenance', included: false },
+            { key: 'maintenance', name: 'Maintenance', included: true },
+            { key: 'rent', name: 'Rent', included: true },
+            { key: 'communication', name: 'Communication', included: false },
             { key: 'offers_on_festivals', name: 'Offers On Festivals', included: true }
         ],
         allowedDurations: {
@@ -275,8 +278,9 @@ const plansData = [
             { key: 'complaints', name: 'Complaints', included: true },
             { key: 'vehicle', name: 'Vehicle', included: true },
             { key: 'parking', name: 'Parking', included: true },
-            { key: 'communication', name: 'Communication', included: true },
             { key: 'maintenance', name: 'Maintenance', included: true },
+            { key: 'rent', name: 'Rent', included: true },
+            { key: 'communication', name: 'Communication', included: true },
             { key: 'offers_on_festivals', name: 'Offers On Festivals', included: true }
         ],
         allowedDurations: {

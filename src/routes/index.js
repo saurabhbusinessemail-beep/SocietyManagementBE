@@ -30,6 +30,7 @@ const seedPricingPlan = require('../seed/pricingPlans.seeder');
 import { updateSocietyRecords } from '../seed/updateSociety';
 import { getOrCreateDefaultUser } from '../seed/emptyUser.seeder';
 import { NormaliseAllPhoneNumbers } from '../datafixes/fixPhoneNumbers.datafixes';
+import { FixSocietyPlanFeatures } from '../datafixes/fixSocietyPlanFeatures.datafixes';
 
 /**
  * Function contains Application routes
@@ -53,8 +54,12 @@ const routes = () => {
     res.send('Seed Completed');
   });
   router.get('/fixPhoneNumbers', async (req, res) => {
-
     const data = await NormaliseAllPhoneNumbers();
+    res.json(data);
+  });
+  
+  router.get('/fixSocietyPlanFeatures', async (req, res) => {
+    const data = await FixSocietyPlanFeatures();
     res.json(data);
   });
   router.use('/users', userRoute);
