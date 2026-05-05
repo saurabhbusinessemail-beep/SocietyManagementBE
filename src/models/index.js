@@ -1,4 +1,6 @@
 const Announcement = require('./announcement.model');
+const ChatRoom = require('./chatRoom.model');
+const ChatMessage = require('./chatMessage.model');
 const ApprovalRequest = require('./approvalRequest.model');
 const Building = require('./building.model');
 const Comments = require('./comments.model');
@@ -31,6 +33,8 @@ const Vehicle = require('./vehicle.model');
 
 module.exports = {
   Announcement,
+  ChatRoom,
+  ChatMessage,
   ApprovalRequest,
   Building,
   Comments,

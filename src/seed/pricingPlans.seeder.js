@@ -34,6 +34,7 @@ const plansData = [
             { key: 'parking', name: 'Parking', included: false },
             { key: 'maintenance', name: 'Maintenance', included: false },
             { key: 'rent', name: 'Rent', included: false },
+            { key: 'chat', name: 'Chat', included: false },
             { key: 'communication', name: 'Communication', included: false },
             { key: 'offers_on_festivals', name: 'Offers On Festivals', included: false }
         ],
@@ -79,6 +80,7 @@ const plansData = [
             { key: 'vehicle', name: 'Vehicle', included: true },
             { key: 'parking', name: 'Parking', included: true },
             { key: 'communication', name: 'Communication', included: true },
+            { key: 'chat', name: 'Chat', included: true },
             { key: 'maintenance', name: 'Maintenance', included: false },
             { key: 'offers_on_festivals', name: 'Offers On Festivals', included: true }
         ],
@@ -123,6 +125,7 @@ const plansData = [
             { key: 'complaints', name: 'Complaints', included: false },
             { key: 'vehicle', name: 'Vehicle', included: false },
             { key: 'parking', name: 'Parking', included: false },
+            { key: 'chat', name: 'Chat', included: false },
             { key: 'communication', name: 'Communication', included: false },
             { key: 'maintenance', name: 'Maintenance', included: false },
             { key: 'offers_on_festivals', name: 'Offers On Festivals', included: true }
@@ -177,6 +180,7 @@ const plansData = [
             { key: 'parking', name: 'Parking', included: true },
             { key: 'maintenance', name: 'Maintenance', included: false },
             { key: 'rent', name: 'Rent', included: false },
+            { key: 'chat', name: 'Chat', included: false },
             { key: 'communication', name: 'Communication', included: false },
             { key: 'offers_on_festivals', name: 'Offers On Festivals', included: true }
         ],
@@ -227,6 +231,7 @@ const plansData = [
             { key: 'parking', name: 'Parking', included: true },
             { key: 'maintenance', name: 'Maintenance', included: true },
             { key: 'rent', name: 'Rent', included: true },
+            { key: 'chat', name: 'Chat', included: false },
             { key: 'communication', name: 'Communication', included: false },
             { key: 'offers_on_festivals', name: 'Offers On Festivals', included: true }
         ],
@@ -280,6 +285,7 @@ const plansData = [
             { key: 'parking', name: 'Parking', included: true },
             { key: 'maintenance', name: 'Maintenance', included: true },
             { key: 'rent', name: 'Rent', included: true },
+            { key: 'chat', name: 'Chat', included: true },
             { key: 'communication', name: 'Communication', included: true },
             { key: 'offers_on_festivals', name: 'Offers On Festivals', included: true }
         ],

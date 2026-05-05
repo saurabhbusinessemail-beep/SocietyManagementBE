@@ -17,7 +17,6 @@ const JWT_SECRET = process.env.JWT_SECRET || 'skSecret';
  */
 export const userAuth = async (req, res, next) => {
   try {
-    await waitFor(0);
     const authHeader = req.headers.authorization;
     const fcmToken = req.headers.fcmToken;
 

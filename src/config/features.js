@@ -13,5 +13,6 @@ export const FEATURES = {
     COMMUNICATION: 'communication',
     MAINTENANCE: 'maintenance',
     RENT: 'rent',
+    CHAT: 'chat',
     OFFERS_ON_FESTIVALS: 'offers_on_festivals'
 };

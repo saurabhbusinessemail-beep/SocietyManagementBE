@@ -8,7 +8,8 @@ const roleMenus = [
       { menuId: 'society', sortOrder: 1 },
       { menuId: 'complaints', sortOrder: 2 },
       { menuId: 'announcements', sortOrder: 3 },
-      { menuId: 'unApprovedSocieties', sortOrder: 4 }
+      { menuId: 'chat', sortOrder: 4 },
+      { menuId: 'unApprovedSocieties', sortOrder: 5 }
     ]
   },
 
@@ -19,7 +20,8 @@ const roleMenus = [
       { menuId: 'society', sortOrder: 1 },
       { menuId: 'complaints', sortOrder: 2 },
       { menuId: 'announcements', sortOrder: 3 },
-      { menuId: 'unApprovedSocieties', sortOrder: 4 }
+      { menuId: 'chat', sortOrder: 4 },
+      { menuId: 'unApprovedSocieties', sortOrder: 5 }
     ]
   },
 
@@ -34,8 +36,9 @@ const roleMenus = [
       { menuId: 'tenants', sortOrder: 5 },
       { menuId: 'members', sortOrder: 6 },
       { menuId: 'announcements', sortOrder: 7 },
-      { menuId: 'vehicle', sortOrder: 8 },
-      { menuId: 'unApprovedSocieties', sortOrder: 9 }
+      { menuId: 'chat', sortOrder: 8 },
+      { menuId: 'vehicle', sortOrder: 9 },
+      { menuId: 'unApprovedSocieties', sortOrder: 10 }
     ]
   },
 
@@ -49,8 +52,9 @@ const roleMenus = [
       { menuId: 'gatepass', sortOrder: 4 },
       { menuId: 'members', sortOrder: 5 },
       { menuId: 'announcements', sortOrder: 6 },
-      { menuId: 'vehicle', sortOrder: 7 },
-      { menuId: 'unApprovedSocieties', sortOrder: 8 }
+      { menuId: 'chat', sortOrder: 7 },
+      { menuId: 'vehicle', sortOrder: 8 },
+      { menuId: 'unApprovedSocieties', sortOrder: 9 }
     ]
   },
 
@@ -64,8 +68,9 @@ const roleMenus = [
       { menuId: 'gatepass', sortOrder: 4 },
       { menuId: 'members', sortOrder: 5 },
       { menuId: 'announcements', sortOrder: 6 },
-      { menuId: 'vehicle', sortOrder: 7 },
-      { menuId: 'unApprovedSocieties', sortOrder: 8 }
+      { menuId: 'chat', sortOrder: 7 },
+      { menuId: 'vehicle', sortOrder: 8 },
+      { menuId: 'unApprovedSocieties', sortOrder: 9 }
     ]
   },
 
@@ -75,7 +80,8 @@ const roleMenus = [
     menus: [
       { menuId: 'society', sortOrder: 1 },
       { menuId: 'gateentry', sortOrder: 2 },
-      { menuId: 'unApprovedSocieties', sortOrder: 3 }
+      { menuId: 'chat', sortOrder: 3 },
+      { menuId: 'unApprovedSocieties', sortOrder: 4 }
     ]
   }
 ];

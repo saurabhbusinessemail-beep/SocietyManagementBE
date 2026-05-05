@@ -19,7 +19,7 @@ export const getRoleMenu = async (roles) => {
     return menuIds;
   }, []);
 
-  const menusIdsAllowedWithoutSocities = (await Menu.find({ loadWithoutSociety: true }, {menuId: 1}).lean()).map(o => o.menuId);
+  const menusIdsAllowedWithoutSocities = (await Menu.find({ loadWithoutSociety: true }, { menuId: 1 }).lean()).map(o => o.menuId);
   // .menus.map((m) => m.menuId);
   const uniqueMenuIds = [...(new Set([...allowedMenuIds, ...menusIdsAllowedWithoutSocities]))];
 

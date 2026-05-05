@@ -14,6 +14,7 @@ const features = [
   { key: 'parking', name: 'Parking' },
   { key: 'maintenance', name: 'Maintenance' },
   { key: 'rent', name: 'Rent' },
+  { key: 'chat', name: 'Chat' },
   { key: 'communication', name: 'Communication' },
   { key: 'offers_on_festivals', name: 'Offers On Festivals' }
 ];

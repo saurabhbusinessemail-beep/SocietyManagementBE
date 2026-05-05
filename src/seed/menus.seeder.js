@@ -94,6 +94,13 @@ const menus = [
     loadWithoutSociety: true
   },
   {
+    menuId: 'chat',
+    menuName: 'Chat',
+    icon: 'chat',
+    mandatorFeatureAccess: FEATURES.CHAT,
+    relativePath: '/chat',
+  },
+  {
     menuId: 'demo',
     menuName: 'Demo',
     icon: 'demo',

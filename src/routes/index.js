@@ -22,6 +22,7 @@ import maintenance from './maintenance.route'
 import rent from './rent.route'
 import tenantDocument from './tenantDocument.route'
 import dashboardRoutes from './dashboard.route';
+import chatRoutes from './chat.route';
 
 const seedRoles = require('../seed/role.seeder');
 const seedPermissions = require('../seed/permission.seeder');
@@ -85,6 +86,7 @@ const routes = () => {
   router.use('/rent', rent);
   router.use('/tenant-documents', tenantDocument);
   router.use('/dashboard', dashboardRoutes);
+  router.use('/chat', chatRoutes);
 
 
   return router;
