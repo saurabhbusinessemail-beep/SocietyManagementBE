@@ -125,3 +125,21 @@ export const RENT_REMINDER = {
     title: 'Rent Payment Reminder',
     message: (data) => `Reminder: Rent payment for ${data.month}/${data.year} is pending for your flat ${data.flatNumber}. Please pay at the earliest.`
 }
+
+export const TENANT_DOCUMENT_UPLOAD = {
+    type: 'TENANT_DOCUMENT',
+    title: 'Tenant Document Uploaded',
+    message: (doc) => `A new document "${doc.documentName}" has been uploaded by tenant and is awaiting your approval.`
+}
+
+export const TENANT_DOCUMENT_RESPONSE = {
+    type: 'TENANT_DOCUMENT_RESPONSE',
+    title: 'Tenant Document Update',
+    message: (doc, status) => `Your document "${doc.documentName}" has been ${status}.`
+}
+
+export const TENANT_DOCUMENT_REMINDER = {
+    type: 'TENANT_DOCUMENT_REMINDER',
+    title: 'Document Submission Reminder',
+    message: (data) => `Reminder: Please upload the required documents for your tenancy in flat ${data.flatNumber}. Ignore this message if you have already submitted.`
+}

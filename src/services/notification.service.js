@@ -460,6 +460,106 @@ export const sendRentReminderNotification = async (fromUser, toUserId, data, fcm
   return notificationData;
 };
 
+export const sendTenantDocumentUploadNotification = async (fromUser, toUserId, doc, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = messageConfig.TENANT_DOCUMENT_UPLOAD.title;
+  const type = messageConfig.TENANT_DOCUMENT_UPLOAD.type;
+  const message = messageConfig.TENANT_DOCUMENT_UPLOAD.message(doc);
+
+  const payload = {
+    userId: toUserId,
+    societyId: doc.societyId,
+    type,
+    title,
+    message,
+    data: doc,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        notificationId: notificationData._id,
+        tenantDocumentId: doc._id,
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      console.error('Could not send tenant document upload notification');
+    }
+  }
+  return notificationData;
+};
+
+export const sendTenantDocumentResponseNotification = async (fromUser, toUserId, doc, status, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = messageConfig.TENANT_DOCUMENT_RESPONSE.title;
+  const type = messageConfig.TENANT_DOCUMENT_RESPONSE.type;
+  const message = messageConfig.TENANT_DOCUMENT_RESPONSE.message(doc, status);
+
+  const payload = {
+    userId: toUserId,
+    societyId: doc.societyId,
+    type,
+    title,
+    message,
+    data: doc,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        notificationId: notificationData._id,
+        tenantDocumentId: doc._id,
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      console.error('Could not send tenant document response notification');
+    }
+  }
+  return notificationData;
+};
+
+export const sendTenantDocumentReminderNotification = async (fromUser, toUserId, data, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = messageConfig.TENANT_DOCUMENT_REMINDER.title;
+  const type = messageConfig.TENANT_DOCUMENT_REMINDER.type;
+  const message = messageConfig.TENANT_DOCUMENT_REMINDER.message(data);
+
+  const payload = {
+    userId: toUserId,
+    societyId: data.societyId,
+    type,
+    title,
+    message,
+    data: data,
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        type
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      console.error('Could not send tenant document reminder notification');
+    }
+  }
+  return notificationData;
+};
+
 /* FIREBASE Notification */
 const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {
   try {

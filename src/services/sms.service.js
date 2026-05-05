@@ -130,3 +130,42 @@ export const sendRentReminderSMS = async (data, phoneNumber) => {
         console.log(`Failed to send Rent Reminder SMS: ${error.message}`);
     }
 }
+
+export const sendTenantDocumentUploadSMS = async (doc, phoneNumber) => {
+    const title = messageConfig.TENANT_DOCUMENT_UPLOAD.title;
+    const message = messageConfig.TENANT_DOCUMENT_UPLOAD.message(doc);
+    const fullMessage = `${title}\n${message}`;
+    const smsGateway = getSMSGateway();
+    try {
+        const result = await smsGateway.sendMessage(phoneNumber, fullMessage);
+        return result;
+    } catch (error) {
+        console.log(`Failed to send Tenant Document Upload SMS: ${error.message}`);
+    }
+}
+
+export const sendTenantDocumentResponseSMS = async (doc, status, phoneNumber) => {
+    const title = messageConfig.TENANT_DOCUMENT_RESPONSE.title;
+    const message = messageConfig.TENANT_DOCUMENT_RESPONSE.message(doc, status);
+    const fullMessage = `${title}\n${message}`;
+    const smsGateway = getSMSGateway();
+    try {
+        const result = await smsGateway.sendMessage(phoneNumber, fullMessage);
+        return result;
+    } catch (error) {
+        console.log(`Failed to send Tenant Document Response SMS: ${error.message}`);
+    }
+}
+
+export const sendTenantDocumentReminderSMS = async (data, phoneNumber) => {
+    const title = messageConfig.TENANT_DOCUMENT_REMINDER.title;
+    const message = messageConfig.TENANT_DOCUMENT_REMINDER.message(data);
+    const fullMessage = `${title}\n${message}`;
+    const smsGateway = getSMSGateway();
+    try {
+        const result = await smsGateway.sendMessage(phoneNumber, fullMessage);
+        return result;
+    } catch (error) {
+        console.log(`Failed to send Tenant Document Reminder SMS: ${error.message}`);
+    }
+}

@@ -25,6 +25,7 @@ const Society = require('./society.model');
 const SocietyPlan = require('./societyPlan.model');
 const SocietyRole = require('./societyRole.model');
 const SocietyRoleMenu = require('./societyRoleMenu.model');
+const TenantDocument = require('./tenantDocument.model');
 const User = require('./user.model');
 const Vehicle = require('./vehicle.model');
 
@@ -56,6 +57,7 @@ module.exports = {
   SocietyPlan,
   SocietyRole,
   SocietyRoleMenu,
+  TenantDocument,
   User,
   Vehicle
 };

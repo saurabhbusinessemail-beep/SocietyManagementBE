@@ -20,6 +20,7 @@ import vehicle from './vehicle.route';
 import approval from './approvalRequest.route'
 import maintenance from './maintenance.route'
 import rent from './rent.route'
+import tenantDocument from './tenantDocument.route'
 
 const seedRoles = require('../seed/role.seeder');
 const seedPermissions = require('../seed/permission.seeder');
@@ -81,6 +82,7 @@ const routes = () => {
   router.use('/approvals', approval);
   router.use('/maintenance', maintenance);
   router.use('/rent', rent);
+  router.use('/tenant-documents', tenantDocument);
 
 
   return router;

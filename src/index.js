@@ -23,13 +23,13 @@ const api_version = process.env.API_VERSION;
 
 app.use(cors({
   origin: '*',
-  methods: ['GET','POST','PUT','DELETE','OPTIONS','PATCH'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'fcmToken'],
   credentials: true
 }));
 app.use(helmet());
-app.use(express.urlencoded({ extended: true, limit: '5mb' }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '10mb' }));
 // app.use(morgan('combined', { stream: logStream }));
 
 database();
