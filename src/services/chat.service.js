@@ -322,7 +322,122 @@ export const sendMessage = async (roomId, userId, messageData) => {
     .populate('replyTo.senderId', 'name')
     .lean();
 
+  // 🔔 Send Real-time Notification via FCM
+  try {
+    const participantIds = await getRoomParticipantIds(room);
+    // Remove the sender from notification list
+    const targetUserIds = participantIds.filter(id => id.toString() !== userId.toString());
+    
+    if (targetUserIds.length > 0) {
+      const { sendChatMessageNotification } = require('./notification.service');
+      await sendChatMessageNotification(targetUserIds, {
+        roomId: roomId.toString(),
+        roomType: room.type,
+        messageId: message._id.toString(),
+        senderName: senderName,
+        senderId: userId.toString(),
+        content: messageData.type === 'text' ? messageData.content : `[${messageData.type}]`,
+        type: messageData.type || 'text',
+        sentAt: message.sentAt.toISOString(),
+        societyId: room.societyId.toString()
+      });
+    }
+  } catch (notificationError) {
+    console.error('Error sending chat notifications:', notificationError);
+    // We don't throw here to avoid failing the message send if notification fails
+  }
+
   return populated;
+};
+
+/**
+ * Helper: Get all user IDs that have access to a room
+ */
+export const getRoomParticipantIds = async (room) => {
+  if (room.type === 'personal') {
+    return room.participants.map(p => p.userId);
+  }
+
+  const societyId = room.societyId?._id || room.societyId;
+  const conditions = [];
+
+  // This is a simplified version of the access logic to find target users
+  // In a real high-scale app, we would use FCM Topics for groups
+  if (room.type === 'society_all') {
+    // Everyone in the society
+    const members = await FlatMember.find({ societyId, isDeleted: { $ne: true } }).distinct('userId');
+    const society = await Society.findById(societyId).select('adminContacts managerIds').lean();
+    const security = await mongoose.model('Security').find({ societyId, status: 'active' }).distinct('userId');
+    return [...new Set([...members, ...(society?.adminContacts || []), ...(society?.managerIds || []), ...security])];
+  }
+
+  if (room.type.startsWith('society_')) {
+    // Specific roles
+    let userIds = [];
+    if (room.type.includes('managers')) {
+      const society = await Society.findById(societyId).select('adminContacts managerIds').lean();
+      userIds.push(...(society?.adminContacts || []), ...(society?.managerIds || []));
+    }
+    if (room.type.includes('owners')) {
+      const owners = await FlatMember.find({ societyId, isOwner: true, isDeleted: { $ne: true } }).distinct('userId');
+      userIds.push(...owners);
+    }
+    if (room.type.includes('tenants')) {
+      const tenants = await FlatMember.find({ societyId, isTenant: true, isDeleted: { $ne: true } }).distinct('userId');
+      userIds.push(...tenants);
+    }
+    if (room.type === 'society_security') {
+      const security = await mongoose.model('Security').find({ societyId, status: 'active' }).distinct('userId');
+      userIds.push(...security);
+    }
+    return [...new Set(userIds)];
+  }
+
+  if (room.type.startsWith('building_')) {
+    const buildingId = room.buildingId?._id || room.buildingId;
+    const building = await Building.findById(buildingId).select('managerId').lean();
+    const society = await Society.findById(societyId).select('adminContacts managerIds').lean();
+    
+    let userIds = [...(society?.adminContacts || []), ...(society?.managerIds || [])];
+    if (building?.managerId) userIds.push(building.managerId);
+
+    if (room.type === 'building_all') {
+      const residents = await FlatMember.find({ 
+        societyId, 
+        flatId: { $in: await Flat.find({ buildingId }).distinct('_id') },
+        isDeleted: { $ne: true }
+      }).distinct('userId');
+      userIds.push(...residents);
+      const security = await mongoose.model('Security').find({ societyId, status: 'active' }).distinct('userId');
+      userIds.push(...security);
+    } else if (room.type === 'building_owners_admins') {
+      const owners = await FlatMember.find({ 
+        societyId, 
+        isOwner: true,
+        flatId: { $in: await Flat.find({ buildingId }).distinct('_id') },
+        isDeleted: { $ne: true }
+      }).distinct('userId');
+      userIds.push(...owners);
+    }
+    return [...new Set(userIds)];
+  }
+
+  if (room.type.startsWith('flat_')) {
+    const flatId = room.flatId?._id || room.flatId;
+    const memberships = await FlatMember.find({ flatId, isDeleted: { $ne: true } }).lean();
+    
+    let userIds = [];
+    if (room.type === 'flat_owner_members') {
+      userIds = memberships.filter(m => m.isOwner || m.isMember).map(m => m.userId);
+    } else if (room.type === 'flat_owner_tenants') {
+      userIds = memberships.filter(m => m.isOwner || m.isTenant || m.isTenantMember).map(m => m.userId);
+    } else if (room.type === 'flat_tenants') {
+      userIds = memberships.filter(m => m.isTenant || m.isTenantMember).map(m => m.userId);
+    }
+    return [...new Set(userIds)];
+  }
+
+  return [];
 };
 
 /**

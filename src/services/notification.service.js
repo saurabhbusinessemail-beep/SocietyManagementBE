@@ -625,3 +625,53 @@ const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {
     throw error;
   }
 };
+
+/**
+ * Send real-time chat notifications to participants
+ */
+export const sendChatMessageNotification = async (targetUserIds, chatPayload) => {
+  try {
+    const users = await User.find({ 
+      _id: { $in: targetUserIds }, 
+      fcmToken: { $exists: true, $ne: '' } 
+    }).select('fcmToken').lean();
+
+    if (users.length === 0) return;
+
+    const messages = users.map(user => ({
+      token: user.fcmToken,
+      notification: {
+        title: chatPayload.senderName,
+        body: chatPayload.content
+      },
+      data: {
+        ...chatPayload,
+        type: 'CHAT_MESSAGE'
+      },
+      android: {
+        priority: 'high',
+        notification: {
+          channelId: 'chat_messages',
+          tag: chatPayload.roomId,
+          clickAction: 'OPEN_CHAT_ROOM'
+        }
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: 'default',
+            badge: 1,
+            'thread-id': chatPayload.roomId
+          }
+        }
+      }
+    }));
+
+    // sendEach is efficient for multiple tokens
+    const response = await admin.messaging().sendEach(messages);
+    console.log(`Successfully sent ${response.successCount} chat notifications to ${users.length} users`);
+    return response;
+  } catch (error) {
+    console.error('Error sending chat notifications:', error);
+  }
+};
