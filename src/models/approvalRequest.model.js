@@ -47,4 +47,13 @@ const ApprovalRequestSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 
+// Admin dashboard: pending requests per society
+ApprovalRequestSchema.index({ societyId: 1, status: 1 });
+// Filter by type (FlatMember vs Security)
+ApprovalRequestSchema.index({ societyId: 1, requestType: 1, status: 1 });
+// User's own requests
+ApprovalRequestSchema.index({ requestedBy: 1, status: 1 });
+// Flat-scoped requests
+ApprovalRequestSchema.index({ societyId: 1, flatId: 1 });
+
 module.exports = mongoose.model('ApprovalRequest', ApprovalRequestSchema);

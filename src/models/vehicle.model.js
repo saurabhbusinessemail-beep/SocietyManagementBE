@@ -14,4 +14,9 @@ const VehicleSchema = new mongoose.Schema({
   ...require('./default-fields.model')
 }, { timestamps: true });
 
+// Flat-level vehicle lookup
+VehicleSchema.index({ flatId: 1 });
+// Vehicle type filter
+VehicleSchema.index({ flatId: 1, vehicleType: 1 });
+
 module.exports = mongoose.model('Vehicle', VehicleSchema);

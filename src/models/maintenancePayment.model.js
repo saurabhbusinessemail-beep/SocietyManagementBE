@@ -38,5 +38,11 @@ const MaintenancePaymentSchema = new mongoose.Schema({
 
 // Compound index: one payment per flat per month per year
 MaintenancePaymentSchema.index({ societyId: 1, flatId: 1, month: 1, year: 1 });
+// Status filter used in approval workflow admin view
+MaintenancePaymentSchema.index({ societyId: 1, status: 1 });
+// FlatMember ref used in detail views
+MaintenancePaymentSchema.index({ flatMemberId: 1 });
+// Flat-level listing sorted by period
+MaintenancePaymentSchema.index({ flatId: 1, year: 1, month: 1 });
 
 module.exports = mongoose.model('MaintenancePayment', MaintenancePaymentSchema);

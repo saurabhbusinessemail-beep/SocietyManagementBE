@@ -14,5 +14,10 @@ const MaintenanceReminderSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 MaintenanceReminderSchema.index({ flatId: 1, month: 1, year: 1 });
+// Society-scoped queries used in admin/manager views
+MaintenanceReminderSchema.index({ societyId: 1, month: 1, year: 1 });
+MaintenanceReminderSchema.index({ societyId: 1, flatId: 1 });
+// Type enum used in filtering
+MaintenanceReminderSchema.index({ societyId: 1, type: 1 });
 
 module.exports = mongoose.model('MaintenanceReminder', MaintenanceReminderSchema);

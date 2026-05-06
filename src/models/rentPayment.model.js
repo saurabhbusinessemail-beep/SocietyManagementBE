@@ -38,5 +38,11 @@ const RentPaymentSchema = new mongoose.Schema({
 
 // Compound index: one payment per flat member (tenant) per month per year
 RentPaymentSchema.index({ flatId: 1, flatMemberId: 1, month: 1, year: 1 });
+// Status filter for approval workflow
+RentPaymentSchema.index({ societyId: 1, status: 1 });
+// FlatMember ref used in detail views
+RentPaymentSchema.index({ flatMemberId: 1 });
+// Society-level listing
+RentPaymentSchema.index({ societyId: 1, flatId: 1, year: 1, month: 1 });
 
 module.exports = mongoose.model('RentPayment', RentPaymentSchema);

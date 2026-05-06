@@ -38,4 +38,12 @@ const GateEntrySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Primary list queries: gate entries per society filtered by status
+GateEntrySchema.index({ societyId: 1, status: 1 });
+// Flat-level gate entry lookup
+GateEntrySchema.index({ societyId: 1, flatId: 1 });
+GateEntrySchema.index({ societyId: 1, flatId: 1, status: 1 });
+// Time-range queries used in reports / dashboards
+GateEntrySchema.index({ societyId: 1, entryTime: -1 });
+
 module.exports = mongoose.model('GateEntry', GateEntrySchema);

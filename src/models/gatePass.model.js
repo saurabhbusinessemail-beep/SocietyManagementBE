@@ -39,4 +39,10 @@ const GatePassSchema = new mongoose.Schema(
   }
 );
 
+// Compound: most common query pattern is societyId + flatId
+GatePassSchema.index({ societyId: 1, flatId: 1 });
+// userId ref used for owner gate-pass lookups
+GatePassSchema.index({ userId: 1 });
+GatePassSchema.index({ societyId: 1, userId: 1 });
+
 module.exports = mongoose.model('GatePass', GatePassSchema);

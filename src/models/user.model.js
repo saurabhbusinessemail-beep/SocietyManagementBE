@@ -19,4 +19,10 @@ const UserSchema = new mongoose.Schema({
   meta: { type: mongoose.Schema.Types.Mixed }
 }, { timestamps: true });
 
+// Auth lookups
+UserSchema.index({ email: 1 }, { sparse: true });
+// Enum fields used for filtering in admin controllers
+UserSchema.index({ status: 1 });
+UserSchema.index({ role: 1 });
+
 module.exports = mongoose.model('User', UserSchema);

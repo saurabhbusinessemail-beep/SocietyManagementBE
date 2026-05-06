@@ -64,4 +64,11 @@ const NotificationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Unread count and listing — most frequent query
+NotificationSchema.index({ userId: 1, isRead: 1 });
+// Society-scoped notifications
+NotificationSchema.index({ userId: 1, societyId: 1, isRead: 1 });
+// Type filter for routing/deep links
+NotificationSchema.index({ userId: 1, type: 1 });
+
 module.exports = mongoose.model('Notification', NotificationSchema);

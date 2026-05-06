@@ -19,4 +19,11 @@ const TenantDocumentSchema = new mongoose.Schema({
   ...require('./default-fields.model')
 }, { timestamps: true });
 
+// Document listing per flat/tenant
+TenantDocumentSchema.index({ flatId: 1, tenantId: 1 });
+// Status filter used in approval workflow
+TenantDocumentSchema.index({ societyId: 1, status: 1 });
+// FlatMember ref
+TenantDocumentSchema.index({ flatMemberId: 1 });
+
 module.exports = mongoose.model('TenantDocument', TenantDocumentSchema);

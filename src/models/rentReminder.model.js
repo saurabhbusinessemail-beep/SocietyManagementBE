@@ -14,5 +14,10 @@ const RentReminderSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 RentReminderSchema.index({ flatId: 1, flatMemberId: 1, month: 1, year: 1 });
+// Society-scoped queries used in admin/manager views
+RentReminderSchema.index({ societyId: 1, month: 1, year: 1 });
+RentReminderSchema.index({ societyId: 1, flatId: 1 });
+// Type enum used in filtering
+RentReminderSchema.index({ societyId: 1, type: 1 });
 
 module.exports = mongoose.model('RentReminder', RentReminderSchema);

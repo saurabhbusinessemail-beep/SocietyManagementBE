@@ -36,4 +36,10 @@ const SocietySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Approval-status filter used in admin dashboards
+SocietySchema.index({ isApproved: 1 });
+SocietySchema.index({ isRejected: 1 });
+// adminContacts ref — used in society access checks
+SocietySchema.index({ adminContacts: 1 });
+
 module.exports = mongoose.model('Society', SocietySchema);

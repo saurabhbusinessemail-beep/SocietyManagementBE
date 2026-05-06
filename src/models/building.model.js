@@ -20,4 +20,10 @@ const BuildingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Primary filter for all queries
+BuildingSchema.index({ societyId: 1 });
+// Used in chat service to check building manager access
+BuildingSchema.index({ societyId: 1, managerId: 1 });
+BuildingSchema.index({ managerId: 1 });
+
 module.exports = mongoose.model('Building', BuildingSchema);

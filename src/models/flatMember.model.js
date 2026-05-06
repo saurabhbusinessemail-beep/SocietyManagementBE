@@ -24,4 +24,15 @@ const FlatMemberSchema = new mongoose.Schema({
   ...require('./default-fields.model')
 }, { timestamps: true });
 
+// Core lookup: find all memberships for a user within a society
+FlatMemberSchema.index({ userId: 1, societyId: 1 });
+// Core lookup: find all members of a flat
+FlatMemberSchema.index({ flatId: 1, societyId: 1 });
+// Role-based filtering used in chat service and notifications
+FlatMemberSchema.index({ societyId: 1, isOwner: 1 });
+FlatMemberSchema.index({ societyId: 1, isTenant: 1 });
+// Status filtering (active vs terminated/expired)
+FlatMemberSchema.index({ societyId: 1, status: 1 });
+FlatMemberSchema.index({ flatId: 1, isDeleted: 1 });
+
 module.exports = mongoose.model('FlatMember', FlatMemberSchema);

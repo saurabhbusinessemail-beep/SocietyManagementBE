@@ -14,4 +14,13 @@ const FlatSchema = new mongoose.Schema({
   ...require('./default-fields.model')
 }, { timestamps: true });
 
+// Ref fields used in populate / joins
+FlatSchema.index({ societyId: 1 });
+FlatSchema.index({ buildingId: 1 });
+// Compound: most common query pattern is societyId + buildingId
+FlatSchema.index({ societyId: 1, buildingId: 1 });
+// Enum field used for filtering
+FlatSchema.index({ societyId: 1, residingType: 1 });
+FlatSchema.index({ societyId: 1, flatType: 1 });
+
 module.exports = mongoose.model('Flat', FlatSchema);

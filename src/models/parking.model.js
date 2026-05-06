@@ -10,4 +10,13 @@ const ParkingSchema = new mongoose.Schema({
   ...require('./default-fields.model')
 }, { timestamps: true });
 
+// Society-level parking list
+ParkingSchema.index({ societyId: 1 });
+// Flat assignment lookup
+ParkingSchema.index({ societyId: 1, flatId: 1 });
+// Building-level parking
+ParkingSchema.index({ societyId: 1, buildingId: 1 });
+// parkingType enum for type-based filtering
+ParkingSchema.index({ societyId: 1, parkingType: 1 });
+
 module.exports = mongoose.model('Parking', ParkingSchema);

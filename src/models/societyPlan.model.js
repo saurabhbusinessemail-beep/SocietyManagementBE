@@ -58,5 +58,9 @@ const SocietyPlanSchema = new mongoose.Schema({
 // Indexes for faster lookups
 SocietyPlanSchema.index({ societyId: 1, isActive: 1 });
 SocietyPlanSchema.index({ planId: 1 });
+// paymentStatus enum — used in billing queries
+SocietyPlanSchema.index({ societyId: 1, paymentStatus: 1 });
+// purchasedBy ref
+SocietyPlanSchema.index({ purchasedBy: 1 });
 
 module.exports = mongoose.model("SocietyPlan", SocietyPlanSchema);

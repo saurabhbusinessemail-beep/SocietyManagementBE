@@ -30,4 +30,13 @@ const ComplaintSchema = new mongoose.Schema({
   ...require('./default-fields.model')
 }, { timestamps: true });
 
+// Primary list queries
+ComplaintSchema.index({ societyId: 1, status: 1 });
+ComplaintSchema.index({ societyId: 1, flatId: 1 });
+ComplaintSchema.index({ flatId: 1, status: 1 });
+// Priority filter used in admin views
+ComplaintSchema.index({ societyId: 1, priority: 1 });
+// AssignedTo ref field used in filtering
+ComplaintSchema.index({ assignedTo: 1, status: 1 });
+
 module.exports = mongoose.model('Complaint', ComplaintSchema);
