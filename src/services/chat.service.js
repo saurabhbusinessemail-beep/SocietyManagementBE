@@ -1,7 +1,6 @@
-import { ChatRoom, ChatMessage, Flat, FlatMember, Building, Society, User } from '../models';
+import { ChatRoom, ChatMessage, Flat, FlatMember, Building, Society, User, Security } from '../models';
 import { checkFeatureAccess } from './planCache.service';
 import { FEATURES } from '../config/features';
-const mongoose = require('mongoose');
 
 /**
  * Get all chat rooms accessible to a user for given society(ies)
@@ -18,7 +17,7 @@ export const getUserChatRooms = async (userId, filters = {}) => {
     const userFlatMemberships = await FlatMember.find(membershipQuery).lean();
 
     const conditions = [];
-    
+
     if (societyId) {
       // 1. Personal rooms within this society
       conditions.push({
@@ -30,7 +29,7 @@ export const getUserChatRooms = async (userId, filters = {}) => {
       const society = await Society.findById(societyId).lean();
       const isSocietyAdmin = society?.adminContacts?.some(id => id?.toString() === userId?.toString());
       const isSocietyManager = society?.managerIds?.some(id => id?.toString() === userId?.toString());
-      const isSecurity = await mongoose.model('Security').exists({ societyId, userId, status: 'active' });
+      const isSecurity = await Security.exists({ societyId, userId, status: 'active' });
 
       // 2. Society-level rooms
       const isAnyOwner = userFlatMemberships.some(m => m.isOwner);
@@ -59,7 +58,7 @@ export const getUserChatRooms = async (userId, filters = {}) => {
       }
 
       if (isSecurity) conditions.push({ type: 'society_security', societyId });
-      
+
       if (isAnyOwner || isAnyTenant || isAnyMember || isAnyTenantMember || isSocietyAdmin || isSocietyManager || isSecurity) {
         conditions.push({ type: 'society_all', societyId });
       }
@@ -73,19 +72,19 @@ export const getUserChatRooms = async (userId, filters = {}) => {
         if (isSocietyAdmin || isSocietyManager || isSecurity) {
           conditions.push({ type: 'building_all', societyId });
         } else {
-          const allowedBIds = [...new Set([...userBuildingIds, ...managedBuildings.map(id=>id?.toString())])];
+          const allowedBIds = [...new Set([...userBuildingIds, ...managedBuildings.map(id => id?.toString())])];
           conditions.push({ type: 'building_all', societyId, buildingId: { $in: allowedBIds } });
         }
       }
 
       const userOwnedFlats = userFlatMemberships.filter(m => m.isOwner).map(m => m.flatId);
       const ownedBuildings = await Flat.find({ _id: { $in: userOwnedFlats } }).distinct('buildingId');
-      
+
       if (ownedBuildings.length > 0 || isSocietyAdmin || isSocietyManager || managedBuildings.length > 0) {
         if (isSocietyAdmin || isSocietyManager) {
           conditions.push({ type: 'building_owners_admins', societyId });
         } else {
-          const allowedBIds = [...new Set([...ownedBuildings.map(id=>id?.toString()), ...managedBuildings.map(id=>id?.toString())])];
+          const allowedBIds = [...new Set([...ownedBuildings.map(id => id?.toString()), ...managedBuildings.map(id => id?.toString())])];
           conditions.push({ type: 'building_owners_admins', societyId, buildingId: { $in: allowedBIds } });
         }
       }
@@ -134,7 +133,7 @@ export const getUserChatRooms = async (userId, filters = {}) => {
 
         let lastMsg = room.lastMessage;
         if (!lastMsg || (!lastMsg.content && !lastMsg.type && !lastMsg.messageId)) {
-          const latestDbMsg = await ChatMessage.findOne({ 
+          const latestDbMsg = await ChatMessage.findOne({
             roomId: room._id,
             isDeletedForEveryone: { $ne: true },
             deletedForUsers: { $ne: userId }
@@ -142,7 +141,7 @@ export const getUserChatRooms = async (userId, filters = {}) => {
             .sort({ sentAt: -1 })
             .select('content type sentAt senderName senderId')
             .lean();
-            
+
           if (latestDbMsg) {
             lastMsg = {
               messageId: latestDbMsg._id,
@@ -327,7 +326,7 @@ export const sendMessage = async (roomId, userId, messageData) => {
     const participantIds = await getRoomParticipantIds(room);
     // Remove the sender from notification list
     const targetUserIds = participantIds.filter(id => id.toString() !== userId.toString());
-    
+
     if (targetUserIds.length > 0) {
       const { sendChatMessageNotification } = require('./notification.service');
       await sendChatMessageNotification(targetUserIds, {
@@ -367,7 +366,7 @@ export const getRoomParticipantIds = async (room) => {
     // Everyone in the society
     const members = await FlatMember.find({ societyId, isDeleted: { $ne: true } }).distinct('userId');
     const society = await Society.findById(societyId).select('adminContacts managerIds').lean();
-    const security = await mongoose.model('Security').find({ societyId, status: 'active' }).distinct('userId');
+    const security = await Security.find({ societyId, status: 'active' }).distinct('userId');
     return [...new Set([...members, ...(society?.adminContacts || []), ...(society?.managerIds || []), ...security])];
   }
 
@@ -387,7 +386,7 @@ export const getRoomParticipantIds = async (room) => {
       userIds.push(...tenants);
     }
     if (room.type === 'society_security') {
-      const security = await mongoose.model('Security').find({ societyId, status: 'active' }).distinct('userId');
+      const security = await Security.find({ societyId, status: 'active' }).distinct('userId');
       userIds.push(...security);
     }
     return [...new Set(userIds)];
@@ -397,22 +396,22 @@ export const getRoomParticipantIds = async (room) => {
     const buildingId = room.buildingId?._id || room.buildingId;
     const building = await Building.findById(buildingId).select('managerId').lean();
     const society = await Society.findById(societyId).select('adminContacts managerIds').lean();
-    
+
     let userIds = [...(society?.adminContacts || []), ...(society?.managerIds || [])];
     if (building?.managerId) userIds.push(building.managerId);
 
     if (room.type === 'building_all') {
-      const residents = await FlatMember.find({ 
-        societyId, 
+      const residents = await FlatMember.find({
+        societyId,
         flatId: { $in: await Flat.find({ buildingId }).distinct('_id') },
         isDeleted: { $ne: true }
       }).distinct('userId');
       userIds.push(...residents);
-      const security = await mongoose.model('Security').find({ societyId, status: 'active' }).distinct('userId');
+      const security = await Security.find({ societyId, status: 'active' }).distinct('userId');
       userIds.push(...security);
     } else if (room.type === 'building_owners_admins') {
-      const owners = await FlatMember.find({ 
-        societyId, 
+      const owners = await FlatMember.find({
+        societyId,
         isOwner: true,
         flatId: { $in: await Flat.find({ buildingId }).distinct('_id') },
         isDeleted: { $ne: true }
@@ -425,7 +424,7 @@ export const getRoomParticipantIds = async (room) => {
   if (room.type.startsWith('flat_')) {
     const flatId = room.flatId?._id || room.flatId;
     const memberships = await FlatMember.find({ flatId, isDeleted: { $ne: true } }).lean();
-    
+
     let userIds = [];
     if (room.type === 'flat_owner_members') {
       userIds = memberships.filter(m => m.isOwner || m.isMember).map(m => m.userId);
@@ -717,7 +716,7 @@ const userHasRoomAccess = async (userId, room) => {
     const society = await Society.findById(societyId).lean();
     const isSocietyAdmin = society?.adminContacts?.some(id => id?.toString() === userId?.toString());
     const isSocietyManager = society?.managerIds?.some(id => id?.toString() === userId?.toString());
-    const isSecurity = await mongoose.model('Security').exists({ societyId, userId, status: 'active' });
+    const isSecurity = await Security.exists({ societyId, userId, status: 'active' });
 
     const userFlatMemberships = await FlatMember.find({ userId, societyId, isDeleted: { $ne: true } }).lean();
 
@@ -768,12 +767,12 @@ export const ensureAllPendingChats = async () => {
   const societies = await Society.find().select('_id').lean();
   for (const society of societies) {
     await ensureSocietyChatRooms(society._id);
-    
+
     const buildings = await Building.find({ societyId: society._id }).select('_id').lean();
     for (const building of buildings) {
       await ensureBuildingChatRoom(society._id, building._id);
     }
-    
+
     const flats = await Flat.find({ societyId: society._id }).select('_id').lean();
     for (const flat of flats) {
       await ensureFlatChatRooms(society._id, flat._id);
