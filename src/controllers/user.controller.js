@@ -166,7 +166,7 @@ export const searchUser = async (req, res, next) => {
 };
 
 // Upload profile picture
-export const uploadProfilePicture = async (req, res) => {
+export const uploadProfilePicture = async (req, res, next) => {
   try {
     const { profilePicture } = req.body;
     const userId = res.locals.user._id;
@@ -219,7 +219,7 @@ export const uploadProfilePicture = async (req, res) => {
   }
 };
 
-export const getMyProfilePicture = async (req, res) => {
+export const getMyProfilePicture = async (req, res, next) => {
   try {
     const user = res.locals.user;
     const profilePicture = await UserService.getProfilePicture(user._id);
