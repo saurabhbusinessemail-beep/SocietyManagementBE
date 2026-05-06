@@ -28,15 +28,58 @@ if (!cached) {
   cached = global._mongooseCache = { conn: null, promise: null };
 }
 
+/**
+ * Safely encode the password portion of a MongoDB connection string.
+ *
+ * WHY NOT new URL():
+ *  - The WHATWG URL parser decodes percent sequences when you READ url.password,
+ *    then re-encodes them again when you WRITE url.password = ... and call toString().
+ *    This causes double-encoding (%40 → %2540) which the MongoDB driver rejects.
+ *  - new URL() is also unreliable with mongodb+srv:// on older Node/V8 versions.
+ *
+ * THIS APPROACH:
+ *  1. Strip the protocol prefix (mongodb:// or mongodb+srv://).
+ *  2. Find the LAST '@' — everything before it is "user:password", after is the host.
+ *     Using lastIndexOf handles passwords that themselves contain '@'.
+ *  3. Split credentials at the FIRST ':' — username ends there, password is the rest.
+ *  4. encodeURIComponent the raw password exactly once and reassemble.
+ *
+ * If the password is already fully percent-encoded in the env var the MongoDB driver
+ * accepts it as-is, so we only encode when illegal characters are present.
+ * The safest rule: store the RAW password in .env / Vercel env vars and let this
+ * function do the encoding.
+ */
 function encodeMongoDBPassword(connectionString) {
   try {
-    const url = new URL(connectionString);
-    if (url.password) {
-      url.password = encodeURIComponent(decodeURIComponent(url.password)); // idempotent encode
-      return url.toString();
-    }
-    return connectionString;
-  } catch {
+    // Match the protocol: mongodb:// or mongodb+srv://
+    const protocolMatch = connectionString.match(/^(mongodb(?:\+srv)?:\/\/)/);
+    if (!protocolMatch) return connectionString;
+
+    const protocol = protocolMatch[1];
+    const afterProtocol = connectionString.slice(protocol.length);
+
+    // Use lastIndexOf so passwords containing '@' are handled correctly
+    const lastAt = afterProtocol.lastIndexOf('@');
+    if (lastAt === -1) return connectionString; // no credentials in URI
+
+    const credentials = afterProtocol.slice(0, lastAt);   // "user:password"
+    const hostPart    = afterProtocol.slice(lastAt + 1);  // "host/db?options"
+
+    // Split at the FIRST ':' — username may not contain ':'
+    const firstColon = credentials.indexOf(':');
+    if (firstColon === -1) return connectionString; // no password
+
+    const username = credentials.slice(0, firstColon);
+    const rawPassword = credentials.slice(firstColon + 1);
+
+    // Encode the raw password exactly once.
+    // encodeURIComponent encodes everything except: A-Z a-z 0-9 - _ . ! ~ * ' ( )
+    // All other chars (@ : / ? # [ ] $ & + , ; =) get encoded.
+    const encodedPassword = encodeURIComponent(rawPassword);
+
+    return `${protocol}${username}:${encodedPassword}@${hostPart}`;
+  } catch (err) {
+    console.warn('[DB] Could not encode connection string password:', err.message);
     return connectionString;
   }
 }
