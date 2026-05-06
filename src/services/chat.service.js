@@ -250,7 +250,7 @@ export const getRoomById = async (roomId, userId) => {
  * Get messages for a chat room (paginated)
  */
 export const getRoomMessages = async (roomId, userId, options = {}) => {
-  const { page = 1, limit = 50, before } = options;
+  const { page = 1, limit = 50, before, after } = options;
 
   const room = await ChatRoom.findById(roomId).lean();
   if (!room) throw new Error('Chat room not found');
@@ -263,10 +263,13 @@ export const getRoomMessages = async (roomId, userId, options = {}) => {
   };
 
   if (before) {
-    query.sentAt = { $lt: new Date(before) };
+    query.sentAt = { ...query.sentAt, $lt: new Date(before) };
+  }
+  if (after) {
+    query.sentAt = { ...query.sentAt, $gt: new Date(after) };
   }
 
-  const skip = before ? 0 : (page - 1) * limit;
+  const skip = (before || after) ? 0 : (page - 1) * limit;
 
   const [messages, total] = await Promise.all([
     ChatMessage.find(query)

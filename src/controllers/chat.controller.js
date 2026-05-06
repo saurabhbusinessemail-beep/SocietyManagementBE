@@ -49,7 +49,8 @@ export const getRoomMessages = async (req, res, next) => {
     const options = {
       page: req.query.page || 1,
       limit: req.query.limit || 50,
-      before: req.query.before
+      before: req.query.before,
+      after: req.query.after
     };
 
     const result = await chatService.getRoomMessages(roomId, userId, options);
