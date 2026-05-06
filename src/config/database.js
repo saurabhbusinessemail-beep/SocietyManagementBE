@@ -40,10 +40,21 @@ if (!cached) {
 }
 
 /**
- * Regex-based password encoder. Does NOT use new URL() which double-encodes
- * via the WHATWG URL serializer and breaks with mongodb+srv:// on older runtimes.
+ * Normalize and encode the password portion of a MongoDB connection string.
  *
- * Rule: store the RAW unencoded password in your env vars; this encodes it once.
+ * WHY decode → encode (idempotent normalization):
+ *   Atlas connection strings already have the password percent-encoded.
+ *   If we run encodeURIComponent directly on an already-encoded password,
+ *   the % characters get double-encoded (%40 → %2540), so MongoDB receives
+ *   the wrong password → "bad auth: authentication failed".
+ *
+ *   Normalizing first (decode then re-encode) is idempotent:
+ *     - Raw password "p@ss":      decode("p@ss")      = "p@ss"    → encode → "p%40ss"  ✓
+ *     - Pre-encoded "p%40ss":     decode("p%40ss")    = "p@ss"    → encode → "p%40ss"  ✓ (no double-encoding)
+ *     - Invalid % "50%xyz":       decode throws       → encode raw "50%xyz" → "50%25xyz" ✓
+ *
+ *   Safe for all cases whether the DATABASE env var holds the raw connection
+ *   string or the Atlas-provided one that already has encoding applied.
  */
 function encodeMongoDBPassword(connectionString) {
   try {
@@ -66,7 +77,17 @@ function encodeMongoDBPassword(connectionString) {
     const username    = credentials.slice(0, firstColon);
     const rawPassword = credentials.slice(firstColon + 1);
 
-    return `${protocol}${username}:${encodeURIComponent(rawPassword)}@${hostPart}`;
+    // Normalize: decode any existing encoding, then re-encode exactly once.
+    let encodedPassword;
+    try {
+      encodedPassword = encodeURIComponent(decodeURIComponent(rawPassword));
+    } catch {
+      // rawPassword contains an invalid % sequence (e.g. literal "50%")
+      // Treat the whole thing as a raw string and encode it fresh.
+      encodedPassword = encodeURIComponent(rawPassword);
+    }
+
+    return `${protocol}${username}:${encodedPassword}@${hostPart}`;
   } catch (err) {
     console.warn('[DB] Could not encode connection string password:', err.message);
     return connectionString;
