@@ -7,6 +7,7 @@ import helmet from 'helmet';
 
 import routes from './routes';
 import database from './config/database';
+import ensureDbConnected from './middlewares/db.middleware';
 import {
   appErrorHandler,
   genericErrorHandler,
@@ -33,6 +34,9 @@ app.use(express.json({ limit: '10mb' }));
 // app.use(morgan('combined', { stream: logStream }));
 
 database();
+
+// Ensure DB is connected on every request (critical for Vercel serverless freeze/thaw)
+app.use(ensureDbConnected);
 
 app.use(`/api/${api_version}`, routes());
 app.use(appErrorHandler);
