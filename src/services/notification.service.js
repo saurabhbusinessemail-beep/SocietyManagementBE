@@ -631,9 +631,9 @@ const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {
  */
 export const sendChatMessageNotification = async (targetUserIds, chatPayload) => {
   try {
-    const users = await User.find({ 
-      _id: { $in: targetUserIds }, 
-      fcmToken: { $exists: true, $ne: '' } 
+    const users = await User.find({
+      _id: { $in: targetUserIds },
+      fcmToken: { $exists: true, $ne: '' }
     }).select('fcmToken').lean();
 
     if (users.length === 0) return;
@@ -654,9 +654,9 @@ export const sendChatMessageNotification = async (targetUserIds, chatPayload) =>
       android: {
         priority: 'high',
         notification: {
-          channelId: 'chat_messages',
-          tag: String(chatPayload.roomId),
-          clickAction: 'OPEN_CHAT_ROOM'
+          channelId: 'high_priority_channel',
+          sound: 'alert_sound', // 🔔 custom sound
+          clickAction: 'OPEN_FROM_NOTIFICATION'
         }
       },
       apns: {
