@@ -179,7 +179,7 @@ export const sendApproveRejectSocietyNotification = async (fromUser, toUserId, s
     try {
       await sendNotificationToUser(fcmToken, title, message, {
         notificationId: notificationData._id,
-        gateEntryId: gateEntry._id,
+        societyId: society._id,
         type
       });
     } catch (err) {
@@ -644,15 +644,18 @@ export const sendChatMessageNotification = async (targetUserIds, chatPayload) =>
         title: chatPayload.senderName,
         body: chatPayload.content
       },
-      data: {
+      data: Object.entries({
         ...chatPayload,
         type: 'CHAT_MESSAGE'
-      },
+      }).reduce((acc, [k, v]) => {
+        acc[k] = String(v);
+        return acc;
+      }, {}),
       android: {
         priority: 'high',
         notification: {
           channelId: 'chat_messages',
-          tag: chatPayload.roomId,
+          tag: String(chatPayload.roomId),
           clickAction: 'OPEN_CHAT_ROOM'
         }
       },
@@ -661,7 +664,7 @@ export const sendChatMessageNotification = async (targetUserIds, chatPayload) =>
           aps: {
             sound: 'default',
             badge: 1,
-            'thread-id': chatPayload.roomId
+            'thread-id': String(chatPayload.roomId)
           }
         }
       }
