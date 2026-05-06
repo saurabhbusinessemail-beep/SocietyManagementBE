@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
  * - society_owners_tenants   : Owners & Tenants
  * - society_owners           : Owners Only
  * - society_owners_managers  : Owners and Managers
+ * - society_managers_owners_tenants : Managers, Owners and Tenants
  * - society_security         : Security (Only for society securities, admins, managers)
  * - society_all              : All Members
  * - building_all             : AllMembers in building
@@ -25,6 +26,7 @@ const chatRoomSchema = new mongoose.Schema(
         'society_owners_tenants',
         'society_owners',
         'society_owners_managers',
+        'society_managers_owners_tenants',
         'society_security',
         'society_all',
         'building_all',

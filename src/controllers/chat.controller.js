@@ -270,8 +270,8 @@ export const searchChats = async (req, res, next) => {
     }
 
     const result = await chatService.searchChats(userId, societyId, searchTerm, options);
-
-    res.json({ success: true, ...result });
+    
+    res.json({ success: true, data: result });
   } catch (error) {
     next(error);
   }

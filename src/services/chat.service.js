@@ -12,38 +12,59 @@ export const getUserChatRooms = async (userId, filters = {}) => {
   try {
     const { societyId, flatId, type } = filters;
 
-    const userFlatMemberships = await FlatMember.find({
-      userId,
-      isDeleted: { $ne: true }
-    }).lean();
+    const membershipQuery = { userId, isDeleted: { $ne: true } };
+    if (societyId) membershipQuery.societyId = societyId;
+
+    const userFlatMemberships = await FlatMember.find(membershipQuery).lean();
 
     const conditions = [];
-
-    // 1. Personal rooms
-    conditions.push({
-      type: 'personal',
-      'participants.userId': userId
-    });
-
+    
     if (societyId) {
+      // 1. Personal rooms within this society
+      conditions.push({
+        type: 'personal',
+        societyId,
+        'participants.userId': userId
+      });
+
       const society = await Society.findById(societyId).lean();
       const isSocietyAdmin = society?.adminContacts?.some(id => id?.toString() === userId?.toString());
       const isSocietyManager = society?.managerIds?.some(id => id?.toString() === userId?.toString());
       const isSecurity = await mongoose.model('Security').exists({ societyId, userId, status: 'active' });
 
+      // 2. Society-level rooms
       const isAnyOwner = userFlatMemberships.some(m => m.isOwner);
       const isAnyTenant = userFlatMemberships.some(m => m.isTenant);
       const isAnyMember = userFlatMemberships.some(m => m.isMember);
       const isAnyTenantMember = userFlatMemberships.some(m => m.isTenantMember);
 
-      if (isAnyOwner || isAnyTenant) conditions.push({ type: 'society_owners_tenants', societyId });
-      if (isAnyOwner) conditions.push({ type: 'society_owners', societyId });
-      if (isAnyOwner || isSocietyManager || isSocietyAdmin) conditions.push({ type: 'society_owners_managers', societyId });
+      // Role-based group access
+      if (isSocietyManager || isSocietyAdmin) {
+        conditions.push({ type: 'society_owners_managers', societyId });
+        conditions.push({ type: 'society_managers_owners_tenants', societyId });
+      }
+
+      if (isAnyOwner) {
+        conditions.push({ type: 'society_owners', societyId });
+        conditions.push({ type: 'society_owners_managers', societyId });
+        conditions.push({ type: 'society_managers_owners_tenants', societyId });
+      }
+
+      if (isAnyOwner || isAnyTenant) {
+        conditions.push({ type: 'society_owners_tenants', societyId });
+      }
+
+      if (isAnyTenant) {
+        conditions.push({ type: 'society_managers_owners_tenants', societyId });
+      }
+
       if (isSecurity) conditions.push({ type: 'society_security', societyId });
+      
       if (isAnyOwner || isAnyTenant || isAnyMember || isAnyTenantMember || isSocietyAdmin || isSocietyManager || isSecurity) {
         conditions.push({ type: 'society_all', societyId });
       }
 
+      // 3. Building-level rooms
       const managedBuildings = await Building.find({ managerId: userId, societyId }).distinct('_id');
       const userFlats = await Flat.find({ _id: { $in: userFlatMemberships.map(m => m.flatId) } }).select('buildingId').lean();
       const userBuildingIds = [...new Set(userFlats.map(f => f.buildingId?.toString()).filter(Boolean))];
@@ -69,6 +90,7 @@ export const getUserChatRooms = async (userId, filters = {}) => {
         }
       }
 
+      // 4. Flat-level rooms
       const ownerOrMemberFlats = userFlatMemberships.filter(m => m.isOwner || m.isMember).map(m => m.flatId);
       if (ownerOrMemberFlats.length > 0) conditions.push({ type: 'flat_owner_members', societyId, flatId: { $in: ownerOrMemberFlats } });
 
@@ -77,11 +99,17 @@ export const getUserChatRooms = async (userId, filters = {}) => {
 
       const tenantOrTenantMemberFlats = userFlatMemberships.filter(m => m.isTenant || m.isTenantMember).map(m => m.flatId);
       if (tenantOrTenantMemberFlats.length > 0) conditions.push({ type: 'flat_tenants', societyId, flatId: { $in: tenantOrTenantMemberFlats } });
+    } else {
+      // All personal rooms across all societies if no societyId filter
+      conditions.push({
+        type: 'personal',
+        'participants.userId': userId
+      });
     }
 
     let query = { $or: conditions, isActive: true };
     if (type) query.type = type;
-    if (flatId) query.flatId = flatId;
+    if (flatId) query.flatId = flatId; // Keep simple filter if explicitly passed, but won't be used by UI now
 
     const rooms = await ChatRoom.find(query)
       .populate('societyId', 'name')
@@ -449,6 +477,7 @@ export const ensureSocietyChatRooms = async (societyId) => {
     { type: 'society_owners_tenants', name: `${society.societyName} - Owners & Tenants` },
     { type: 'society_owners', name: `${society.societyName} - Owners Only` },
     { type: 'society_owners_managers', name: `${society.societyName} - Owners and Managers` },
+    { type: 'society_managers_owners_tenants', name: `${society.societyName} - Managers, Owners & Tenants` },
     { type: 'society_security', name: `${society.societyName} - Security` },
     { type: 'society_all', name: `${society.societyName} - All Members` }
   ];
@@ -527,13 +556,16 @@ export const searchChats = async (userId, societyId, searchTerm, options = {}) =
   const roomIds = accessibleRooms.map(r => r._id);
 
   // Search room names
-  const matchingRooms = accessibleRooms.filter(r => regex.test(r.name));
+  const matchingRooms = accessibleRooms.filter(r => regex.test(r.name || ''));
 
   // Search messages
   const skip = (page - 1) * limit;
   const messages = await ChatMessage.find({
     roomId: { $in: roomIds },
-    content: { $regex: regex },
+    $or: [
+      { content: { $regex: regex } },
+      { senderName: { $regex: regex } }
+    ],
     isDeletedForEveryone: { $ne: true },
     deletedForUsers: { $ne: userId }
   })
@@ -547,7 +579,13 @@ export const searchChats = async (userId, societyId, searchTerm, options = {}) =
   return {
     rooms: matchingRooms,
     messages,
-    total: messages.length
+    totalRooms: matchingRooms.length,
+    totalMessages: await ChatMessage.countDocuments({
+      roomId: { $in: roomIds },
+      content: { $regex: regex },
+      isDeletedForEveryone: { $ne: true },
+      deletedForUsers: { $ne: userId }
+    })
   };
 };
 
@@ -571,6 +609,7 @@ const userHasRoomAccess = async (userId, room) => {
     if (room.type === 'society_owners_tenants') return userFlatMemberships.some(m => m.isOwner || m.isTenant);
     if (room.type === 'society_owners') return userFlatMemberships.some(m => m.isOwner);
     if (room.type === 'society_owners_managers') return userFlatMemberships.some(m => m.isOwner) || isSocietyAdmin || isSocietyManager;
+    if (room.type === 'society_managers_owners_tenants') return userFlatMemberships.some(m => m.isOwner || m.isTenant) || isSocietyAdmin || isSocietyManager;
     if (room.type === 'society_security') return isSecurity;
     if (room.type === 'society_all') return userFlatMemberships.length > 0 || isSocietyAdmin || isSocietyManager || isSecurity;
 
