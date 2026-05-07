@@ -1,15 +1,30 @@
 // scripts/seedRoleMenus.js
 const { SocietyRoleMenu } = require('../models');
 
+const menuOrders = {
+  society: 1,
+  myflats: 2,
+  chat: 3,
+  visitors: 4,
+  gateentry: 5,
+  gatepass: 6,
+  vehicle: 7,
+  announcements: 8,
+  complaints: 9,
+  members: 10,
+  tenants: 11,
+  unApprovedSocieties: 12
+};
+
 const roleMenus = [
   {
     role: 'societyadmin',
     menus: [
-      { menuId: 'society', sortOrder: 1 },
-      { menuId: 'complaints', sortOrder: 2 },
-      { menuId: 'announcements', sortOrder: 3 },
-      { menuId: 'chat', sortOrder: 4 },
-      { menuId: 'unApprovedSocieties', sortOrder: 5 }
+      { menuId: 'society', sortOrder: menuOrders.society },
+      { menuId: 'chat', sortOrder: menuOrders.chat },
+      { menuId: 'announcements', sortOrder: menuOrders.announcements },
+      { menuId: 'complaints', sortOrder: menuOrders.complaints },
+      { menuId: 'unApprovedSocieties', sortOrder: menuOrders.unApprovedSocieties }
     ]
   },
 
@@ -17,11 +32,11 @@ const roleMenus = [
   {
     role: 'manager',
     menus: [
-      { menuId: 'society', sortOrder: 1 },
-      { menuId: 'complaints', sortOrder: 2 },
-      { menuId: 'announcements', sortOrder: 3 },
-      { menuId: 'chat', sortOrder: 4 },
-      { menuId: 'unApprovedSocieties', sortOrder: 5 }
+      { menuId: 'society', sortOrder: menuOrders.society },
+      { menuId: 'chat', sortOrder: menuOrders.chat },
+      { menuId: 'announcements', sortOrder: menuOrders.announcements },
+      { menuId: 'complaints', sortOrder: menuOrders.complaints },
+      { menuId: 'unApprovedSocieties', sortOrder: menuOrders.unApprovedSocieties }
     ]
   },
 
@@ -29,16 +44,16 @@ const roleMenus = [
   {
     role: 'owner',
     menus: [
-      { menuId: 'myflats', sortOrder: 1 },
-      { menuId: 'visitors', sortOrder: 2 },
-      { menuId: 'complaints', sortOrder: 3 },
-      { menuId: 'gatepass', sortOrder: 4 },
-      { menuId: 'tenants', sortOrder: 5 },
-      { menuId: 'members', sortOrder: 6 },
-      { menuId: 'announcements', sortOrder: 7 },
-      { menuId: 'chat', sortOrder: 8 },
-      { menuId: 'vehicle', sortOrder: 9 },
-      { menuId: 'unApprovedSocieties', sortOrder: 10 }
+      { menuId: 'myflats', sortOrder: menuOrders.myflats },
+      { menuId: 'chat', sortOrder: menuOrders.chat },
+      { menuId: 'visitors', sortOrder: menuOrders.visitors },
+      { menuId: 'gatepass', sortOrder: menuOrders.gatepass },
+      { menuId: 'vehicle', sortOrder: menuOrders.vehicle },
+      { menuId: 'announcements', sortOrder: menuOrders.announcements },
+      { menuId: 'complaints', sortOrder: menuOrders.complaints },
+      { menuId: 'members', sortOrder: menuOrders.members },
+      { menuId: 'tenants', sortOrder: menuOrders.tenants },
+      { menuId: 'unApprovedSocieties', sortOrder: menuOrders.unApprovedSocieties }
     ]
   },
 
@@ -46,15 +61,15 @@ const roleMenus = [
   {
     role: 'tenant',
     menus: [
-      { menuId: 'myflats', sortOrder: 1 },
-      { menuId: 'visitors', sortOrder: 2 },
-      { menuId: 'complaints', sortOrder: 3 },
-      { menuId: 'gatepass', sortOrder: 4 },
-      { menuId: 'members', sortOrder: 5 },
-      { menuId: 'announcements', sortOrder: 6 },
-      { menuId: 'chat', sortOrder: 7 },
-      { menuId: 'vehicle', sortOrder: 8 },
-      { menuId: 'unApprovedSocieties', sortOrder: 9 }
+      { menuId: 'myflats', sortOrder: menuOrders.myflats },
+      { menuId: 'chat', sortOrder: menuOrders.chat },
+      { menuId: 'visitors', sortOrder: menuOrders.visitors },
+      { menuId: 'gatepass', sortOrder: menuOrders.gatepass },
+      { menuId: 'vehicle', sortOrder: menuOrders.vehicle },
+      { menuId: 'announcements', sortOrder: menuOrders.announcements },
+      { menuId: 'complaints', sortOrder: menuOrders.complaints },
+      { menuId: 'members', sortOrder: menuOrders.members },
+      { menuId: 'unApprovedSocieties', sortOrder: menuOrders.unApprovedSocieties }
     ]
   },
 
@@ -62,15 +77,15 @@ const roleMenus = [
   {
     role: 'member',
     menus: [
-      { menuId: 'myflats', sortOrder: 1 },
-      { menuId: 'visitors', sortOrder: 2 },
-      { menuId: 'complaints', sortOrder: 3 },
-      { menuId: 'gatepass', sortOrder: 4 },
-      { menuId: 'members', sortOrder: 5 },
-      { menuId: 'announcements', sortOrder: 6 },
-      { menuId: 'chat', sortOrder: 7 },
-      { menuId: 'vehicle', sortOrder: 8 },
-      { menuId: 'unApprovedSocieties', sortOrder: 9 }
+      { menuId: 'myflats', sortOrder: menuOrders.myflats },
+      { menuId: 'chat', sortOrder: menuOrders.chat },
+      { menuId: 'visitors', sortOrder: menuOrders.visitors },
+      { menuId: 'gatepass', sortOrder: menuOrders.gatepass },
+      { menuId: 'vehicle', sortOrder: menuOrders.vehicle },
+      { menuId: 'announcements', sortOrder: menuOrders.announcements },
+      { menuId: 'complaints', sortOrder: menuOrders.complaints },
+      { menuId: 'members', sortOrder: menuOrders.members },
+      { menuId: 'unApprovedSocieties', sortOrder: menuOrders.unApprovedSocieties }
     ]
   },
 
@@ -78,10 +93,10 @@ const roleMenus = [
   {
     role: 'security',
     menus: [
-      { menuId: 'society', sortOrder: 1 },
-      { menuId: 'gateentry', sortOrder: 2 },
-      { menuId: 'chat', sortOrder: 3 },
-      { menuId: 'unApprovedSocieties', sortOrder: 4 }
+      { menuId: 'society', sortOrder: menuOrders.society },
+      { menuId: 'gateentry', sortOrder: menuOrders.gateentry },
+      { menuId: 'chat', sortOrder: menuOrders.chat },
+      { menuId: 'unApprovedSocieties', sortOrder: menuOrders.unApprovedSocieties }
     ]
   }
 ];
