@@ -3,7 +3,7 @@ import * as UserService from '../services/user.service';
 import * as approvalService from '../services/approval.service';
 import * as newUserService from '../services/newUser.service';
 import { canAddDirectly, getFlatOwner } from '../services/flat.service';
-import { isSocietyAdminOrManager } from '../services/society.service';
+import { isSocietyAdminOrManager, getSociety } from '../services/society.service';
 import * as NotificationService from '../services/notification.service';
 import * as SMSService from '../services/sms.service';
 import cacheService from '../services/cache.service';
@@ -139,12 +139,12 @@ export const newSecurity = async (req, res, next) => {
       try {
         const addedUser = await UserService.getUser(payload.userId);
         if (addedUser) {
-          const mockApprovalRequest = { requestType: 'Security', data: payload };
+          const society = await getSociety(payload.societyId);
           if (addedUser.fcmToken) {
-            await NotificationService.sendApprovalResponseNotification(user, addedUser, 'Security', 'approved', mockApprovalRequest, addedUser.fcmToken);
+            await NotificationService.sendRoleAssignedNotification(user, addedUser._id, 'Security Guard', society.societyName, payload.societyId, addedUser.fcmToken);
           }
           if (process.env.SEND_MESSAGES === 'true' && addedUser.phoneNumber) {
-            await SMSService.sendApprovalResponseMessage(mockApprovalRequest, 'approved', addedUser.phoneNumber);
+            await SMSService.sendRoleAssignedSMS('Security Guard', society.societyName, addedUser.phoneNumber);
           }
         }
       } catch (err) {

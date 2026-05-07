@@ -560,6 +560,40 @@ export const sendTenantDocumentReminderNotification = async (fromUser, toUserId,
   return notificationData;
 };
 
+export const sendRoleAssignedNotification = async (fromUser, toUserId, role, societyName, societyId, fcmToken) => {
+  const fromUserId = fromUser._id;
+  const title = messageConfig.ROLE_ASSIGNED.title;
+  const type = messageConfig.ROLE_ASSIGNED.type;
+  const message = messageConfig.ROLE_ASSIGNED.message(role, societyName);
+
+  const payload = {
+    userId: toUserId,
+    societyId,
+    type,
+    title,
+    message,
+    data: { role, societyName, societyId },
+    triggeredByUserId: fromUserId,
+    createdByUserId: fromUserId,
+    createdOn: new Date()
+  };
+
+  const notificationData = await Notification.create(payload);
+  if (fcmToken) {
+    try {
+      await sendNotificationToUser(fcmToken, title, message, {
+        type,
+        role,
+        societyId
+      });
+    } catch (err) {
+      await Notification.findByIdAndDelete(notificationData._id);
+      console.error('Could not send role assigned notification');
+    }
+  }
+  return notificationData;
+};
+
 /* FIREBASE Notification */
 const sendNotificationToUser = async (fcmToken, title, body, data = {}) => {
   try {

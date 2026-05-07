@@ -169,3 +169,16 @@ export const sendTenantDocumentReminderSMS = async (data, phoneNumber) => {
         console.log(`Failed to send Tenant Document Reminder SMS: ${error.message}`);
     }
 }
+
+export const sendRoleAssignedSMS = async (role, societyName, phoneNumber) => {
+    const title = messageConfig.ROLE_ASSIGNED.title;
+    const message = messageConfig.ROLE_ASSIGNED.message(role, societyName);
+    const fullMessage = `${title}\n${message}`;
+    const smsGateway = getSMSGateway();
+    try {
+        const result = await smsGateway.sendMessage(phoneNumber, fullMessage);
+        return result;
+    } catch (error) {
+        console.log(`Failed to send Role Assigned SMS: ${error.message}`);
+    }
+}

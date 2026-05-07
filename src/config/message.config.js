@@ -143,3 +143,10 @@ export const TENANT_DOCUMENT_REMINDER = {
     title: 'Document Submission Reminder',
     message: (data) => `Reminder: Please upload the required documents for your tenancy in flat ${data.flatNumber}. Ignore this message if you have already submitted.`
 }
+
+export const ROLE_ASSIGNED = {
+    type: 'GENERAL',
+    title: 'New Role Assigned',
+    message: (role, societyName) => `You have been added as ${role} for society ${societyName}.`
+}
+

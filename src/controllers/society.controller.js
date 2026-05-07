@@ -219,6 +219,24 @@ export const newSocietyManager = async (req, res, next) => {
       payload = await userService.findOrCreateUser(payload);
     }
     await societyService.newSocietyManager(societyId, payload);
+
+    // Refresh Cache
+    cacheService.invalidate(payload._id.toString());
+
+    // Send Notification & SMS
+    try {
+      const society = await societyService.getSociety(societyId);
+      const toUser = await userService.getUser(payload._id);
+      if (toUser?.fcmToken) {
+        await NotificationService.sendRoleAssignedNotification(res.locals.user, toUser._id, 'Society Manager', society.societyName, societyId, toUser.fcmToken);
+      }
+      if (process.env.SEND_MESSAGES === 'true' && toUser?.phoneNumber) {
+        await SMSService.sendRoleAssignedSMS('Society Manager', society.societyName, toUser.phoneNumber);
+      }
+    } catch (err) {
+      console.error('Error sending manager role assignment notification: ', err);
+    }
+
     res.json({ success: true });
   } catch (err) {
     next(err);
@@ -243,6 +261,24 @@ export const newSocietyAdmin = async (req, res, next) => {
       payload = await userService.findOrCreateUser(payload);
     }
     await societyService.newSocietyAdmin(societyId, payload);
+
+    // Refresh Cache
+    cacheService.invalidate(payload._id.toString());
+
+    // Send Notification & SMS
+    try {
+      const society = await societyService.getSociety(societyId);
+      const toUser = await userService.getUser(payload._id);
+      if (toUser?.fcmToken) {
+        await NotificationService.sendRoleAssignedNotification(res.locals.user, toUser._id, 'Society Admin', society.societyName, societyId, toUser.fcmToken);
+      }
+      if (process.env.SEND_MESSAGES === 'true' && toUser?.phoneNumber) {
+        await SMSService.sendRoleAssignedSMS('Society Admin', society.societyName, toUser.phoneNumber);
+      }
+    } catch (err) {
+      console.error('Error sending admin role assignment notification: ', err);
+    }
+
     res.json({ success: true });
   } catch (err) {
     next(err);
