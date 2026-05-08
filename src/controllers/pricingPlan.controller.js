@@ -270,10 +270,10 @@ export const getExchangeRates = async (req, res) => {
     const currency = req.params.currency.toUpperCase();
     try {
         let data = await ConversionRateService.getExchangeRates(currency);
-        
+
         res.json(data);
     } catch (error) {
         console.error(`Error processing /exchange/${currency}:`, error.message);
-        res.status(500).json({ error: 'Failed to fetch exchange rate data' });
+        res.status(200).json({ error: 'Failed to fetch exchange rate data' });
     }
 };
