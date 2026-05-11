@@ -6,11 +6,13 @@ export const areSameContacts = (contact1, contact2) => {};
 
 export const userSocitiesWithRole = async (userId) => {
   try {
-    const { socities: socitiesBySociety, roles: rolesBySociety } =
-      await SocietyService.getMySocities(userId, true);
+    const [societyResult, flatResult] = await Promise.all([
+      SocietyService.getMySocities(userId, true),
+      FlatService.memberFlats(userId, true)
+    ]);
 
-    const { socities: socitiesByFlat, roles: rolesByFlat } =
-      await FlatService.memberFlats(userId, true);
+    const { socities: socitiesBySociety, roles: rolesBySociety } = societyResult;
+    const { socities: socitiesByFlat, roles: rolesByFlat } = flatResult;
 
     const rolesFromDB = await SocietyRole.find({
       name: { $in: [...rolesBySociety, ...rolesByFlat] }

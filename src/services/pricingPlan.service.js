@@ -249,19 +249,23 @@ export const updatePaymentStatus = async (societyPlanId, status, razorPayTransac
 };
 
 export const currentPlan = async (societyId) => {
-    const societyPlan = await SocietyPlan.findOne({
-        societyId,
-        isActive: true
-    }).populate('purchasedBy', 'name email').lean();
+    const [societyPlan, allPlans] = await Promise.all([
+        SocietyPlan.findOne({
+            societyId,
+            isActive: true
+        }).populate('purchasedBy', 'name email').lean(),
+        PricingPlan.find({ isActive: true }).lean()
+    ]);
+
+    const planMap = allPlans.reduce((acc, p) => ({ ...acc, [p.id]: p }), {});
 
     if (!societyPlan) {
         // Return default basic plan info
-        const basicPlan = await PricingPlan.findOne({ id: 'basic' }).lean();
         return createDummySocietyPlan(societyId);
     }
 
-    // Get full plan details
-    const planDetails = await PricingPlan.findOne({ id: societyPlan.planId }).lean();
+    // Get full plan details from pre-fetched map
+    const planDetails = planMap[societyPlan.planId] || null;
 
     // Calculate days used and remaining based on actual dates
     const now = new Date();

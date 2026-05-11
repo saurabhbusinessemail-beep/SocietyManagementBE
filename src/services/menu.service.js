@@ -24,7 +24,7 @@ export const getRoleMenu = async (roles) => {
   const uniqueMenuIds = [...(new Set([...allowedMenuIds, ...menusIdsAllowedWithoutSocities]))];
 
   // Fetch menu definitions
-  const menusFromDb = await Menu.find({ menuId: { $in: uniqueMenuIds } });
+  const menusFromDb = await Menu.find({ menuId: { $in: uniqueMenuIds } }).lean();
   const menuDefMap = {};
   menusFromDb.forEach((m) => {
     menuDefMap[m.menuId] = m;

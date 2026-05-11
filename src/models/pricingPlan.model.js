@@ -55,4 +55,7 @@ const PricingPlanSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+// Plan lookup by id and active status
+PricingPlanSchema.index({ id: 1, isActive: 1 });
+
 module.exports = mongoose.model("PricingPlan", PricingPlanSchema);

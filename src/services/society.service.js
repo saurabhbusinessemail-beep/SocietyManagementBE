@@ -213,9 +213,11 @@ export const managerSocieties = async (userId) => {
 };
 
 export const getMySocities = async (userId, withSocietyRoles = false) => {
-  const myContactAdminSocities = await contactAdminSocieties(userId);
-  const myManagerSocities = await managerSocieties(userId);
-  const mySecuritySocities = await SecurityService.getSecuritySocities(userId, withSocietyRoles);
+  const [myContactAdminSocities, myManagerSocities, mySecuritySocities] = await Promise.all([
+    contactAdminSocieties(userId),
+    managerSocieties(userId),
+    SecurityService.getSecuritySocities(userId, withSocietyRoles)
+  ]);
 
   if (!withSocietyRoles) return { socities: [...myContactAdminSocities, ...myManagerSocities] };
 

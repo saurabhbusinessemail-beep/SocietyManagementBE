@@ -41,5 +41,9 @@ SocietySchema.index({ isApproved: 1 });
 SocietySchema.index({ isRejected: 1 });
 // adminContacts ref — used in society access checks
 SocietySchema.index({ adminContacts: 1 });
+// managerIds ref — used in manager society lookups (/me flow)
+SocietySchema.index({ managerIds: 1 });
+// addedByAdmin — used in mandatory filter across queries
+SocietySchema.index({ addedByAdmin: 1 });
 
 module.exports = mongoose.model('Society', SocietySchema);

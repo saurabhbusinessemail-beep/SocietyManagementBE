@@ -18,5 +18,7 @@ const SecuritySchema = new mongoose.Schema({
 SecuritySchema.index({ societyId: 1, userId: 1, status: 1 });
 // For listing all security by society with status filter
 SecuritySchema.index({ societyId: 1, status: 1 });
+// For finding societies by userId (used in /me flow)
+SecuritySchema.index({ userId: 1 });
 
 module.exports = mongoose.model('Security', SecuritySchema);

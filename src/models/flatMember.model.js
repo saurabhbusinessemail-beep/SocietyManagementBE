@@ -34,5 +34,7 @@ FlatMemberSchema.index({ societyId: 1, isTenant: 1 });
 // Status filtering (active vs terminated/expired)
 FlatMemberSchema.index({ societyId: 1, status: 1 });
 FlatMemberSchema.index({ flatId: 1, isDeleted: 1 });
+// User membership lookup with status filter (used in /me flow)
+FlatMemberSchema.index({ userId: 1, status: 1 });
 
 module.exports = mongoose.model('FlatMember', FlatMemberSchema);
