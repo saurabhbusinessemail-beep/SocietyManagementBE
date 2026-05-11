@@ -34,6 +34,7 @@ import { updateSocietyRecords } from '../seed/updateSociety';
 import { getOrCreateDefaultUser } from '../seed/emptyUser.seeder';
 import { NormaliseAllPhoneNumbers } from '../datafixes/fixPhoneNumbers.datafixes';
 import { FixSocietyPlanFeatures } from '../datafixes/fixSocietyPlanFeatures.datafixes';
+import { ClearAllCache } from '../datafixes/clearAllCache.datafixes';
 
 /**
  * Function contains Application routes
@@ -63,6 +64,10 @@ const routes = () => {
   
   router.get('/fixSocietyPlanFeatures', async (req, res) => {
     const data = await FixSocietyPlanFeatures();
+    res.json(data);
+  });
+  router.get('/clearAllCache', async (req, res) => {
+    const data = await ClearAllCache();
     res.json(data);
   });
   router.use('/users', userRoute);
