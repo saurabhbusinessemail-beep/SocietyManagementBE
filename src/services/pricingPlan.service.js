@@ -1,5 +1,5 @@
 import { PricingPlan, SocietyPlan, Society, Feature } from '../models';
-import { invalidatePlanCache, createDummySocietyPlan } from './planCache.service';
+import { invalidatePlanCache, createDummySocietyPlan, getActivePlan } from './planCache.service';
 const couponService = require('../services/coupon.service');
 
 // Helper function to calculate days between dates
@@ -249,36 +249,30 @@ export const updatePaymentStatus = async (societyPlanId, status, razorPayTransac
 };
 
 export const currentPlan = async (societyId) => {
-    const [societyPlan, allPlans] = await Promise.all([
-        SocietyPlan.findOne({
-            societyId,
-            isActive: true
-        }).populate('purchasedBy', 'name email').lean(),
-        PricingPlan.find({ isActive: true }).lean()
-    ]);
-
-    const planMap = allPlans.reduce((acc, p) => ({ ...acc, [p.id]: p }), {});
+    // Use cached plan — avoids DB calls on cache hit
+    const societyPlan = await getActivePlan(societyId);
 
     if (!societyPlan) {
-        // Return default basic plan info
         return createDummySocietyPlan(societyId);
     }
 
-    // Get full plan details from pre-fetched map
-    const planDetails = planMap[societyPlan.planId] || null;
+    // Get full plan details (single targeted query, not all plans)
+    const planDetails = societyPlan.planId
+        ? await PricingPlan.findOne({ id: societyPlan.planId }).lean()
+        : null;
 
     // Calculate days used and remaining based on actual dates
     const now = new Date();
     const startDate = new Date(societyPlan.startDate);
-    const endDate = new Date(societyPlan.endDate);
+    const endDate = societyPlan.endDate ? new Date(societyPlan.endDate) : null;
 
-    const totalDays = calculateDaysBetweenDates(startDate, endDate);
-    const daysUsed = now > endDate ? totalDays : Math.max(0, calculateDaysBetweenDates(startDate, now));
-    const remainingDays = Math.max(0, calculateDaysBetweenDates(now, endDate));
-    const usedPercentage = (daysUsed / totalDays) * 100;
+    const totalDays = endDate ? calculateDaysBetweenDates(startDate, endDate) : 0;
+    const daysUsed = endDate && now > endDate ? totalDays : Math.max(0, endDate ? calculateDaysBetweenDates(startDate, now) : 0);
+    const remainingDays = endDate ? Math.max(0, calculateDaysBetweenDates(now, endDate)) : 0;
+    const usedPercentage = totalDays > 0 ? (daysUsed / totalDays) * 100 : 0;
 
     // Check if plan is expired
-    const isExpired = now > endDate;
+    const isExpired = endDate ? now > endDate : false;
 
     // Calculate total months for the plan
     const totalMonths = societyPlan.selectedDuration ? getTotalMonths(
