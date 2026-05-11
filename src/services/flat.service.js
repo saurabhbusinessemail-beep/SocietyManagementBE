@@ -1,5 +1,6 @@
 import { Flat, FlatMember } from '../models';
 import * as UserService from './user.service';
+import cacheService from './cache.service';
 
 export const createFlat = (data) => {
   return Flat.create(data);
@@ -76,7 +77,7 @@ export const myFlats = async (userId, societyId = null, options = {}) => {
   const { page = 1, limit = 1000 } = options;
   const skip = (page - 1) * limit;
 
-  let filter = { userId: userId };
+  let filter = { userId: userId, status: 'active' };
   if (societyId) {
     filter = { ...filter, societyId };
   }
@@ -178,7 +179,7 @@ export const canAddDirectly = async (requester, memberData) => {
 
 
 export const myFlatIds = async (userId, societyId = null) => {
-  let filter = { userId: { $in: userId } };
+  let filter = { userId: { $in: userId }, status: 'active' };
   if (societyId) {
     filter = { ...filter, societyId };
   }
@@ -190,7 +191,7 @@ export const myTenants = async (userId, societyId = null, flatId = null, options
   const { page = 1, limit = 1000 } = options;
   const skip = (page - 1) * limit;
 
-  const myFlatMemberRecords = await FlatMember.find({ userId, isOwner: true });
+  const myFlatMemberRecords = await FlatMember.find({ userId, isOwner: true, status: 'active' });
   const myFlats = myFlatMemberRecords.map((fm) => fm.flatId);
 
   let filter = { isTenant: true, flatId: { $in: myFlats } };
@@ -247,7 +248,7 @@ export const myFlatMembers = async (userId, societyId = null, flatId = null, use
   }
 
   // Get user's flat membership records
-  const myFlatMemberRecords = await FlatMember.find({ userId });
+  const myFlatMemberRecords = await FlatMember.find({ userId, status: 'active' });
   const myFlats = myFlatMemberRecords.map((fm) => fm.flatId);
 
   // Build the base filter
@@ -413,7 +414,8 @@ export const flatMember = async (flatMemberId) => {
 
 export const memberFlats = async (userId, withSocietyRoles = false) => {
   const flats = await FlatMember.find({
-    userId: { $in: userId }
+    userId: { $in: userId },
+    status: 'active'
   });
   if (!flats) return;
 
@@ -455,7 +457,7 @@ export const memberFlats = async (userId, withSocietyRoles = false) => {
 };
 
 export const getFlatMembersByFlatId = (flatId, userId = undefined) => {
-  let filter = { flatId };
+  let filter = { flatId, status: 'active' };
   if (userId) filter.userId = userId;
 
   return FlatMember.find(filter)
@@ -516,7 +518,7 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
 
   // 1. Find the target flat member (the tenant moving out)
   const targetMember = await FlatMember.findById(flatMemberId);
-  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId });
+  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId, status: 'active' });
   if (!modifiedByMember) {
     throw new Error('You are not a flat member.');
   }
@@ -614,6 +616,14 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
     );
   }
 
+  // Clear cache for all tenants and tenant members of this flat
+  const expiredMembers = await FlatMember.find({
+    flatId: flatId,
+    isOwner: false,
+    $or: [{ isTenant: true }, { isTenantMember: true }]
+  });
+  expiredMembers.forEach((m) => cacheService.invalidate(m.userId.toString()));
+
   // Return some useful info (e.g., updated counts)
   return {
     success: true,
@@ -623,7 +633,7 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
 
 export const moveOutOwner = async (flatMemberId, modifiedByUserId) => {
   const targetMember = await FlatMember.findById(flatMemberId);
-  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId });
+  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId, status: 'active' });
   if (!modifiedByMember) {
     throw new Error('You are not a flat member.');
   }
@@ -671,6 +681,9 @@ export const moveOutOwner = async (flatMemberId, modifiedByUserId) => {
     }
   );
 
+  // Clear cache for the owner (logged in user)
+  cacheService.invalidate(modifiedByUserId.toString());
+
   const data = await FlatMember.findById(flatMemberId);
   return {
     success: true,
@@ -685,7 +698,7 @@ export const moveInSelf = async (flatMemberId, modifiedByUserId, moveOutDate = n
   }
 
   const targetMember = await FlatMember.findById(flatMemberId);
-  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId });
+  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId, status: 'active' });
   if (!modifiedByMember) {
     throw new Error('You are not a flat member.');
   }
@@ -736,6 +749,9 @@ export const moveInSelf = async (flatMemberId, modifiedByUserId, moveOutDate = n
     }
   );
 
+  // Clear cache for the owner (logged in user)
+  cacheService.invalidate(modifiedByUserId.toString());
+
   const data = await FlatMember.findById(flatMemberId);
   return {
     success: true,
@@ -747,7 +763,7 @@ export const moveInSelf = async (flatMemberId, modifiedByUserId, moveOutDate = n
 export const moveInTenant = async (flatMemberId, modifiedByUserId, moveInDate) => {
 
   const targetMember = await FlatMember.findById(flatMemberId);
-  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId });
+  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId, status: 'active' });
 
   if (!modifiedByMember) {
     throw new Error('You are not a flat member.');
@@ -837,6 +853,14 @@ export const moveInTenant = async (flatMemberId, modifiedByUserId, moveInDate) =
       status: 'active'
     }
   }, { new: true });
+
+  // Clear cache for tenant and tenant members of this flat
+  const tenantAndTenantMembers = await FlatMember.find({
+    flatId: flatId,
+    $or: [{ isTenant: true }, { isTenantMember: true }],
+    status: 'active'
+  });
+  tenantAndTenantMembers.forEach((m) => cacheService.invalidate(m.userId.toString()));
 };
 
 export const getCurrentResidingType = async (flatId) => {

@@ -11,7 +11,7 @@ export const getUserChatRooms = async (userId, filters = {}) => {
   try {
     const { societyId, flatId, type } = filters;
 
-    const membershipQuery = { userId, isDeleted: { $ne: true } };
+    const membershipQuery = { userId, isDeleted: { $ne: true }, status: 'active' };
     if (societyId) membershipQuery.societyId = societyId;
 
     const conditions = [];
@@ -324,7 +324,7 @@ export const sendMessage = async (roomId, userId, messageData) => {
   const [sender, memberships] = await Promise.all([
     User.findById(userId).select('name profilePicture').lean(),
     isGroupRoom
-      ? FlatMember.find({ userId, societyId: room.societyId, isDeleted: { $ne: true } }).lean()
+      ? FlatMember.find({ userId, societyId: room.societyId, isDeleted: { $ne: true }, status: 'active' }).lean()
       : Promise.resolve([])
   ]);
 
@@ -413,7 +413,7 @@ export const getRoomParticipantIds = async (room) => {
   // --- society_all: fetch all three sources in parallel ---
   if (room.type === 'society_all') {
     const [members, society, security] = await Promise.all([
-      FlatMember.find({ societyId, isDeleted: { $ne: true } }).distinct('userId'),
+      FlatMember.find({ societyId, isDeleted: { $ne: true }, status: 'active' }).distinct('userId'),
       Society.findById(societyId).select('adminContacts managerIds').lean(),
       Security.find({ societyId, status: 'active' }).distinct('userId')
     ]);
@@ -429,8 +429,8 @@ export const getRoomParticipantIds = async (room) => {
 
     const [society, owners, tenants, security] = await Promise.all([
       needsManagers ? Society.findById(societyId).select('adminContacts managerIds').lean() : Promise.resolve(null),
-      needsOwners ? FlatMember.find({ societyId, isOwner: true, isDeleted: { $ne: true } }).distinct('userId') : Promise.resolve([]),
-      needsTenants ? FlatMember.find({ societyId, isTenant: true, isDeleted: { $ne: true } }).distinct('userId') : Promise.resolve([]),
+      needsOwners ? FlatMember.find({ societyId, isOwner: true, isDeleted: { $ne: true }, status: 'active' }).distinct('userId') : Promise.resolve([]),
+      needsTenants ? FlatMember.find({ societyId, isTenant: true, isDeleted: { $ne: true }, status: 'active' }).distinct('userId') : Promise.resolve([]),
       needsSecurity ? Security.find({ societyId, status: 'active' }).distinct('userId') : Promise.resolve([])
     ]);
 
@@ -460,7 +460,7 @@ export const getRoomParticipantIds = async (room) => {
     if (room.type === 'building_all') {
       // Fetch residents and security in parallel (flat IDs already known)
       const [residents, security] = await Promise.all([
-        FlatMember.find({ societyId, flatId: { $in: buildingFlatIds }, isDeleted: { $ne: true } }).distinct('userId'),
+        FlatMember.find({ societyId, flatId: { $in: buildingFlatIds }, isDeleted: { $ne: true }, status: 'active' }).distinct('userId'),
         Security.find({ societyId, status: 'active' }).distinct('userId')
       ]);
       userIds.push(...residents, ...security);
@@ -469,7 +469,8 @@ export const getRoomParticipantIds = async (room) => {
         societyId,
         isOwner: true,
         flatId: { $in: buildingFlatIds },
-        isDeleted: { $ne: true }
+        isDeleted: { $ne: true },
+        status: 'active'
       }).distinct('userId');
       userIds.push(...owners);
     }
@@ -478,7 +479,7 @@ export const getRoomParticipantIds = async (room) => {
 
   if (room.type.startsWith('flat_')) {
     const flatId = room.flatId?._id || room.flatId;
-    const memberships = await FlatMember.find({ flatId, isDeleted: { $ne: true } }).lean();
+    const memberships = await FlatMember.find({ flatId, isDeleted: { $ne: true }, status: 'active' }).lean();
 
     let userIds = [];
     if (room.type === 'flat_owner_members') {
@@ -775,7 +776,7 @@ const userHasRoomAccess = async (userId, room) => {
     const [society, isSecurity, userFlatMemberships] = await Promise.all([
       Society.findById(societyId).select('adminContacts managerIds').lean(),
       Security.exists({ societyId, userId, status: 'active' }),
-      FlatMember.find({ userId, societyId, isDeleted: { $ne: true } }).lean()
+      FlatMember.find({ userId, societyId, isDeleted: { $ne: true }, status: 'active' }).lean()
     ]);
     const isSocietyAdmin = society?.adminContacts?.some(id => id?.toString() === userId?.toString());
     const isSocietyManager = society?.managerIds?.some(id => id?.toString() === userId?.toString());

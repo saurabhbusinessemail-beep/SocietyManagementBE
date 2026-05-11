@@ -131,7 +131,8 @@ const getMemberComplaints = async (req, res) => {
     if (complaintType) filter = { ...filter, complaintType };
   } else {
     const flatMembers = await FlatMember.find({
-      userId: logUsr._id
+      userId: logUsr._id,
+      status: 'active'
     });
     const flatIds = flatMembers.map((fm) => fm.flatId.toString());
 

@@ -124,7 +124,8 @@ const checkIfComplaintIsOfUserFlat = async (complaintId, userId) => {
 
   const flatMember = await FlatMember.find({
     flatId: complaint.flatId,
-    userId
+    userId,
+    status: 'active'
   });
   if (flatMember.length === 0) return false;
 
