@@ -155,7 +155,7 @@ export const updatePayment = async (paymentId, data, userId) => {
 export const getRentSummary = async (flatId, month, year) => {
   const tenants = await FlatMember.find({
     flatId,
-    status: 'active',
+    status: { $nin: ['expired', 'terminated'] },
     isTenant: true
   }).lean();
   
@@ -214,7 +214,7 @@ export const getRentSummary = async (flatId, month, year) => {
 export const getMonthlyReport = async (flatId, month, year) => {
   const tenants = await FlatMember.find({
     flatId,
-    status: 'active',
+    status: { $nin: ['expired', 'terminated'] },
     isTenant: true
   }).populate('userId', 'name phoneNumber profilePicture').lean();
 
@@ -328,7 +328,7 @@ export const sendReminder = async (societyId, flatId, tenantId, month, year, fro
   const member = await FlatMember.findOne({
     _id: tenantId,
     flatId,
-    status: 'active',
+    status: { $nin: ['expired', 'terminated'] },
     isTenant: true
   }).populate('userId').lean();
 
@@ -382,7 +382,7 @@ export const sendReminder = async (societyId, flatId, tenantId, month, year, fro
 export const remindAll = async (societyId, flatId, month, year, fromUser) => {
   const tenants = await FlatMember.find({
     flatId,
-    status: 'active',
+    status: { $nin: ['expired', 'terminated'] },
     isTenant: true
   }).lean();
   
@@ -468,7 +468,7 @@ export const getMergedLogs = async (societyId, flatId, filters = {}) => {
   // Get owner details
   const owner = await FlatMember.findOne({
     flatId,
-    status: 'active',
+    status: { $nin: ['expired', 'terminated'] },
     isOwner: true
   }).populate('userId', 'name phoneNumber profilePicture').lean();
 

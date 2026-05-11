@@ -15,7 +15,7 @@ export const recordPayment = async (req, res, next) => {
     const { societyId, flatId, flatMemberId, amount, month, year, paymentMethod, paymentDetails, paidOn, note } = req.body;
 
     // Determine if user is owner of this flat
-    const ownerMember = await FlatMember.findOne({ flatId, userId: user._id, isOwner: true, status: 'active' });
+    const ownerMember = await FlatMember.findOne({ flatId, userId: user._id, isOwner: true, status: { $nin: ['expired', 'terminated'] } });
     const isOwner = !!ownerMember;
 
     const paymentData = {
@@ -308,7 +308,7 @@ export const deletePayment = async (req, res, next) => {
  */
 async function notifyOwnerOfPayment(fromUser, flatId, payment) {
   const { FlatMember } = require('../models');
-  const ownerMembers = await FlatMember.find({ flatId, isOwner: true, status: 'active' }).populate('userId');
+  const ownerMembers = await FlatMember.find({ flatId, isOwner: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId');
   if (!ownerMembers || ownerMembers.length === 0) return;
 
   for (const ownerRef of ownerMembers) {

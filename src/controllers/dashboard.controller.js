@@ -10,7 +10,7 @@ export const getPendingApprovals = async (req, res, next) => {
     const userSocieties = res.locals.socities || [];
     const userId = user._id;
 
-    const myFlats = await FlatMember.find({ userId, status: 'active' });
+    const myFlats = await FlatMember.find({ userId, status: { $nin: ['expired', 'terminated'] } });
     const myFlatIds = myFlats.map((f) => f.flatId);
     const myFlatsAsOwner = myFlats.filter((f) => f.isOwner).map((f) => f.flatId);
 

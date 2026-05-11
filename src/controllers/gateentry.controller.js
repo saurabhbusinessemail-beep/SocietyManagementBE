@@ -40,7 +40,7 @@ export const getGateEntries = async (req, res, next) => {
     const mySecuritySocietyIds = societies.filter((s) => (!societyId || s.societyId === societyId) && s.societyRoles.some((sr) => ['security'].includes(sr.name))).map((s) => s.societyId);
 
     // My Flat Ids
-    const flatMembers = await FlatMember.find({ userId: user._id, status: 'active' });
+    const flatMembers = await FlatMember.find({ userId: user._id, status: { $nin: ['expired', 'terminated'] } });
     const myFlatIds = flatMembers.map((fm) => fm.flatId);
 
     // Create Filter

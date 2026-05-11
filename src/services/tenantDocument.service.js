@@ -7,7 +7,7 @@ export const createDocument = async (payload) => {
     
     // Notify Owner
     // Find owner of the flat
-    const owner = await FlatMember.findOne({ flatId: payload.flatId, isOwner: true, status: 'active' }).populate('userId');
+    const owner = await FlatMember.findOne({ flatId: payload.flatId, isOwner: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId');
     if (owner && owner.userId) {
         const ownerUser = owner.userId;
         if (ownerUser.fcmToken) {
@@ -80,7 +80,7 @@ export const sendReminderToAll = async (fromUser, flatId, societyId) => {
     const activeTenants = await FlatMember.find({ 
         flatId, 
         isTenant: true, 
-        status: 'active' 
+        status: { $nin: ['expired', 'terminated'] } 
     }).populate('userId');
 
     for (const tenantMember of activeTenants) {
@@ -92,7 +92,7 @@ export const sendReminderToAll = async (fromUser, flatId, societyId) => {
 
 export const getDocumentStats = async (flatId) => {
     // Get active tenants for the flat
-    const activeTenants = await FlatMember.find({ flatId, isTenant: true, status: 'active' });
+    const activeTenants = await FlatMember.find({ flatId, isTenant: true, status: { $nin: ['expired', 'terminated'] } });
     
     const tenantIds = activeTenants.map(t => t.userId);
     

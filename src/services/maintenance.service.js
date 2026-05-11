@@ -121,7 +121,7 @@ export const getMonthlyReport = async (societyId, month, year) => {
   const flatMembers = await FlatMember.find({
     societyId,
     flatId: { $in: flatIds },
-    status: 'active',
+    status: { $nin: ['expired', 'terminated'] },
     $or: [{ isOwner: true }, { isTenant: true }]
   }).populate('userId', 'name phoneNumber profilePicture').lean();
 
@@ -373,7 +373,7 @@ export const sendReminder = async (societyId, flatId, month, year, fromUser) => 
 
   const members = await FlatMember.find({
     flatId,
-    status: 'active',
+    status: { $nin: ['expired', 'terminated'] },
     $or: [{ isOwner: true }, { isTenant: true }]
   }).populate('userId').lean();
 
@@ -501,7 +501,7 @@ export const getMergedLogs = async (societyId, flatId, filters = {}) => {
   // Get owner details
   const owner = await FlatMember.findOne({
     flatId,
-    status: 'active',
+    status: { $nin: ['expired', 'terminated'] },
     isOwner: true
   }).populate('userId', 'name phoneNumber profilePicture').lean();
 

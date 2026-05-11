@@ -118,8 +118,8 @@ async function canApprove(approver, requestType, requestData) {
     if (requestType === 'FlatMember') {
         const { flatId, isOwner, isTenant, isMember, isTenantMember, societyId } = requestData;
 
-        const flatOwner = await FlatMember.findOne({ flatId, isOwner: true, status: 'active' }).populate('userId');
-        const flatTenant = await FlatMember.findOne({ flatId, isTenant: true, status: 'active' }).populate('userId');
+        const flatOwner = await FlatMember.findOne({ flatId, isOwner: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId');
+        const flatTenant = await FlatMember.findOne({ flatId, isTenant: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId');
 
         const isApproverOwner = flatOwner && flatOwner.userId._id.toString() === approver._id.toString();
         const isApproverTenant = flatTenant && flatTenant.userId._id.toString() === approver._id.toString();
@@ -155,12 +155,12 @@ async function getApproversForRequest(requestType, requestData) {
                 if (society.managerIds) approvers.push(...society.managerIds);
             }
         } else if (isTenant || isMember) {
-            const flatOwner = await FlatMember.findOne({ flatId, isOwner: true, status: 'active' }).populate('userId');
+            const flatOwner = await FlatMember.findOne({ flatId, isOwner: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId');
             if (flatOwner && flatOwner.userId) approvers.push(flatOwner.userId);
         } else if (isTenantMember) {
-            const flatOwner = await FlatMember.findOne({ flatId, isOwner: true, status: 'active' }).populate('userId');
+            const flatOwner = await FlatMember.findOne({ flatId, isOwner: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId');
             if (flatOwner && flatOwner.userId) approvers.push(flatOwner.userId);
-            const flatTenant = await FlatMember.findOne({ flatId, isTenant: true, status: 'active' }).populate('userId');
+            const flatTenant = await FlatMember.findOne({ flatId, isTenant: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId');
             if (flatTenant && flatTenant.userId) approvers.push(flatTenant.userId);
         }
     }

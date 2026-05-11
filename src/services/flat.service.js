@@ -38,7 +38,7 @@ export const getFlatsBySocietyAndBuilding = async (filter, options = {}) => {
   const owners = await FlatMember.find({
     flatId: { $in: flatIds },
     isOwner: true,
-    status: 'active'
+    status: { $nin: ['expired', 'terminated'] }
   });
 
   const ownerMap = owners.reduce((acc, owner) => {
@@ -77,7 +77,7 @@ export const myFlats = async (userId, societyId = null, options = {}) => {
   const { page = 1, limit = 1000 } = options;
   const skip = (page - 1) * limit;
 
-  let filter = { userId: userId, status: 'active' };
+  let filter = { userId: userId, status: { $nin: ['expired', 'terminated'] } };
   if (societyId) {
     filter = { ...filter, societyId };
   }
@@ -103,8 +103,8 @@ export const myFlats = async (userId, societyId = null, options = {}) => {
   const flatIds = data.map(member => member.flatId?._id).filter(id => id);
 
   const [tenants, owners] = await Promise.all([
-    FlatMember.find({ flatId: { $in: flatIds }, isTenant: true, status: 'active' }).populate('userId'),
-    FlatMember.find({ flatId: { $in: flatIds }, isOwner: true, status: 'active' }).populate('userId')
+    FlatMember.find({ flatId: { $in: flatIds }, isTenant: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId'),
+    FlatMember.find({ flatId: { $in: flatIds }, isOwner: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId')
   ]);
 
   const tenantMap = tenants.reduce((acc, tenant) => {
@@ -146,11 +146,11 @@ export const myFlats = async (userId, societyId = null, options = {}) => {
 };
 
 export const getFlatOwner = async (flatId) => {
-  return FlatMember.findOne({ flatId, isOwner: true, status: 'active' }).populate('userId');
+  return FlatMember.findOne({ flatId, isOwner: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId');
 }
 
 export const getFlatTenant = async (flatId) => {
-  return FlatMember.findOne({ flatId, isTenant: true, status: 'active' }).populate('userId');
+  return FlatMember.findOne({ flatId, isTenant: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId');
 }
 
 export const canAddDirectly = async (requester, memberData) => {
@@ -179,7 +179,7 @@ export const canAddDirectly = async (requester, memberData) => {
 
 
 export const myFlatIds = async (userId, societyId = null) => {
-  let filter = { userId: { $in: userId }, status: 'active' };
+  let filter = { userId: { $in: userId }, status: { $nin: ['expired', 'terminated'] } };
   if (societyId) {
     filter = { ...filter, societyId };
   }
@@ -191,7 +191,7 @@ export const myTenants = async (userId, societyId = null, flatId = null, options
   const { page = 1, limit = 1000 } = options;
   const skip = (page - 1) * limit;
 
-  const myFlatMemberRecords = await FlatMember.find({ userId, isOwner: true, status: 'active' });
+  const myFlatMemberRecords = await FlatMember.find({ userId, isOwner: true, status: { $nin: ['expired', 'terminated'] } });
   const myFlats = myFlatMemberRecords.map((fm) => fm.flatId);
 
   let filter = { isTenant: true, flatId: { $in: myFlats } };
@@ -248,7 +248,7 @@ export const myFlatMembers = async (userId, societyId = null, flatId = null, use
   }
 
   // Get user's flat membership records
-  const myFlatMemberRecords = await FlatMember.find({ userId, status: 'active' });
+  const myFlatMemberRecords = await FlatMember.find({ userId, status: { $nin: ['expired', 'terminated'] } });
   const myFlats = myFlatMemberRecords.map((fm) => fm.flatId);
 
   // Build the base filter
@@ -415,7 +415,7 @@ export const flatMember = async (flatMemberId) => {
 export const memberFlats = async (userId, withSocietyRoles = false) => {
   const flats = await FlatMember.find({
     userId: { $in: userId },
-    status: 'active'
+    status: { $nin: ['expired', 'terminated'] }
   });
   if (!flats) return;
 
@@ -457,7 +457,7 @@ export const memberFlats = async (userId, withSocietyRoles = false) => {
 };
 
 export const getFlatMembersByFlatId = (flatId, userId = undefined) => {
-  let filter = { flatId, status: 'active' };
+  let filter = { flatId, status: { $nin: ['expired', 'terminated'] } };
   if (userId) filter.userId = userId;
 
   return FlatMember.find(filter)
@@ -518,7 +518,7 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
 
   // 1. Find the target flat member (the tenant moving out)
   const targetMember = await FlatMember.findById(flatMemberId);
-  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId, status: 'active' });
+  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId, status: { $nin: ['expired', 'terminated'] } });
   if (!modifiedByMember) {
     throw new Error('You are not a flat member.');
   }
@@ -549,7 +549,7 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
     const activeTenants = await FlatMember.find({
       flatId: flatId,
       isTenant: true,
-      status: 'active'
+      status: { $nin: ['expired', 'terminated'] }
     });
 
     for (const tenant of activeTenants) {
@@ -583,7 +583,7 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
     const remainingTenantsCount = await FlatMember.countDocuments({
       flatId: flatId,
       isTenant: true,
-      status: 'active'
+      status: { $nin: ['expired', 'terminated'] }
     });
     if (remainingTenantsCount === 0) isGoingToBeVacant = true;
   } else {
@@ -604,7 +604,7 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
       {
         flatId: flatId,
         isOwner: false,
-        status: 'active'
+        status: { $nin: ['expired', 'terminated'] }
       },
       {
         $set: {
@@ -633,7 +633,7 @@ export const moveOutTenant = async (flatMemberId, moveOutDate, modifiedByUserId)
 
 export const moveOutOwner = async (flatMemberId, modifiedByUserId) => {
   const targetMember = await FlatMember.findById(flatMemberId);
-  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId, status: 'active' });
+  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId, status: { $nin: ['expired', 'terminated'] } });
   if (!modifiedByMember) {
     throw new Error('You are not a flat member.');
   }
@@ -698,7 +698,7 @@ export const moveInSelf = async (flatMemberId, modifiedByUserId, moveOutDate = n
   }
 
   const targetMember = await FlatMember.findById(flatMemberId);
-  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId, status: 'active' });
+  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId, status: { $nin: ['expired', 'terminated'] } });
   if (!modifiedByMember) {
     throw new Error('You are not a flat member.');
   }
@@ -724,7 +724,7 @@ export const moveInSelf = async (flatMemberId, modifiedByUserId, moveOutDate = n
     const activeTenants = await FlatMember.find({
       flatId: flatId,
       isTenant: true,
-      status: 'active'
+      status: { $nin: ['expired', 'terminated'] }
     });
 
     for (const tenant of activeTenants) {
@@ -763,7 +763,7 @@ export const moveInSelf = async (flatMemberId, modifiedByUserId, moveOutDate = n
 export const moveInTenant = async (flatMemberId, modifiedByUserId, moveInDate) => {
 
   const targetMember = await FlatMember.findById(flatMemberId);
-  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId, status: 'active' });
+  const modifiedByMember = await FlatMember.findOne({ userId: modifiedByUserId, flatId: targetMember.flatId, status: { $nin: ['expired', 'terminated'] } });
 
   if (!modifiedByMember) {
     throw new Error('You are not a flat member.');
@@ -801,7 +801,7 @@ export const moveInTenant = async (flatMemberId, modifiedByUserId, moveInDate) =
     const ownerSelf = await FlatMember.findOne({
       flatId,
       isOwner: true,
-      status: 'active'
+      status: { $nin: ['expired', 'terminated'] }
     });
 
     if (ownerSelf) {
@@ -814,7 +814,7 @@ export const moveInTenant = async (flatMemberId, modifiedByUserId, moveInDate) =
     const activeTenant = await FlatMember.findOne({
       flatId,
       isTenant: true,
-      status: 'active',
+      status: { $nin: ['expired', 'terminated'] },
       _id: { $ne: flatMemberId }
     });
 
@@ -858,7 +858,7 @@ export const moveInTenant = async (flatMemberId, modifiedByUserId, moveInDate) =
   const tenantAndTenantMembers = await FlatMember.find({
     flatId: flatId,
     $or: [{ isTenant: true }, { isTenantMember: true }],
-    status: 'active'
+    status: { $nin: ['expired', 'terminated'] }
   });
   tenantAndTenantMembers.forEach((m) => cacheService.invalidate(m.userId.toString()));
 };
@@ -884,7 +884,7 @@ export const updateFlat = async (id, data, modifiedByUserId) => {
 
   if (newMultiTenant !== undefined && oldMultiTenant !== newMultiTenant) {
     // If setting changed, move out all tenants
-    const ownerMember = await FlatMember.findOne({ flatId: id, isOwner: true, status: 'active' });
+    const ownerMember = await FlatMember.findOne({ flatId: id, isOwner: true, status: { $nin: ['expired', 'terminated'] } });
     if (ownerMember) {
       await moveOutTenant(ownerMember._id, new Date(), modifiedByUserId);
     }

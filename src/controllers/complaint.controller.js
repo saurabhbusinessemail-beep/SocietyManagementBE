@@ -132,7 +132,7 @@ const getMemberComplaints = async (req, res) => {
   } else {
     const flatMembers = await FlatMember.find({
       userId: logUsr._id,
-      status: 'active'
+      status: { $nin: ['expired', 'terminated'] }
     });
     const flatIds = flatMembers.map((fm) => fm.flatId.toString());
 

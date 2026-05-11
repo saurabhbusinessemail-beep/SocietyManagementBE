@@ -125,7 +125,7 @@ const checkIfComplaintIsOfUserFlat = async (complaintId, userId) => {
   const flatMember = await FlatMember.find({
     flatId: complaint.flatId,
     userId,
-    status: 'active'
+    status: { $nin: ['expired', 'terminated'] }
   });
   if (flatMember.length === 0) return false;
 
