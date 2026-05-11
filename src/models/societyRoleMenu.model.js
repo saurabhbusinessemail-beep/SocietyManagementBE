@@ -14,4 +14,7 @@ const SocietyRoleMenuSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Role lookup used in menu service (/me flow)
+SocietyRoleMenuSchema.index({ role: 1 });
+
 module.exports = mongoose.model('SocietyRoleMenu', SocietyRoleMenuSchema);

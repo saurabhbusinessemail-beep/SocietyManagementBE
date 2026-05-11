@@ -93,15 +93,16 @@ export const invalidatePlanCache = (societyId) => {
 
 export const createDummySocietyPlan = async (societyId) => {
     try {
-        // Find the Basic pricing plan
-        const basicPlan = await PricingPlan.findOne({ id: 'basic' }).lean();
+        // Find the Basic pricing plan and society in parallel
+        const [basicPlan, society] = await Promise.all([
+            PricingPlan.findOne({ id: 'basic' }).lean(),
+            Society.findById(societyId).lean()
+        ]);
 
         if (!basicPlan) {
             throw new Error('Basic pricing plan not found');
         }
 
-        // Find the society
-        const society = await Society.findById(societyId);
         if (!society) {
             throw new Error('Society not found');
         }

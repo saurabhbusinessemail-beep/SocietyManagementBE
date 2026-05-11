@@ -68,7 +68,7 @@ const changeActivePlan = async (societyId, reason = undefined) => {
 export const getAllPlans = async () => {
     try {
         const plans = await PricingPlan.find({ isActive: true })
-            .sort({ displayOrder: 1, createdAt: 1 });
+            .sort({ displayOrder: 1, createdAt: 1 }).lean();
 
         return {
             success: true,

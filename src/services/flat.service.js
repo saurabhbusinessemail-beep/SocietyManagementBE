@@ -416,7 +416,7 @@ export const memberFlats = async (userId, withSocietyRoles = false) => {
   const flats = await FlatMember.find({
     userId: { $in: userId },
     status: { $nin: ['expired', 'terminated'] }
-  });
+  }).select('societyId flatId isOwner isTenant').lean();
   if (!flats) return;
 
   const myOwnerFlatMemberRecords = flats.filter((f) => f.isOwner);

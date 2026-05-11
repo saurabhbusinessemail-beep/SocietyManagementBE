@@ -24,7 +24,7 @@ export const getAllSocieties = async (filter, options = {}) => {
   const skip = (page - 1) * limit;
   const updatedFilter = applyMandatoryFilter(filter);
   const [data, total] = await Promise.all([
-    Society.find(updatedFilter).skip(skip).limit(limit).sort({ societyName: 1 }).populate('adminContacts').populate('managerIds').populate('createdByUserId').populate('modifiedByUserId'),
+    Society.find(updatedFilter).skip(skip).limit(limit).sort({ societyName: 1 }).populate('adminContacts', 'name email phoneNumber').populate('managerIds', 'name email phoneNumber').populate('createdByUserId', 'name email').populate('modifiedByUserId', 'name email').lean(),
     Society.countDocuments(updatedFilter)
   ]);
 
@@ -202,14 +202,14 @@ export const contactAdminSocieties = async (userId) => {
   return await Society.find({
     adminContacts: { $in: userId },
     ...applyMandatoryFilter()
-  });
+  }).select('_id').lean();
 };
 
 export const managerSocieties = async (userId) => {
   return await Society.find({
     managerIds: { $in: userId },
     ...applyMandatoryFilter()
-  });
+  }).select('_id').lean();
 };
 
 export const getMySocities = async (userId, withSocietyRoles = false) => {

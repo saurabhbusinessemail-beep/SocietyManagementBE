@@ -62,5 +62,7 @@ SocietyPlanSchema.index({ planId: 1 });
 SocietyPlanSchema.index({ societyId: 1, paymentStatus: 1 });
 // purchasedBy ref
 SocietyPlanSchema.index({ purchasedBy: 1 });
+// Active plan lookup with date range (used in planCache.service getActivePlan)
+SocietyPlanSchema.index({ societyId: 1, isActive: 1, startDate: 1, endDate: 1 });
 
 module.exports = mongoose.model("SocietyPlan", SocietyPlanSchema);

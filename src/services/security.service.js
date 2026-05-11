@@ -5,7 +5,7 @@ export const addSecurity = (payload) => {
 };
 
 export const getSecuritySocities = async (userId, withSocietyRoles = false) => {
-  return await Security.find({ userId })
+  return await Security.find({ userId }).select('societyId userId').lean()
 };
 
 export const getSocietySecurities = async (societyId, options = {}) => {
