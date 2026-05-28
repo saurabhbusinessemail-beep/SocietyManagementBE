@@ -2,7 +2,8 @@ const vehicleService = require('../services/vehicle.service');
 
 export const createVehicle = async (req, res, next) => {
   try {
-    const { flatId, vehicleNumber } = req.params.flatId;
+    const flatId = req.params.flatId;
+    const { vehicleNumber } = req.body;
     const payload = { ...req.body, flatId };
 
     if (await vehicleService.vehicleExists(flatId, vehicleNumber)) {
