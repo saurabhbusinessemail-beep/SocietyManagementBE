@@ -63,6 +63,8 @@ export function genericErrorHandler(err, req, res, next) {
   res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
     code: HttpStatus.INTERNAL_SERVER_ERROR,
     data: '',
-    message: err.message
+    message: process.env.NODE_ENV === 'production' 
+      ? 'Internal server error. Please contact administrator.' 
+      : err.message
   });
 }

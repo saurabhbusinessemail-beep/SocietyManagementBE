@@ -72,19 +72,26 @@ export const resendNotification = async (type, dataId) => {
   const notifications = await Notification.find({
     type,
     'data._id': mongoose.Types.ObjectId(dataId)
-  });
+  }).lean();
   if (!notifications || notifications.length === 0) return;
 
-  for (let i = 0; i < notifications.length; i++) {
-    const user = await User.findById(notifications[i].userId);
-    if (!user || !user.fcmToken) continue;
+  // Batch-fetch all users in one query instead of N individual lookups
+  const userIds = [...new Set(notifications.map(n => n.userId.toString()))];
+  const users = await User.find({ _id: { $in: userIds }, fcmToken: { $exists: true, $ne: '' } }).select('fcmToken').lean();
+  const userMap = users.reduce((acc, u) => { acc[u._id.toString()] = u; return acc; }, {});
 
-    await sendNotificationToUser(user.fcmToken, notifications[i].title, notifications[i].message, {
-      notificationId: notifications[i]._id,
-      gateEntryId: dataId,
-      type: notifications[i].type
+  const promises = notifications
+    .filter(n => userMap[n.userId.toString()])
+    .map(n => {
+      const user = userMap[n.userId.toString()];
+      return sendNotificationToUser(user.fcmToken, n.title, n.message, {
+        notificationId: n._id,
+        gateEntryId: dataId,
+        type: n.type
+      });
     });
-  }
+
+  if (promises.length > 0) await Promise.all(promises);
 };
 
 export const sendGateEntryResponseNotification = async (fromUser, toUserId, gateEntry, fcmToken) => {

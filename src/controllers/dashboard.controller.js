@@ -14,7 +14,6 @@ export const getPendingApprovals = async (req, res, next) => {
     const myFlatIds = myFlats.map((f) => f.flatId);
     const myFlatsAsOwner = myFlats.filter((f) => f.isOwner).map((f) => f.flatId);
 
-    const approvals = {};
 
     // 1. Gate Entries
     const gateEntryFilter = { $or: [] };
@@ -27,10 +26,13 @@ export const getPendingApprovals = async (req, res, next) => {
       });
     }
 
-    // As Security - See pending and today's approved
+    // Build all query conditions upfront, then run in parallel
     const securitySocietyIds = userSocieties
       .filter((s) => s.societyRoles.some((sr) => sr.name === 'security'))
       .map((s) => s.societyId);
+
+    // --- Build queries ---
+    const queries = {};
 
     if (securitySocietyIds.length > 0) {
       const { start, end } = getISTDayRange(new Date());
@@ -42,24 +44,25 @@ export const getPendingApprovals = async (req, res, next) => {
         ]
       });
     }
-
     if (gateEntryFilter.$or.length > 0) {
-      approvals.gateEntries = await GateEntry.find(gateEntryFilter)
+      queries.gateEntries = GateEntry.find(gateEntryFilter)
         .sort({ updatedAt: -1 })
         .populate({
           path: 'flatId',
-          populate: { path: 'buildingId' }
+          select: 'flatNumber floor buildingId',
+          populate: { path: 'buildingId', select: 'buildingNumber' }
         })
-        .populate('societyId')
-        .limit(10);
+        .populate('societyId', 'societyName')
+        .limit(10)
+        .lean();
     }
 
     // 2. Society Addition (Admin role)
     if (user.role === 'admin') {
-      approvals.societies = await Society.find({
-        isApproved: { $ne: true },
-        isRejected: { $ne: true }
-      }).limit(10);
+      queries.societies = Society.find({
+        isApproved: false,
+        $or: [{ isRejected: false }, { isRejected: { $exists: false } }]
+      }).select('societyName address').limit(10).lean();
     }
 
     // 3. Join Requests (ApprovalRequest)
@@ -89,57 +92,56 @@ export const getPendingApprovals = async (req, res, next) => {
     }
 
     if (joinRequestFilter.$or.length > 0) {
-      approvals.joinRequests = await ApprovalRequest.find(joinRequestFilter)
+      queries.joinRequests = ApprovalRequest.find(joinRequestFilter)
         .sort({ createdAt: -1 })
-        .populate('societyId')
-        .populate({
-          path: 'flatId',
-          populate: { path: 'buildingId' }
-        })
-        .limit(10);
+        .populate('societyId', 'societyName')
+        .populate({ path: 'flatId', select: 'flatNumber floor buildingId', populate: { path: 'buildingId', select: 'buildingNumber' } })
+        .limit(10)
+        .lean();
     }
 
     // 4. Rent Payments
     if (myFlatsAsOwner.length > 0) {
-      approvals.rentPayments = await RentPayment.find({
+      queries.rentPayments = RentPayment.find({
         flatId: { $in: myFlatsAsOwner },
         status: 'pending_approval'
       })
-        .populate({
-          path: 'flatId',
-          populate: { path: 'buildingId' }
-        })
-        .populate('flatMemberId')
-        .limit(10);
+        .populate({ path: 'flatId', select: 'flatNumber floor buildingId', populate: { path: 'buildingId', select: 'buildingNumber' } })
+        .populate('flatMemberId', 'name contact isTenant')
+        .limit(10)
+        .lean();
     }
 
     // 5. Maintenance Payments
     if (adminManagerSocietyIds.length > 0) {
-      approvals.maintenancePayments = await MaintenancePayment.find({
+      queries.maintenancePayments = MaintenancePayment.find({
         societyId: { $in: adminManagerSocietyIds },
         status: 'pending_approval'
       })
-        .populate({
-          path: 'flatId',
-          populate: { path: 'buildingId' }
-        })
-        .populate('societyId')
-        .limit(10);
+        .populate({ path: 'flatId', select: 'flatNumber floor buildingId', populate: { path: 'buildingId', select: 'buildingNumber' } })
+        .populate('societyId', 'societyName')
+        .limit(10)
+        .lean();
     }
 
     // 6. Tenant Documents
     if (myFlatsAsOwner.length > 0) {
-      approvals.tenantDocuments = await TenantDocument.find({
+      queries.tenantDocuments = TenantDocument.find({
         flatId: { $in: myFlatsAsOwner },
         status: 'pending'
       })
-        .populate({
-          path: 'flatId',
-          populate: { path: 'buildingId' }
-        })
-        .populate('tenantId')
-        .limit(10);
+        .populate({ path: 'flatId', select: 'flatNumber floor buildingId', populate: { path: 'buildingId', select: 'buildingNumber' } })
+        .populate('tenantId', 'name phoneNumber')
+        .limit(10)
+        .lean();
     }
+
+    // --- Fire ALL queries in parallel ---
+    const queryKeys = Object.keys(queries);
+    const queryResults = await Promise.all(queryKeys.map(k => queries[k]));
+
+    const approvals = {};
+    queryKeys.forEach((key, i) => { approvals[key] = queryResults[i]; });
 
     // Filter out empty categories
     const result = {};

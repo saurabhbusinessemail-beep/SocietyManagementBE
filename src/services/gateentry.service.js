@@ -29,7 +29,18 @@ export const getGateEntries = async (filter, options = {}) => {
     }
   }
 
-  const [data, total] = await Promise.all([GateEntry.find(filter).skip(skip).limit(limit).sort({ createdOn: -1 }).populate('gatePassId').populate('societyId').populate('flatId').populate('approvedBy'), GateEntry.countDocuments(filter)]);
+  const [data, total] = await Promise.all([
+    GateEntry.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdOn: -1 })
+      .populate('gatePassId', 'otp validity')
+      .populate('societyId', 'societyName')
+      .populate('flatId', 'flatNumber floor buildingId')
+      .populate('approvedBy', 'name phoneNumber')
+      .lean(),
+    GateEntry.countDocuments(filter)
+  ]);
 
   return {
     data,
@@ -41,7 +52,11 @@ export const getGateEntries = async (filter, options = {}) => {
 };
 
 export const getGateEntry = async (id) => {
-  const gateEntry = await GateEntry.findById(id).populate('gatePassId').populate('societyId').populate('flatId').populate('approvedBy');
+  const gateEntry = await GateEntry.findById(id)
+    .populate('gatePassId', 'otp validity')
+    .populate('societyId', 'societyName')
+    .populate('flatId', 'flatNumber floor buildingId')
+    .populate('approvedBy', 'name phoneNumber');
 
   if (!gateEntry) {
     throw new Error('Gate entry not found');

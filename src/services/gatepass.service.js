@@ -33,10 +33,11 @@ export const getGatePasses = async (filter, options = {}) => {
       .skip(skip)
       .limit(limit)
       .sort({ createdOn: -1 })
-      .populate('societyId')
-      .populate('flatId')
-      .populate('userId')
-      .populate('createdByUserId'),
+      .populate('societyId', 'societyName')
+      .populate('flatId', 'flatNumber floor buildingId')
+      .populate('userId', 'name phoneNumber')
+      .populate('createdByUserId', 'name phoneNumber')
+      .lean(),
     GatePass.countDocuments(filter)
   ]);
 
@@ -51,10 +52,10 @@ export const getGatePasses = async (filter, options = {}) => {
 
 export const getGatePass = async (id) => {
   const gatePass = await GatePass.findById(id)
-    .populate('societyId')
-    .populate('flatId')
-    .populate('userId')
-    .populate('createdByUserId');
+    .populate('societyId', 'societyName')
+    .populate('flatId', 'flatNumber floor buildingId')
+    .populate('userId', 'name phoneNumber')
+    .populate('createdByUserId', 'name phoneNumber');
 
   if (!gatePass) {
     throw new Error('Gate pass not found');
@@ -120,18 +121,19 @@ export const validateOTP = async (otp, societyId, flatId) => {
   if (flatId) filter.flatId = flatId;
 
   return await GatePass.find(filter)
-    .populate('societyId')
-    .populate('flatId')
-    .populate('userId')
-    .populate('createdByUserId');
+    .populate('societyId', 'societyName')
+    .populate('flatId', 'flatNumber floor buildingId')
+    .populate('userId', 'name phoneNumber')
+    .populate('createdByUserId', 'name phoneNumber')
+    .lean();
 };
 
 export const validateGatePass = async (gatePassId) => {
   const gatePass = await GatePass.findById(gatePassId)
-    .populate('societyId')
-    .populate('flatId')
-    .populate('userId')
-    .populate('createdByUserId');
+    .populate('societyId', 'societyName')
+    .populate('flatId', 'flatNumber floor buildingId')
+    .populate('userId', 'name phoneNumber')
+    .populate('createdByUserId', 'name phoneNumber');
 
   if (!gatePass) {
     throw new Error('Gate pass not found');

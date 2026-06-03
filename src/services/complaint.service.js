@@ -46,10 +46,12 @@ export const getComplaints = async (filter, options = {}) => {
       .skip(skip)
       .limit(limit)
       .sort({ floor: 1, flatNumber: 1 })
-      .populate('flatId')
-      .populate('societyId')
-      .populate('assignedTo')
-      .populate('createdByUserId'),
+      .populate('flatId', 'flatNumber floor buildingId')
+      .populate('societyId', 'societyName')
+      .populate('assignedTo', 'name phoneNumber')
+      .populate('createdByUserId', 'name phoneNumber')
+      .populate('modifiedByUserId', 'name phoneNumber')
+      .lean(),
     Complaint.countDocuments(filter)
   ]);
 
@@ -86,14 +88,14 @@ export const updateStatus = async (
 
   if (
     newStatus === 'closed' &&
-    !(await checkIfComplaintIsOfUserFlat(complaintId, userId))
+    !(await checkIfComplaintIsOfUserFlat(complaint, userId))
   ) {
     throw new Error('Access denied');
   }
 
   if (
     ['approved', 'rejected', 'in_progress'].includes(newStatus) &&
-    !(await checkIfUserIsManagerOfSocietyOfComplaint(complaintId, userSocities))
+    !(await checkIfUserIsManagerOfSocietyOfComplaint(complaint, userSocities))
   ) {
     throw new Error('Access denied');
   }
@@ -118,21 +120,20 @@ export const updateStatus = async (
   );
 };
 
-const checkIfComplaintIsOfUserFlat = async (complaintId, userId) => {
-  const complaint = await Complaint.findById(complaintId);
+const checkIfComplaintIsOfUserFlat = async (complaint, userId) => {
   if (!complaint) return false;
 
-  const flatMember = await FlatMember.find({
+  const flatMember = await FlatMember.findOne({
     flatId: complaint.flatId,
     userId,
     status: { $nin: ['expired', 'terminated'] }
-  });
-  if (flatMember.length === 0) return false;
+  }).select('isOwner isTenant').lean();
+  if (!flatMember) return false;
 
-  if (flatMember[0].isOwner) return true;
+  if (flatMember.isOwner) return true;
 
-  const isTenant = flatMember[0].isTenant;
-  const isMember = !flatMember[0].isTenant && !flatMember[0].isOwner;
+  const isTenant = flatMember.isTenant;
+  const isMember = !flatMember.isTenant && !flatMember.isOwner;
 
   if (isTenant || (isMember && complaint.createdByUserId?.toString() !== userId.toString()))
     return false;
@@ -141,10 +142,9 @@ const checkIfComplaintIsOfUserFlat = async (complaintId, userId) => {
 };
 
 const checkIfUserIsManagerOfSocietyOfComplaint = async (
-  complaintId,
+  complaint,
   userSocities
 ) => {
-  const complaint = await Complaint.findById(complaintId);
   if (!complaint) return false;
 
   const hasSocietyWithManagerRole = userSocities.some(

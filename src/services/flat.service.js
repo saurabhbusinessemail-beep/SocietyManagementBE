@@ -478,19 +478,22 @@ export const loopThroughGateEntryFlatMembers = async (gateEntry, fromUser, callB
   const arrNotificationPromises = [];
 
   for (let i = 0; i < flatMembers.length; i++) {
-    const toUserId = flatMembers[i].userId;
-    if (toUserId === fromUser._id) continue;
+    const toUser = flatMembers[i].userId;
+    if (!toUser || !toUser._id) continue;
 
-    const user = await UserService.getUser(toUserId);
-    if (!user || !user.fcmToken) continue;
+    const toUserId = toUser._id;
+    if (toUserId.toString() === fromUser._id.toString()) continue;
+    if (!toUser.fcmToken) continue;
 
-    arrNotificationPromises.push(callBack(toUserId, user));
+    arrNotificationPromises.push(callBack(toUserId, toUser));
   }
 
-  if (includeSecurity && gateEntry.createdByUserId !== fromUser._id) {
+  if (includeSecurity && gateEntry.createdByUserId && gateEntry.createdByUserId.toString() !== fromUser._id.toString()) {
     console.log('sending notification to security ', gateEntry.createdByUserId);
     const user = await UserService.getUser(gateEntry.createdByUserId);
-    arrNotificationPromises.push(callBack(gateEntry.createdByUserId, user));
+    if (user && user.fcmToken) {
+      arrNotificationPromises.push(callBack(gateEntry.createdByUserId, user));
+    }
   }
 
   if (arrNotificationPromises.length > 0) await Promise.all(arrNotificationPromises);

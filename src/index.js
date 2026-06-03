@@ -4,6 +4,7 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 
 import routes from './routes';
 import database from './config/database';
@@ -13,6 +14,7 @@ import {
   genericErrorHandler,
   notFound
 } from './middlewares/error.middleware';
+import { apiLimiter } from './middlewares/rateLimit.middleware';
 // import logger, { logStream } from './config/logger';
 
 import morgan from 'morgan';
@@ -29,6 +31,8 @@ app.use(cors({
   credentials: true
 }));
 app.use(helmet());
+app.use(compression()); // Compress all responses for enhanced load performance
+app.use(apiLimiter); // Apply rate limit to protect backend resources
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.json({ limit: '10mb' }));
 // app.use(morgan('combined', { stream: logStream }));

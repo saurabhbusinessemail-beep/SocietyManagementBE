@@ -61,8 +61,9 @@ export const getVehicles = async (filter, options = {}) => {
       .skip(skip)
       .limit(limit)
       .sort({ createdOn: 1 })
-      .populate('flatId')
-      .populate('createdByUserId'),
+      .populate('flatId', 'flatNumber floor buildingId')
+      .populate('createdByUserId', 'name phoneNumber')
+      .lean(),
     Vehicle.countDocuments(filter)
   ]);
 
@@ -84,7 +85,7 @@ export const getVehiclesBySociety = async (societyId, options = {}) => {
   }
 
   // Find all flats in the society
-  const flats = await Flat.find({ societyId }).select('_id');
+  const flats = await Flat.find({ societyId }).select('_id').lean();
   const flatIds = flats.map(f => f._id);
 
   const filter = { flatId: { $in: flatIds } };
@@ -96,12 +97,15 @@ export const getVehicleById = async (id) => {
   const vehicle = await Vehicle.findById(id)
     .populate({
       path: 'flatId',
+      select: 'flatNumber floor buildingId societyId',
       populate: {
         path: 'societyId',
-        model: 'Society'
+        model: 'Society',
+        select: 'societyName'
       }
     })
-    .populate('createdByUserId');
+    .populate('createdByUserId', 'name phoneNumber')
+    .lean();
 
   if (!vehicle) {
     throw new Error('Vehicle not found');

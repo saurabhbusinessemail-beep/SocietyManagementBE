@@ -390,19 +390,19 @@ export const sendReminder = async (societyId, flatId, month, year, fromUser) => 
   const SMSService = require('./sms.service');
   const NotificationService = require('./notification.service');
 
-  for (const member of members) {
-    if (!member.userId) continue;
+  const promises = members.map(async (member) => {
+    if (!member.userId) return;
 
-    // Send Notification
-    if (member.userId.fcmToken) {
-      await NotificationService.sendMaintenanceReminderNotification(fromUser, member.userId._id, reminderData, member.userId.fcmToken);
-    }
+    // Send Notification & SMS in parallel
+    const notificationPromise = member.userId.fcmToken
+      ? NotificationService.sendMaintenanceReminderNotification(fromUser, member.userId._id, reminderData, member.userId.fcmToken)
+      : Promise.resolve();
 
-    // Send SMS
-    if (process.env.SEND_MESSAGES === 'true' && member.contact) {
-      await SMSService.sendMaintenanceReminderSMS(reminderData, member.contact);
-    }
-    
+    const smsPromise = (process.env.SEND_MESSAGES === 'true' && member.contact)
+      ? SMSService.sendMaintenanceReminderSMS(reminderData, member.contact)
+      : Promise.resolve();
+
+    await Promise.all([notificationPromise, smsPromise]);
 
     results.push({ name: member.name, status: 'sent' });
 
@@ -419,8 +419,9 @@ export const sendReminder = async (societyId, flatId, month, year, fromUser) => 
       createdByUserId: fromUser,
       createdOn: new Date()
     });
-  }
+  });
 
+  await Promise.all(promises);
   return results;
 };
 
@@ -433,7 +434,7 @@ export const remindAll = async (societyId, month, year, fromUser) => {
   
   const overallResults = [];
   
-  for (const entry of pendingEntries) {
+  const promises = pendingEntries.map(async (entry) => {
     try {
       const flatResults = await sendReminder(societyId, entry.flatId, month, year, fromUser);
       overallResults.push({
@@ -443,8 +444,9 @@ export const remindAll = async (societyId, month, year, fromUser) => {
     } catch (err) {
       console.error(`Failed to send reminder for flat ${entry.flatNumber}:`, err);
     }
-  }
+  });
   
+  await Promise.all(promises);
   return overallResults;
 };
 

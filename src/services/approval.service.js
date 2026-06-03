@@ -118,8 +118,10 @@ async function canApprove(approver, requestType, requestData) {
     if (requestType === 'FlatMember') {
         const { flatId, isOwner, isTenant, isMember, isTenantMember, societyId } = requestData;
 
-        const flatOwner = await FlatMember.findOne({ flatId, isOwner: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId');
-        const flatTenant = await FlatMember.findOne({ flatId, isTenant: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId');
+        const [flatOwner, flatTenant] = await Promise.all([
+            FlatMember.findOne({ flatId, isOwner: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId'),
+            FlatMember.findOne({ flatId, isTenant: true, status: { $nin: ['expired', 'terminated'] } }).populate('userId')
+        ]);
 
         const isApproverOwner = flatOwner && flatOwner.userId._id.toString() === approver._id.toString();
         const isApproverTenant = flatTenant && flatTenant.userId._id.toString() === approver._id.toString();
@@ -317,13 +319,12 @@ async function getPendingRequestsForApprover(user, pagination) {
     });
 
     const allPending = await ApprovalRequest.aggregate(pipeline);
-    // Filter by canApprove (in memory)
-    const authorised = [];
-    for (const req of allPending) {
-        if (await canApprove(user, req.requestType, req.data)) {
-            authorised.push(req);
-        }
-    }
+
+    // Filter by canApprove in parallel
+    const authChecks = await Promise.all(
+        allPending.map(req => canApprove(user, req.requestType, req.data))
+    );
+    const authorised = allPending.filter((_, index) => authChecks[index]);
 
     // Sort
     const [field, order] = sortBy.split(':');

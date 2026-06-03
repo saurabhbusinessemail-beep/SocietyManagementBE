@@ -57,9 +57,13 @@ export const deleteDocument = async (id) => {
     return await TenantDocument.findByIdAndDelete(id);
 };
 
-export const sendReminder = async (fromUser, tenantId, flatId, societyId) => {
-    const tenant = await User.findById(tenantId);
-    const flat = await Flat.findById(flatId);
+export const sendReminder = async (fromUser, tenantId, flatId, societyId, tenantObj = null, flatObj = null) => {
+    const [tenant, flat] = await Promise.all([
+        tenantObj ? Promise.resolve(tenantObj) : User.findById(tenantId).lean(),
+        flatObj ? Promise.resolve(flatObj) : Flat.findById(flatId).lean()
+    ]);
+
+    if (!tenant || !flat) return;
     
     const data = {
         flatNumber: flat.flatNumber,
@@ -67,27 +71,37 @@ export const sendReminder = async (fromUser, tenantId, flatId, societyId) => {
         flatId
     };
 
+    const notificationPromises = [];
     if (tenant.fcmToken) {
-        await NotificationService.sendTenantDocumentReminderNotification(fromUser, tenantId, data, tenant.fcmToken);
+        notificationPromises.push(NotificationService.sendTenantDocumentReminderNotification(fromUser, tenant._id, data, tenant.fcmToken));
     }
     if (process.env.SEND_MESSAGES === 'true' && tenant.phoneNumber) {
-        await SMSService.sendTenantDocumentReminderSMS(data, tenant.phoneNumber);
+        notificationPromises.push(SMSService.sendTenantDocumentReminderSMS(data, tenant.phoneNumber));
+    }
+
+    if (notificationPromises.length > 0) {
+        await Promise.all(notificationPromises);
     }
 };
 
 export const sendReminderToAll = async (fromUser, flatId, societyId) => {
-    // Get all active tenants for the flat
-    const activeTenants = await FlatMember.find({ 
-        flatId, 
-        isTenant: true, 
-        status: { $nin: ['expired', 'terminated'] } 
-    }).populate('userId');
+    // Get all active tenants for the flat and flat details in parallel
+    const [activeTenants, flat] = await Promise.all([
+        FlatMember.find({ 
+            flatId, 
+            isTenant: true, 
+            status: { $nin: ['expired', 'terminated'] } 
+        }).populate('userId').lean(),
+        Flat.findById(flatId).lean()
+    ]);
 
-    for (const tenantMember of activeTenants) {
-        if (tenantMember.userId) {
-            await sendReminder(fromUser, tenantMember.userId._id, flatId, societyId);
-        }
-    }
+    if (!flat) return;
+
+    const promises = activeTenants
+        .filter(t => t.userId)
+        .map(tenantMember => sendReminder(fromUser, tenantMember.userId._id, flatId, societyId, tenantMember.userId, flat));
+
+    await Promise.all(promises);
 };
 
 export const getDocumentStats = async (flatId) => {
